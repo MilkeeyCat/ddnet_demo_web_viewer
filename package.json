@@ -7,12 +7,16 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "watch": "nodemon --watch 'src/**/*' --ext 'ts' --exec 'tsc && pnpm run start'",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "keywords": [],
   "author": "MilkeeyCat",
   "license": "ISC",
   "devDependencies": {
+    "@types/jest": "^29.5.3",
+    "jest": "^29.6.2",
+    "nodemon": "^3.0.1",
+    "ts-jest": "^29.1.1",
     "typescript": "^5.1.6"
   }
 }

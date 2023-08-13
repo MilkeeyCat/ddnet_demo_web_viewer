@@ -1,1 +1,1 @@
-console.log("Aint way");
+console.log("Aint no way");
