@@ -1,3 +1,4 @@
+import { Game } from '../game';
 import { Huffman } from '../huffman';
 import { FREQUENCIES } from '../huffman/frequencies';
 import { Unpacker } from '../unpacker';
@@ -27,7 +28,7 @@ type Demo = {
     versionHeader: VersionHeader;
     header: Header;
     timelineMarkers: TimelineMarkers;
-    chunks: Chunk[];
+    chunks: (Chunk | ReturnType<typeof Game.decodeMsg>)[];
 };
 
 type ChunkHeader =
@@ -243,19 +244,21 @@ export class DemoReader {
             const data = huffman.decompress(this.readRaw(chunkHeader.size));
 
             if (chunkHeader.type == 'MESSAGE') {
-                return new Message(data);
-            } else if (chunkHeader.type == 'SNAPSHOT') {
-                const result: number[] = [];
+                let result: number[] = [];
+
                 let unpacker = new Unpacker(data);
 
                 while (unpacker.data.length > 0) {
                     const num = unpacker.readInt();
 
                     const bytes = LeI32.fromI32(num);
-                    result.concat(bytes);
+
+                    result = result.concat(bytes);
                 }
 
-                return new Snapshot(new Uint8Array(result));
+                return new Message(new Uint8Array(result));
+            } else if (chunkHeader.type == 'SNAPSHOT') {
+                return new Snapshot(data)
             } else if (chunkHeader.type == 'SNAPSHOT_DELTA') {
                 return new SnapshotDelta(data);
             }
@@ -264,14 +267,23 @@ export class DemoReader {
         return null;
     }
 
-    public readChunks(): Chunk[] {
-        const chunks: Chunk[] = [];
+    public readChunks(): (Chunk | ReturnType<typeof Game.decodeMsg>)[] {
+        const chunks: (Chunk | ReturnType<typeof Game.decodeMsg>)[] = [];
 
         while (this.buffer.length > 0) {
             const chunk = this.readChunk();
 
             if (chunk) {
-                chunks.push(chunk);
+                if (chunk instanceof Message) {
+                    const unpacker = new Unpacker(chunk.data);
+
+                    const realChunk = Game.decode(unpacker);
+                    console.log(realChunk);
+
+                    chunks.push(realChunk);
+                } else {
+                    chunks.push(chunk);
+                }
             } else {
                 break;
             }
