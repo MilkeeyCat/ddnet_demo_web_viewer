@@ -33,15 +33,15 @@ type Demo = {
 
 type ChunkHeader =
     | {
-        isTick: false;
-        type: 'MESSAGE' | 'SNAPSHOT' | 'SNAPSHOT_DELTA';
-        size: number;
-    }
+          isTick: false;
+          type: 'MESSAGE' | 'SNAPSHOT' | 'SNAPSHOT_DELTA';
+          size: number;
+      }
     | {
-        isTick: true;
-        inlineTick: boolean;
-        tickDelta: number;
-    };
+          isTick: true;
+          inlineTick: boolean;
+          tickDelta: number;
+      };
 
 class Message {
     data: Uint8Array;
@@ -59,11 +59,60 @@ class Tick {
     }
 }
 
-class Snapshot {
-    data: Uint8Array;
+export class Snapshot {
+    unpacker: Unpacker;
+    numItems: number;
+    dataSize: number;
+    offsets: number[];
+    snaps: any[];
 
-    constructor(bytes: Uint8Array) {
-        this.data = bytes;
+    constructor(unpacker: Unpacker) {
+        this.unpacker = unpacker;
+        this.offsets = [];
+        this.snaps = [];
+
+        this.dataSize = unpacker.readInt();
+        this.numItems = unpacker.readInt();
+
+        for (let i = 0; i < this.numItems; i++) {
+            this.offsets.push(unpacker.readInt());
+        }
+
+        for (let i = 0; i < this.numItems; i++) {
+            const typeAndId = this.unpacker.readInt();
+            const id = typeAndId >> 16;
+            const type = typeAndId & 0xffff;
+            const data: number[] = [];
+            const size = this.calcSize(i);
+
+            for (let j = 0; j < size; j++) {
+                data.push(this.unpacker.readInt());
+            }
+
+            this.snaps.push({
+                id,
+                type,
+                data,
+            });
+        }
+    }
+
+    calcSize(index: number): number {
+        const CSNAPSHOTITEM_SIZE = 4;
+        const INT_SIZE = 4;
+
+        if (index == this.numItems - 1) {
+            return (
+                (this.dataSize - this.offsets[index]! - CSNAPSHOTITEM_SIZE) /
+                INT_SIZE
+            );
+        }
+        return (
+            (this.offsets[index + 1]! -
+                this.offsets[index]! -
+                CSNAPSHOTITEM_SIZE) /
+            INT_SIZE
+        );
     }
 }
 
@@ -258,7 +307,7 @@ export class DemoReader {
 
                 return new Message(new Uint8Array(result));
             } else if (chunkHeader.type == 'SNAPSHOT') {
-                return new Snapshot(data)
+                return new Snapshot(new Unpacker(data));
             } else if (chunkHeader.type == 'SNAPSHOT_DELTA') {
                 return new SnapshotDelta(data);
             }
@@ -278,7 +327,6 @@ export class DemoReader {
                     const unpacker = new Unpacker(chunk.data);
 
                     const realChunk = Game.decode(unpacker);
-                    console.log(realChunk);
 
                     chunks.push(realChunk);
                 } else {
