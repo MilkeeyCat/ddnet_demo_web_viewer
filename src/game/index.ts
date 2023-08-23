@@ -1,4 +1,4 @@
-import { Unpacker } from '../unpacker';
+import { Reader } from '../reader';
 import { Uuid } from '../uuid';
 
 const textDecoder = new TextDecoder();
@@ -55,7 +55,7 @@ const SV_RECORD = Uuid.fromU32([
 ]);
 
 class SystemOrGame {
-    static decode_id(data: Unpacker): [0 | 1, Uuid | number] {
+    static decode_id(data: Reader): [0 | 1, Uuid | number] {
         const id = data.readInt();
         const sys = (id & 1) != 0;
         let msg: number | Uuid = id >> 1;
@@ -79,7 +79,7 @@ class SvModt {
         this.message = message;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvModt(textDecoder.decode(unpacker.readString()));
     }
 }
@@ -91,7 +91,7 @@ class SvBroadcast {
         this.message = message;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvBroadcast(textDecoder.decode(unpacker.readString()));
     }
 }
@@ -107,7 +107,7 @@ class SvChat {
         this.message = message;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvChat(
             unpacker.readInt() == 1,
             unpacker.readInt(),
@@ -134,7 +134,7 @@ class SvKillMsg {
         this.modeSpecial = modeSpecial;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvKillMsg(
             unpacker.readInt(),
             unpacker.readInt(),
@@ -193,7 +193,7 @@ class SvSoundGlobal {
         this.sound_id = sound_id;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvSoundGlobal(unpacker.readInt());
     }
 }
@@ -303,7 +303,7 @@ class SvTuneParams {
         this.playerHooking = playerHooking;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvTuneParams(
             unpacker.readInt(),
             unpacker.readInt(),
@@ -367,7 +367,7 @@ class SvExtraProjectile {
         this.projectile = projectile;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvExtraProjectile({
             x: unpacker.readInt(),
             y: unpacker.readInt(),
@@ -381,7 +381,7 @@ class SvExtraProjectile {
 
 class SvReadyToEnter {
     //@ts-ignore
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvReadyToEnter();
     }
 }
@@ -393,7 +393,7 @@ class SvWeaponPickup {
         this.weapon = weapon;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvWeaponPickup(unpacker.readInt());
     }
 }
@@ -425,14 +425,14 @@ class SvEmotion {
         this.emoticon = emoticon;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvEmotion(unpacker.readInt(), unpacker.readInt());
     }
 }
 
 class SvVoteClearOptions {
     //@ts-ignore
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvVoteClearOptions();
     }
 }
@@ -446,7 +446,7 @@ class SvVoteOptionListAdd {
         this.description = description;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvVoteOptionListAdd(unpacker.readInt(), [
             textDecoder.decode(unpacker.readString()),
             textDecoder.decode(unpacker.readString()),
@@ -474,7 +474,7 @@ class SvVoteOptionAdd {
         this.description = description;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvVoteOptionAdd(textDecoder.decode(unpacker.readString()));
     }
 }
@@ -486,7 +486,7 @@ class SvVoteOptionRemove {
         this.description = description;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvVoteOptionRemove(
             textDecoder.decode(unpacker.readString()),
         );
@@ -504,7 +504,7 @@ class SvVoteSet {
         this.reason = reason;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvVoteSet(
             unpacker.readInt(),
             textDecoder.decode(unpacker.readString()),
@@ -526,7 +526,7 @@ class SvVoteStatus {
         this.total = total;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvVoteStatus(
             unpacker.readInt(),
             unpacker.readInt(),
@@ -545,7 +545,7 @@ class ClSay {
         this.message = message;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new ClSay(
             unpacker.readInt() == 1,
             textDecoder.decode(unpacker.readString()),
@@ -566,7 +566,7 @@ class ClSetTeam {
         this.team = team;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new ClSetTeam(unpacker.readInt());
     }
 }
@@ -578,7 +578,7 @@ class ClSetSpectatorMode {
         this.spectatorId = spectatorId;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new ClSetSpectatorMode(unpacker.readInt());
     }
 }
@@ -610,7 +610,7 @@ class ClStartInfo {
         this.colorFeet = colorFeet;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new ClStartInfo(
             textDecoder.decode(unpacker.readString()),
             textDecoder.decode(unpacker.readString()),
@@ -650,7 +650,7 @@ class ClChangeInfo {
         this.colorFeet = colorFeet;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new ClChangeInfo(
             textDecoder.decode(unpacker.readString()),
             textDecoder.decode(unpacker.readString()),
@@ -665,7 +665,7 @@ class ClChangeInfo {
 
 class ClKill {
     //@ts-ignore
-    static decode(unpacker: Unpacker) {}
+    static decode(unpacker: Reader) { }
 }
 
 class ClEmoticon {
@@ -675,7 +675,7 @@ class ClEmoticon {
         this.emoticon = emoticon;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new ClEmoticon(unpacker.readInt());
     }
 }
@@ -687,7 +687,7 @@ class ClVote {
         this.vote = vote;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new ClVote(unpacker.readInt());
     }
 }
@@ -703,7 +703,7 @@ class ClCallVote {
         this.reason = reason;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new ClCallVote(
             textDecoder.decode(unpacker.readString()),
             textDecoder.decode(unpacker.readString()),
@@ -719,7 +719,7 @@ class ClIsDdnetLegacy {
         this.ddnetVersion = ddnetVersion;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new ClIsDdnetLegacy(unpacker.readInt());
     }
 }
@@ -735,7 +735,7 @@ class SvDdraceTimeLegacy {
         this.finish = finish;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvDdraceTimeLegacy(
             unpacker.readInt(),
             unpacker.readInt(),
@@ -753,19 +753,19 @@ class SvRecordLegacy {
         this.playerTimeBest = playerTimeBest;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvRecordLegacy(unpacker.readInt(), unpacker.readInt());
     }
 }
 
 class Unused {
     //@ts-ignore
-    static decode(unpacker: Unpacker) {}
+    static decode(unpacker: Reader) { }
 }
 
 class SvTeamsStateLegacy {
     //@ts-ignore
-    static decode(unpacker: Unpacker) {}
+    static decode(unpacker: Reader) { }
 }
 
 class ClShowOthersLegacy {
@@ -775,7 +775,7 @@ class ClShowOthersLegacy {
         this.show = show;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new ClShowOthersLegacy(unpacker.readInt() == 1);
     }
 }
@@ -787,7 +787,7 @@ class SvMyOwnMessage {
         this.test = test;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvMyOwnMessage(unpacker.readInt());
     }
 }
@@ -801,7 +801,7 @@ class ClShowDistance {
         this.y = y;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new ClShowDistance(unpacker.readInt(), unpacker.readInt());
     }
 }
@@ -813,14 +813,14 @@ class ClShowOthers {
         this.show = show;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new ClShowOthers(unpacker.readInt());
     }
 }
 
 class SvTeamsState {
     //@ts-ignore
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvTeamsState();
     }
 }
@@ -836,7 +836,7 @@ class SvDdraceTime {
         this.finish = finish;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvDdraceTime(
             unpacker.readInt(),
             unpacker.readInt(),
@@ -854,13 +854,13 @@ class SvRecord {
         this.playerTimeBest = playerTimeBest;
     }
 
-    static decode(unpacker: Unpacker) {
+    static decode(unpacker: Reader) {
         return new SvRecord(unpacker.readInt(), unpacker.readInt());
     }
 }
 
 export class Game {
-    static decode(data: Unpacker) {
+    static decode(data: Reader) {
         const msgId = SystemOrGame.decode_id(data);
 
         if (msgId[0] == 0) {
@@ -870,7 +870,7 @@ export class Game {
         }
     }
 
-    static decodeMsg(msgId: number | Uuid, data: Unpacker) {
+    static decodeMsg(msgId: number | Uuid, data: Reader) {
         if (typeof msgId === 'number') {
             switch (msgId) {
                 case SV_MOTD:

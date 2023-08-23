@@ -1,6 +1,6 @@
 import { Uuid } from "../uuid";
 
-export class Unpacker {
+export class Reader {
     data: Uint8Array;
 
     constructor(bytes: Uint8Array) {
@@ -68,5 +68,21 @@ export class Unpacker {
 
     public readUuid(): Uuid {
         return new Uuid(this.readRaw(16));
+    }
+
+    public readLeI32(): number {
+        const bytes = this.readRaw(4);
+
+        return (
+            (bytes[3]! << 24) | (bytes[2]! << 16) | (bytes[1]! << 8) | bytes[0]!
+        );
+    }
+
+    public readBeI32(): number {
+        const bytes = this.readRaw(4);
+
+        return (
+            (bytes[0]! << 24) | (bytes[1]! << 16) | (bytes[2]! << 8) | bytes[3]!
+        );
     }
 }
