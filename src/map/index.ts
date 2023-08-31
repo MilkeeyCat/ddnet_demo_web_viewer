@@ -1,66 +1,31 @@
-import { Reader } from "../reader";
+import { Datafile, ExType, Image, Info, RawDatafile, Sound, Version, parseAll, parseSingleItemOnly } from '../datafile';
 
-type VersionHeader = {
-    magic: [number, number, number, number];
-    version: number;
-};
-
-type Header = {
-    size: number;
-    swaplen: number;
-    numItemTypes: number;
-    numItems: number;
-    numData: number;
-    itemSize: number;
-    dataSize: number;
-};
-
-type ItemType = {
-    typeId: number;
-    start: number;
-    num: number;
-}
-
-export class Map {
-    versionHeader: VersionHeader;
-    header: Header;
-    itemTypes: ItemType[];
-
+export class CMap {
     constructor(bytes: Uint8Array) {
-        // const textDecoder = new TextDecoder();
-        const reader = new Reader(bytes);
-        this.itemTypes = [];
+        const rawDogDatafile = new RawDatafile(bytes);
+        const datafile = new Datafile(rawDogDatafile);
 
-        this.versionHeader = {
-            magic: Array.from(reader.readRaw(4)) as [
-                number,
-                number,
-                number,
-                number,
-            ],
-            version: reader.readLeI32(),
-        };
+        this.parseDatafile(datafile);
+    }
 
-        this.header = {
-            size: reader.readLeI32(),
-            swaplen: reader.readLeI32(),
-            numItemTypes: reader.readLeI32(),
-            numItems: reader.readLeI32(),
-            numData: reader.readLeI32(),
-            itemSize: reader.readLeI32(),
-            dataSize: reader.readLeI32(),
-        };
+    parseDatafile(df: Datafile) {
+        //@ts-ignore
+        const ex = parseAll(ExType, df, new Map());
+        //@ts-ignore
+        const version = parseSingleItemOnly(Version, df, new Map());
+        //@ts-ignore
+        const info = parseSingleItemOnly(Info, df, new Map());
+        //@ts-ignore
+        const images = parseAll(Image, df, new Map());
 
-        for (let i = 0; i < this.header.numItemTypes; i++) {
-            this.itemTypes.push({
-                typeId: reader.readLeI32() & 0xffff,
-                start: reader.readLeI32(),
-                num: reader.readLeI32(),
-            });
-        }
+        //TODO: envelopes :p
+        //TODO: envelope points as well :p
+        //TODO: groups...
+        //TODO: layers
 
-        console.log('Items offsets', reader.readLeI32());
-        console.log('Data offsets', reader.readLeI32());
-        console.log('Data sizes', reader.readLeI32());
+        //@ts-ignore
+        const sounds = parseAll(Sound, df, new Map());
+
+        //TODO: automappers
     }
 }
