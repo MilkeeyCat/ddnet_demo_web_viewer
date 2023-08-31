@@ -224,7 +224,13 @@ function identifier(kind: ItemTypeEnum) {
     }
 }
 
-type MapItem = typeof ExType | typeof Version | typeof Info | typeof Image | typeof Sound;
+type MapItem =
+    | typeof ExType
+    | typeof Version
+    | typeof Info
+    | typeof Image
+    | typeof Envelope
+    | typeof Sound;
 
 export function parseSingleItemOnly(
     mapItem: MapItem,
@@ -368,7 +374,7 @@ export class Image {
         public external: boolean,
         public name: string,
         public data: Uint8Array | null,
-        public variant: number
+        public variant: number,
     ) { }
 
     static parse(item: Item, df: Datafile): Image {
@@ -395,8 +401,107 @@ export class Image {
             external,
             textDecoder.decode(name!),
             imageData,
-            variant
+            variant,
         );
+    }
+}
+
+//@ts-ignore
+class BezierCurve<T> {
+    constructor(
+        public inTangentDx: T,
+        public inTangentDy: T,
+        public outTangentDx: T,
+        public outTangentDy: T,
+    ) { }
+}
+
+enum CurveKind {
+    Step,
+    Linear,
+    Slow,
+    Fast,
+    Smooth,
+    Bezier,
+    Unknown,
+}
+
+class EnvPoint<T> {
+    constructor(
+        public time: number,
+        public content: T,
+        public curveKind: CurveKind,
+    ) { }
+}
+
+enum EnvelopeType {
+    Sound = 1,
+    Position = 3,
+    Color = 4,
+}
+
+export class Envelope {
+    static kind = ItemTypeEnum.Envelope;
+
+    constructor(
+        public type: EnvelopeType,
+        public name: string,
+        public synchronized: boolean,
+        public points: EnvPoint<any>[],
+    ) { }
+
+    static I32ToString(data: Int32Array): string {
+        const arr = [];
+
+        for (const num of data) {
+            if (num == 0) {
+                break;
+            }
+
+            for (let i = 3; i >= 0; i--) {
+                arr.push(((num >> (i * 8)) & 0xff) - 128);
+            }
+        }
+
+        return textDecoder.decode(new Uint8Array(arr));
+    }
+
+    static parse(item: Item, df: Datafile): Envelope {
+        df;
+        const data = item.itemData;
+
+        //@ts-ignore
+        const version = data[0];
+        const channel = data[1] as EnvelopeType;
+        //@ts-ignore
+        const startPoint = data[2]!;
+        //@ts-ignore
+        const numPoints = data[3]!;
+        const name = this.I32ToString(data.slice(4));
+        let syncrhonized = false;
+
+        let points: Envelope['points'];
+        //NOTE: fix it when it will break 😉
+
+        if (channel === EnvelopeType.Color) {
+            points = new Array(numPoints).fill(
+                new EnvPoint(0, { r: 0, g: 0, b: 0, a: 0 }, CurveKind.Linear),
+            );
+        } else if (channel === EnvelopeType.Sound) {
+            points = new Array(numPoints).fill(
+                //null has to be SOMEHITNG lel
+                new EnvPoint(0, null, CurveKind.Step),
+            );
+        } else if (channel === EnvelopeType.Position) {
+            points = new Array(numPoints).fill(
+                //null has to be {offect: something[], rotation: something}
+                new EnvPoint(0, null, CurveKind.Step),
+            );
+        } else {
+            points = [];
+        }
+
+        return new Envelope(channel, name, syncrhonized, points);
     }
 }
 
@@ -404,7 +509,12 @@ export class Image {
 export class Sound {
     static kind = ItemTypeEnum.Sound;
 
-    constructor(public external: boolean, public name: string, public data: Uint8Array, public size: number) { }
+    constructor(
+        public external: boolean,
+        public name: string,
+        public data: Uint8Array,
+        public size: number,
+    ) { }
 
     static parse(item: Item, df: Datafile) {
         const data = item.itemData;
