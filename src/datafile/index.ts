@@ -229,6 +229,7 @@ type MapItem =
     | typeof Version
     | typeof Info
     | typeof Image
+    | typeof EnvPoint
     | typeof Envelope
     | typeof Sound;
 
@@ -245,7 +246,20 @@ export function parseSingleItemOnly(
 
     const all = parseAll(mapItem, df, exIndex);
 
-    return all.pop();
+    return all.pop()!;
+}
+
+export function parseEnvPoints(
+    df: Datafile,
+    exIndex: ExTypeIndex,
+): EnvPoint<any>[] {
+    const items = df.getItems(exIndex, EnvPoint.kind);
+
+    if (items.length !== 1) {
+        throw Error("You're fucked :D");
+    }
+
+    return EnvPoint.parsePoints(items[0]!, df);
 }
 
 export function parseAll(
@@ -407,12 +421,12 @@ export class Image {
 }
 
 //@ts-ignore
-class BezierCurve<T> {
+class BezierCurve {
     constructor(
-        public inTangentDx: T,
-        public inTangentDy: T,
-        public outTangentDx: T,
-        public outTangentDy: T,
+        public inTangentDx: number,
+        public inTangentDy: number,
+        public outTangentDx: number,
+        public outTangentDy: number,
     ) { }
 }
 
@@ -426,12 +440,93 @@ enum CurveKind {
     Unknown,
 }
 
-class EnvPoint<T> {
+function envPointSizeInBytes(envVersion: number): number {
+    switch (envVersion) {
+        case 1:
+            return 6;
+        case 2:
+            return 6;
+        case 3:
+            return 22;
+        default:
+            throw Error('gtfo from here');
+    }
+}
+
+function fromChannels(channel: EnvelopeType, content: number[]) {
+    if (channel === EnvelopeType.Position) {
+        return {
+            offset: [content[0]!, content[1]!],
+            rotation: content[2]!,
+        };
+    } else if (channel === EnvelopeType.Color) {
+        return {
+            r: content[0]!,
+            g: content[1]!,
+            b: content[2]!,
+            a: content[3]!,
+        };
+    } else if (channel === EnvelopeType.Sound) {
+        return content[0]!;
+    } else {
+        throw Error('nononon');
+    }
+}
+
+function covertEnvPoints(channel: EnvelopeType, points: EnvPoint<any>[]) {
+    return points.map((point) => {
+        return new EnvPoint(point.time, fromChannels(channel, point.content), point.curveKind);
+    });
+}
+
+export class EnvPoint<T> {
+    static kind = ItemTypeEnum.EnvPoints;
+
     constructor(
         public time: number,
         public content: T,
         public curveKind: CurveKind,
     ) { }
+
+    static parse(): EnvPoint<any> {
+        //NOTE: someone fix this, pls
+        return null as any as EnvPoint<any>;
+    }
+
+    static parsePoints(item: Item, df: Datafile): EnvPoint<any>[] {
+        const data = item.itemData;
+        const envelopeItems = df.getItems(new Map(), ItemTypeEnum.Envelope);
+        const envelopeVersion = envelopeItems[0]?.itemData[0];
+        const size = envPointSizeInBytes(envelopeVersion!);
+
+        if (item.itemData.length % size != 0) {
+            throw new Error('BAAAAAAD SIIIIIZE');
+        }
+
+        const envPoints = [];
+
+        for (let i = 0; i < data.length; i += size) {
+            const time = data[i]!;
+            const content = data.slice(i + 2, i + 6)!;
+            if (size > 6) {
+                throw Error('time to implement bezier curve :feelsbadman:');
+            }
+            const curveKind = data[i + 1] as CurveKind;
+
+            envPoints.push(new EnvPoint(time, content, curveKind));
+        }
+
+        return envPoints;
+    }
+
+    static distribute(envPoints: EnvPoint<any>[], envelopes: Envelope[]): void {
+        let remaining = structuredClone(envPoints);
+        for (const env of envelopes) {
+            const curr = remaining.slice(0, env.points.length);
+            remaining = remaining.slice(env.points.length - 1);
+            env.points = covertEnvPoints(env.type, curr);
+        }
+    }
 }
 
 enum EnvelopeType {
@@ -494,8 +589,7 @@ export class Envelope {
             );
         } else if (channel === EnvelopeType.Position) {
             points = new Array(numPoints).fill(
-                //null has to be {offect: something[], rotation: something}
-                new EnvPoint(0, null, CurveKind.Step),
+                new EnvPoint(0, { x: 0, y: 0 }, CurveKind.Step),
             );
         } else {
             points = [];
