@@ -2,6 +2,9 @@ import { inflate } from 'pako';
 import { Reader } from '../reader';
 import { Uuid } from '../uuid';
 import { splitArray } from '../utils/splitArray';
+import { Layer, Rect } from './Layer';
+import { parseI32String } from '../utils/parseI32String';
+import { I27F5 } from '../utils/fixed';
 
 class Item {
     constructor(public id: number, public itemData: Int32Array) { }
@@ -231,7 +234,8 @@ type MapItem =
     | typeof Image
     | typeof EnvPoint
     | typeof Envelope
-    | typeof Sound;
+    | typeof Sound
+    | typeof Group;
 
 export function parseSingleItemOnly(
     mapItem: MapItem,
@@ -621,5 +625,68 @@ export class Sound {
         const size = data[4]!;
 
         return new Sound(!!external, textDecoder.decode(name), soundData, size);
+    }
+}
+
+export class Group {
+    static kind = ItemTypeEnum.Group;
+
+    constructor(
+        public name: string,
+        public offset: [number, number],
+        public parallax: [number, number],
+        public layers: Layer[],
+        public clipping: boolean,
+        public clip: Rect
+    ) { }
+
+    static parse(item: Item, df: Datafile) {
+        const version = item.itemData[0]!; // NOTE: has to be 3
+        const start = item.itemData[5]!;
+
+        const totalLayers = df.getItems(new Map(), ItemTypeEnum.Layer);
+        const remainingLayers = totalLayers.length - start;
+        const amount = item.itemData[6]!;
+
+        if (amount > remainingLayers) {
+            throw new Error("Oh, boy you are fucked and also too high amount :)");
+        }
+
+        let clipping = false;
+        let clipX = 0;
+        let clipY = 0;
+        let clipWidth = 0;
+        let clipHeight = 0;
+        let name = "";
+
+        if (version >= 2) {
+            clipping = !!item.itemData[7];
+            clipX = I27F5.gimmeFloat(item.itemData[8]!);
+            clipY = I27F5.gimmeFloat(item.itemData[9]!);
+            clipWidth = I27F5.gimmeFloat(item.itemData[10]!);
+            clipHeight = I27F5.gimmeFloat(item.itemData[11]!);
+
+            if (version >= 3) {
+                name = parseI32String(item.itemData.slice(12, 15), textDecoder)
+            }
+
+        }
+
+        const parallax: [number, number] = [
+            item.itemData[3]!,
+            item.itemData[4]!
+        ];
+
+        return new Group(
+            name,
+            [
+                I27F5.gimmeFloat(item.itemData[1]!),
+                I27F5.gimmeFloat(item.itemData[2]!)
+            ],
+            parallax,
+            new Array(amount),
+            clipping,
+            new Rect(clipX, clipY, clipWidth, clipHeight)
+        );
     }
 }
