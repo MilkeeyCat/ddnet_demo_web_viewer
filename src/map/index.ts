@@ -1,4 +1,4 @@
-import { Datafile, ExType, Image, Info, RawDatafile, Sound, Version, Group, parseAll, parseSingleItemOnly } from '../datafile';
+import { Datafile, ExType, Image, Info, RawDatafile, Sound, Version, Group, parseAll, parseSingleItemOnly, Layer } from '../datafile';
 
 export class CMap {
     constructor(bytes: Uint8Array) {
@@ -26,11 +26,10 @@ export class CMap {
         //NOTE: leave envelopes as they are for now
 
         const groups = parseAll(Group, df, new Map());
-
-        console.log(groups);
-
-        //TODO: groups...
-        //TODO: layers
+        //@ts-ignore
+        const layers = parseAll(Layer, df, new Map());
+        console.log(layers);
+        //NOTE: someone gotta do check version for layer :DDDD
 
         //@ts-ignore
         const sounds = parseAll(Sound, df, new Map());

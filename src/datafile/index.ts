@@ -2,12 +2,15 @@ import { inflate } from 'pako';
 import { Reader } from '../reader';
 import { Uuid } from '../uuid';
 import { splitArray } from '../utils/splitArray';
-import { Layer, Rect } from './Layer';
+import { LayerKind, LayerT, QuadsLayer, Rect, SoundsLayer, TilesLayer, layerKind } from './Layer';
 import { parseI32String } from '../utils/parseI32String';
 import { I27F5 } from '../utils/fixed';
 
-class Item {
-    constructor(public id: number, public itemData: Int32Array) { }
+export class Item {
+    constructor(
+        public id: number,
+        public itemData: Int32Array
+    ) { }
 }
 
 type VersionHeader = {
@@ -175,6 +178,16 @@ export class Datafile {
         return this.items.get(id)!;
     }
 
+    dataItem(index: number): [Uint8Array, number] {
+        const item = this.dataItems[index];
+
+        if (!item) {
+            throw new Error("Theres not such a focken item you dumb fuck");
+        }
+
+        return item;
+    }
+
     decompressedDataItem(index: number) {
         const [data, size] = this.dataItems[index]!;
 
@@ -235,7 +248,8 @@ type MapItem =
     | typeof EnvPoint
     | typeof Envelope
     | typeof Sound
-    | typeof Group;
+    | typeof Group
+    | typeof Layer;
 
 export function parseSingleItemOnly(
     mapItem: MapItem,
@@ -275,6 +289,7 @@ export function parseAll(
     const parsed: InstanceType<MapItem>[] = [];
 
     for (const item of items) {
+        //@ts-ignore
         parsed.push(mapItem.parse(item, df));
     }
 
@@ -635,7 +650,7 @@ export class Group {
         public name: string,
         public offset: [number, number],
         public parallax: [number, number],
-        public layers: Layer[],
+        public layers: LayerT[],
         public clipping: boolean,
         public clip: Rect
     ) { }
@@ -688,5 +703,32 @@ export class Group {
             clipping,
             new Rect(clipX, clipY, clipWidth, clipHeight)
         );
+    }
+}
+
+export class Layer {
+    static kind = ItemTypeEnum.Layer;
+
+    static parse(item: Item, df: Datafile) {
+        switch (layerKind(item)) {
+            case LayerKind.Game:
+            case LayerKind.Tiles:
+            case LayerKind.Front:
+            case LayerKind.Tele:
+            case LayerKind.Speedup:
+            case LayerKind.Switch:
+            case LayerKind.Tune:
+                const [tilesLayer, tilemapKind] = TilesLayer.parseGeneric(item, df);
+                return tilesLayer.convertTo(tilemapKind);
+
+            case LayerKind.Quads:
+                return QuadsLayer.parse(item, df);
+            case LayerKind.Sounds:
+                const a = SoundsLayer.parse(item, df);
+
+                console.log(a);
+                console.log(a.sources[0]!.area);
+                return a;
+        }
     }
 }

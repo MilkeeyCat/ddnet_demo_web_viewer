@@ -15,3 +15,15 @@ export class I27F5 {
         return new Fixed(num, 5).toFloat();
     }
 }
+
+export class I17F15 {
+    public static gimmeFloat(num: number) {
+        return new Fixed(num, 15).toFloat();
+    }
+}
+
+export class I22F10 {
+    public static gimmeFloat(num: number) {
+        return new Fixed(num, 10).toFloat();
+    }
+}
