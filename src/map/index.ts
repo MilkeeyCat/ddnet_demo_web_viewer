@@ -1,4 +1,5 @@
 import { Datafile, ExType, Image, Info, RawDatafile, Sound, Version, Group, parseAll, parseSingleItemOnly, Layer } from '../datafile';
+import { LayerT } from '../datafile/Layer';
 
 export class CMap {
     constructor(bytes: Uint8Array) {
@@ -25,11 +26,11 @@ export class CMap {
         //EnvPoint.distribute(envPoints, envelopes as Envelope[]);
         //NOTE: leave envelopes as they are for now
 
-        const groups = parseAll(Group, df, new Map());
-        //@ts-ignore
-        const layers = parseAll(Layer, df, new Map());
-        console.log(layers);
+        //FIXME: gotta do something about these `as`
+        const groups = parseAll(Group, df, new Map()) as Group[];
+        const layers = parseAll(Layer, df, new Map()) as LayerT[];
         //NOTE: someone gotta do check version for layer :DDDD
+        Layer.distribute(layers, groups);
 
         //@ts-ignore
         const sounds = parseAll(Sound, df, new Map());

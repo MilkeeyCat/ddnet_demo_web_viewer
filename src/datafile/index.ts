@@ -655,7 +655,7 @@ export class Group {
         public clip: Rect
     ) { }
 
-    static parse(item: Item, df: Datafile) {
+    static parse(item: Item, df: Datafile): Group {
         const version = item.itemData[0]!; // NOTE: has to be 3
         const start = item.itemData[5]!;
 
@@ -724,11 +724,13 @@ export class Layer {
             case LayerKind.Quads:
                 return QuadsLayer.parse(item, df);
             case LayerKind.Sounds:
-                const a = SoundsLayer.parse(item, df);
+                return SoundsLayer.parse(item, df);
+        }
+    }
 
-                console.log(a);
-                console.log(a.sources[0]!.area);
-                return a;
+    static distribute(layers: LayerT[], groups: Group[]) {
+        for (const group of groups) {
+            group.layers = layers.splice(0, group.layers.length)
         }
     }
 }
