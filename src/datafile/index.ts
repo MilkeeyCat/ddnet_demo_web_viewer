@@ -4,7 +4,7 @@ import { Uuid } from '../uuid';
 import { splitArray } from '../utils/splitArray';
 import { LayerKind, LayerT, QuadsLayer, Rect, Rgba, SoundsLayer, TilesLayer, layerKind } from './Layer';
 import { parseI32String } from '../utils/parseI32String';
-import { I27F5 } from '../utils/fixed';
+import { I17F15, I22F10, I27F5 } from '../utils/fixed';
 import { arrayChunks } from '../utils/uint8arraychunks';
 
 export class Item {
@@ -501,7 +501,35 @@ function parseCurveKind(id: number, bezier: Int32Array | null): CurveKind {
     }
 }
 
-class EnvPoint<T> {
+function gimmeRightContentForAFuckingEnvPoint(content: Int32Array, type: EnvelopeTypeEnum): Volume | Position | Rgba {
+    switch (type) {
+        case EnvelopeTypeEnum.Position:
+            return new Position(
+                [
+                    I17F15.gimmeFloat(content[0]!),
+                    I17F15.gimmeFloat(content[1]!)
+                ],
+                I22F10.gimmeFloat(content[2]!)
+            );
+        case EnvelopeTypeEnum.Color:
+            return new Rgba(
+                I22F10.gimmeFloat(content[0]!),
+                I22F10.gimmeFloat(content[1]!),
+                I22F10.gimmeFloat(content[2]!),
+                I22F10.gimmeFloat(content[3]!),
+            );
+        case EnvelopeTypeEnum.Sound:
+            return I22F10.gimmeFloat(content[0]!)
+    }
+}
+
+function convertEnvPoints(points: EnvPoint<Int32Array>[], type: EnvelopeTypeEnum): EnvPoint<Volume | Position | Rgba>[] {
+    return points.map(point => {
+        return new EnvPoint(point.time, gimmeRightContentForAFuckingEnvPoint(point.content, type), point.curveType);
+    })
+}
+
+export class EnvPoint<T> {
     constructor(
         public time: number,
         public content: T,
@@ -515,6 +543,28 @@ class EnvPoint<T> {
         const curve = parseCurveKind(data[1]!, bezierData);
 
         return new EnvPoint(time, content, curve);
+    }
+
+    static distribute(points: EnvPoint<any>[], envelopes: Envelope[]): void {
+        for (const env of envelopes) {
+            switch (env.envType) {
+                case EnvelopeTypeEnum.Position: {
+                    const curr = points.splice(0, env.points.length);
+                    env.points = convertEnvPoints(curr, env.envType);
+                    continue;
+                }
+                case EnvelopeTypeEnum.Color: {
+                    const curr = points.splice(0, env.points.length);
+                    env.points = convertEnvPoints(curr, env.envType);
+                    continue;
+                }
+                case EnvelopeTypeEnum.Sound: {
+                    const curr = points.splice(0, env.points.length);
+                    env.points = convertEnvPoints(curr, env.envType);
+                    continue;
+                }
+            }
+        }
     }
 
 }
