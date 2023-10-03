@@ -1,4 +1,4 @@
-import { Datafile, ExType, Image, Info, RawDatafile, Sound, Version, Group, parseAll, parseSingleItemOnly, Layer } from '../datafile';
+import { Datafile, ExType, Image, Info, RawDatafile, Sound, Version, Group, parseAll, parseSingleItemOnly, Layer, parseEnvPoints } from '../datafile';
 import { LayerT } from '../datafile/Layer';
 
 export class CMap {
@@ -19,16 +19,19 @@ export class CMap {
         //@ts-ignore
         const images = parseAll(Image, df, new Map());
         //@ts-ignore
-        //const envPoints = parseEnvPoints(df, new Map());
+        const envPoints = parseEnvPoints(df, new Map());
         //@ts-ignore
         //TODO: fix this xD
         //const envelopes = parseAll(Envelope, df, new Map());
+        //console.log(envelopes);
         //EnvPoint.distribute(envPoints, envelopes as Envelope[]);
+        //console.log(envelopes);
         //NOTE: leave envelopes as they are for now
 
         //FIXME: gotta do something about these `as`
         const groups = parseAll(Group, df, new Map()) as Group[];
         const layers = parseAll(Layer, df, new Map()) as LayerT[];
+        //console.log(layers);
         //NOTE: someone gotta do check version for layer :DDDD
         Layer.distribute(layers, groups);
 

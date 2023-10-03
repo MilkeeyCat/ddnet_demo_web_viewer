@@ -2,6 +2,7 @@ import { Datafile, Item } from ".";
 import { Reader } from "../reader";
 import { I17F15, I22F10, I27F5 } from "../utils/fixed";
 import { parseI32String } from "../utils/parseI32String";
+import { arrayChunks } from "../utils/uint8arraychunks";
 
 //class GameTile {
 //    constructor(
@@ -103,7 +104,7 @@ class Quad {
 
 }
 
-class Rgba {
+export class Rgba {
     constructor(
         public r: number,
         public g: number,
@@ -426,16 +427,6 @@ class BinaryQuad {
 
 }
 
-function Uint8ArrayChunks(arr: Uint8Array, size: number) {
-    const chunks = [];
-    for (let i = 0; i < arr.length; i += size) {
-        const chunk = arr.slice(i, i + size);
-        chunks.push(chunk);
-    }
-
-    return chunks;
-}
-
 export class QuadsLayer {
     constructor(
         public name: string,
@@ -453,7 +444,7 @@ export class QuadsLayer {
         //fuck checks :clueless:
 
         const quads =
-            Uint8ArrayChunks(quadData, BinaryQuad.size)
+            arrayChunks(quadData, BinaryQuad.size)
                 .map(chunk => {
                     const reader = new Reader(chunk);
 
@@ -632,7 +623,7 @@ export class SoundsLayer {
         }
 
         const sources: SoundSource[] =
-            Uint8ArrayChunks(soundSourceData, sourceLen)
+            arrayChunks(soundSourceData, sourceLen)
                 .map(chunk => {
                     const reader = new Reader(chunk);
 

@@ -5,6 +5,7 @@ import { splitArray } from '../utils/splitArray';
 import { LayerKind, LayerT, QuadsLayer, Rect, SoundsLayer, TilesLayer, layerKind } from './Layer';
 import { parseI32String } from '../utils/parseI32String';
 import { I27F5 } from '../utils/fixed';
+import { arrayChunks } from '../utils/uint8arraychunks';
 
 export class Item {
     constructor(
@@ -245,8 +246,8 @@ type MapItem =
     | typeof Version
     | typeof Info
     | typeof Image
-    | typeof EnvPoint
-    | typeof Envelope
+    //| typeof EnvPoint
+    //| typeof Envelope
     | typeof Sound
     | typeof Group
     | typeof Layer;
@@ -265,19 +266,6 @@ export function parseSingleItemOnly(
     const all = parseAll(mapItem, df, exIndex);
 
     return all.pop()!;
-}
-
-export function parseEnvPoints(
-    df: Datafile,
-    exIndex: ExTypeIndex,
-): EnvPoint<any>[] {
-    const items = df.getItems(exIndex, EnvPoint.kind);
-
-    if (items.length !== 1) {
-        throw Error("You're fucked :D");
-    }
-
-    return EnvPoint.parsePoints(items[0]!, df);
 }
 
 export function parseAll(
@@ -449,174 +437,132 @@ class BezierCurve {
     ) { }
 }
 
+function envPointLengthInBytes(envVersion: number): number {
+    switch (envVersion) {
+        case 1:
+        case 2:
+            return 6;
+        case 3:
+            return 22;
+        default:
+            throw new Error("Get lost");
+    }
+}
+
+
+function checkEnvVersion(items: Item[], itemType: ItemTypeEnum): number | null {
+    itemType;
+    let expectedVersion: null | number = null;
+
+    for (const [_, item] of items.entries()) {
+        let version = item.itemData[0]!;
+
+        if (expectedVersion === null) {
+            expectedVersion = version;
+        } else {
+            if (expectedVersion != version) {
+                throw new Error("Oh my fuckign god, can u have right versions u bitch ass");
+            }
+        }
+
+    }
+
+    //TODO: any checkers???
+    return expectedVersion;
+}
+
 enum CurveKind {
     Step,
     Linear,
     Slow,
     Fast,
     Smooth,
-    Bezier,
-    Unknown,
+    //Bezier(BezierCurve<T>),
+    Unknown//(number),
 }
 
-function envPointSizeInBytes(envVersion: number): number {
-    switch (envVersion) {
+function parseCurveKind(id: number, bezier: Int32Array | null): CurveKind {
+    switch (id) {
+        case 0:
+            return CurveKind.Step;
         case 1:
-            return 6;
+            return CurveKind.Linear;
         case 2:
-            return 6;
+            return CurveKind.Slow;
         case 3:
-            return 22;
+            return CurveKind.Fast;
+        case 4:
+            return CurveKind.Smooth;
+        case 5:
+            bezier;
+            throw new Error("Fukcnig bezier curve :madge:");
         default:
-            throw Error('gtfo from here');
+            return CurveKind.Unknown;
+
     }
 }
 
-function fromChannels(channel: EnvelopeType, content: number[]) {
-    if (channel === EnvelopeType.Position) {
-        return {
-            offset: [content[0]!, content[1]!],
-            rotation: content[2]!,
-        };
-    } else if (channel === EnvelopeType.Color) {
-        return {
-            r: content[0]!,
-            g: content[1]!,
-            b: content[2]!,
-            a: content[3]!,
-        };
-    } else if (channel === EnvelopeType.Sound) {
-        return content[0]!;
-    } else {
-        throw Error('nononon');
-    }
-}
-
-function covertEnvPoints(channel: EnvelopeType, points: EnvPoint<any>[]) {
-    return points.map((point) => {
-        return new EnvPoint(point.time, fromChannels(channel, point.content), point.curveKind);
-    });
-}
-
-export class EnvPoint<T> {
-    static kind = ItemTypeEnum.EnvPoints;
-
+class EnvPoint<T> {
     constructor(
         public time: number,
         public content: T,
-        public curveKind: CurveKind,
+        public curveType: CurveKind
     ) { }
 
-    static parse(): EnvPoint<any> {
-        //NOTE: someone fix this, pls
-        return null as any as EnvPoint<any>;
+    static parse(data: Int32Array): EnvPoint<Int32Array> {
+        const time = data[0]!;
+        const content = data.slice(2, 6);
+        const bezierData: Int32Array | null = data.length > 6 ? data.slice(6, 22) : null;
+        const curve = parseCurveKind(data[1]!, bezierData);
+
+        return new EnvPoint(time, content, curve);
     }
 
-    static parsePoints(item: Item, df: Datafile): EnvPoint<any>[] {
-        const data = item.itemData;
-        const envelopeItems = df.getItems(new Map(), ItemTypeEnum.Envelope);
-        const envelopeVersion = envelopeItems[0]?.itemData[0];
-        const size = envPointSizeInBytes(envelopeVersion!);
-
-        if (item.itemData.length % size != 0) {
-            throw new Error('BAAAAAAD SIIIIIZE');
-        }
-
-        const envPoints = [];
-
-        for (let i = 0; i < data.length; i += size) {
-            const time = data[i]!;
-            const content = data.slice(i + 2, i + 6)!;
-            if (size > 6) {
-                throw Error('time to implement bezier curve :feelsbadman:');
-            }
-            const curveKind = data[i + 1] as CurveKind;
-
-            envPoints.push(new EnvPoint(time, content, curveKind));
-        }
-
-        return envPoints;
-    }
-
-    static distribute(envPoints: EnvPoint<any>[], envelopes: Envelope[]): void {
-        let remaining = structuredClone(envPoints);
-        for (const env of envelopes) {
-            const curr = remaining.slice(0, env.points.length);
-            remaining = remaining.slice(env.points.length - 1);
-            env.points = covertEnvPoints(env.type, curr);
-        }
-    }
 }
 
-enum EnvelopeType {
-    Sound = 1,
-    Position = 3,
-    Color = 4,
-}
+function parseEnvPointsFrFr(item: Item, df: Datafile) {
+    const envelopeItems = df.getItems(new Map(), ItemTypeEnum.Envelope);
 
-export class Envelope {
-    static kind = ItemTypeEnum.Envelope;
-
-    constructor(
-        public type: EnvelopeType,
-        public name: string,
-        public synchronized: boolean,
-        public points: EnvPoint<any>[],
-    ) { }
-
-    static I32ToString(data: Int32Array): string {
-        const arr = [];
-
-        for (const num of data) {
-            if (num == 0) {
-                break;
-            }
-
-            for (let i = 3; i >= 0; i--) {
-                arr.push(((num >> (i * 8)) & 0xff) - 128);
-            }
-        }
-
-        return textDecoder.decode(new Uint8Array(arr));
+    const envelopeVersion = checkEnvVersion(envelopeItems, ItemTypeEnum.Envelope);
+    if (!envelopeVersion) {
+        throw new Error("I fukcing cant");
     }
 
-    static parse(item: Item, df: Datafile): Envelope {
-        df;
-        const data = item.itemData;
-
-        //@ts-ignore
-        const version = data[0];
-        const channel = data[1] as EnvelopeType;
-        //@ts-ignore
-        const startPoint = data[2]!;
-        //@ts-ignore
-        const numPoints = data[3]!;
-        const name = this.I32ToString(data.slice(4));
-        let syncrhonized = false;
-
-        let points: Envelope['points'];
-        //NOTE: fix it when it will break 😉
-
-        if (channel === EnvelopeType.Color) {
-            points = new Array(numPoints).fill(
-                new EnvPoint(0, { r: 0, g: 0, b: 0, a: 0 }, CurveKind.Linear),
-            );
-        } else if (channel === EnvelopeType.Sound) {
-            points = new Array(numPoints).fill(
-                //null has to be SOMEHITNG lel
-                new EnvPoint(0, null, CurveKind.Step),
-            );
-        } else if (channel === EnvelopeType.Position) {
-            points = new Array(numPoints).fill(
-                new EnvPoint(0, { x: 0, y: 0 }, CurveKind.Step),
-            );
-        } else {
-            points = [];
-        }
-
-        return new Envelope(channel, name, syncrhonized, points);
+    const size = envPointLengthInBytes(envelopeVersion);
+    if (item.itemData.length % size !== 0) {
+        throw new Error("Bro...");
     }
+
+    return arrayChunks(item.itemData, size).map(chunk => EnvPoint.parse(chunk));
 }
+
+function parseEnvPointsFr(df: Datafile, exIndex: ExTypeIndex) {
+    const items = df.getItems(exIndex, ItemTypeEnum.EnvPoints) || [];
+    const parsed: any[] = [];
+
+    for (const item of items) {
+        parsed.push(parseEnvPointsFrFr(item, df));
+    }
+
+    return parsed;
+}
+
+//@ts-ignore
+export function parseEnvPoints(df: Datafile, exIndex: ExTypeIndex) {
+    const items = df.getItems(exIndex, ItemTypeEnum.EnvPoints);
+
+    if (items.length !== 1) {
+        throw new Error("im fukcing done");
+    }
+
+    const all = parseEnvPointsFr(df, exIndex);
+    if (all.length !== 1) {
+        throw new Error("Why the hell heres not one element");
+    }
+
+    return all.pop();
+}
+
 
 //NOTE: ddnet only btw
 export class Sound {
