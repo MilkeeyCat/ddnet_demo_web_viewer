@@ -2,39 +2,50 @@ import { Datafile, ExType, Image, Info, RawDatafile, Sound, Version, Group, pars
 import { LayerT } from '../datafile/Layer';
 
 export class CMap {
-    constructor(bytes: Uint8Array) {
+    constructor(
+        public version: Version,
+        public info: Info,
+        public images: Image[],
+        public envelopes: Envelope[],
+        public groups: Group[],
+        public sounds: Sound[]
+
+    ) { }
+
+    static fromBytes(bytes: Uint8Array): CMap {
         const rawDogDatafile = new RawDatafile(bytes);
         const datafile = new Datafile(rawDogDatafile);
 
-        this.parseDatafile(datafile);
+        return this.parseDatafile(datafile);
     }
 
-    parseDatafile(df: Datafile) {
+    static parseDatafile(df: Datafile): CMap {
         //@ts-ignore
         const ex = parseAll(ExType, df, new Map());
-        //@ts-ignore
         const version = parseSingleItemOnly(Version, df, new Map());
-        //@ts-ignore
         const info = parseSingleItemOnly(Info, df, new Map());
-        //@ts-ignore
         const images = parseAll(Image, df, new Map());
-        //@ts-ignore
         const envPoints = parseEnvPoints(df, new Map());
-        //TODO: fix this xD
-        //@ts-ignore
         const envelopes = parseAll(Envelope, df, new Map());
         EnvPoint.distribute(envPoints, envelopes as Envelope[]);
 
         //FIXME: gotta do something about these `as`
         const groups = parseAll(Group, df, new Map()) as Group[];
         const layers = parseAll(Layer, df, new Map()) as LayerT[];
-        //console.log(layers);
+
         //NOTE: someone gotta do check version for layer :DDDD
         Layer.distribute(layers, groups);
 
-        //@ts-ignore
         const sounds = parseAll(Sound, df, new Map());
 
         //TODO: automappers
+        return new CMap(
+            version as Version,
+            info as Info,
+            images as Image[],
+            envelopes as Envelope[],
+            groups as Group[],
+            sounds as Sound[]
+        );
     }
 }
