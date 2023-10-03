@@ -189,7 +189,7 @@ export class Datafile {
         return item;
     }
 
-    decompressedDataItem(index: number) {
+    decompressedDataItem(index: number): Uint8Array {
         const [data, size] = this.dataItems[index]!;
 
         const decompressedData = inflate(data);
@@ -211,10 +211,12 @@ export class Datafile {
 }
 
 class TypeId {
-    constructor(public typeId: number) { }
+    constructor(
+        public typeId: number
+    ) { }
 }
 
-function identifier(kind: ItemTypeEnum) {
+function identifier(kind: ItemTypeEnum): TypeId | Uuid {
     switch (kind) {
         case ItemTypeEnum.Version:
             return new TypeId(0);
@@ -251,11 +253,11 @@ type MapItem =
     | typeof Group
     | typeof Layer;
 
-export function parseSingleItemOnly(
-    mapItem: MapItem,
+export function parseSingleItemOnly<T extends MapItem>(
+    mapItem: T,
     df: Datafile,
     exIndex: ExTypeIndex,
-) {
+): InstanceType<T> {
     const items = df.getItems(exIndex, mapItem.kind);
 
     if (items.length !== 1) {
@@ -264,14 +266,14 @@ export function parseSingleItemOnly(
 
     const all = parseAll(mapItem, df, exIndex);
 
-    return all.pop()!;
+    return all.pop()! as InstanceType<T>;
 }
 
-export function parseAll(
-    mapItem: MapItem,
+export function parseAll<T extends MapItem>(
+    mapItem: T,
     df: Datafile,
     exIndex: ExTypeIndex,
-): InstanceType<MapItem>[] {
+): InstanceType<T>[] {
     const items = df.getItems(exIndex, mapItem.kind) || [];
     const parsed: InstanceType<MapItem>[] = [];
 
@@ -280,7 +282,7 @@ export function parseAll(
         parsed.push(mapItem.parse(item, df));
     }
 
-    return parsed;
+    return parsed as InstanceType<T>[];
 }
 
 type ExTypeIndex = Map<number[], number>;
@@ -301,7 +303,10 @@ enum ItemTypeEnum {
 export class ExType {
     static kind = ItemTypeEnum.ExType;
 
-    constructor(public uuid: Uuid, public typeId: number) { }
+    constructor(
+        public uuid: Uuid,
+        public typeId: number
+    ) { }
 
     static parse(item: Item): ExType {
         const { itemData, id } = item;
@@ -312,6 +317,7 @@ export class ExType {
             itemData[2]! >>> 0,
             itemData[3]! >>> 0,
         ]);
+
         return new ExType(uuid, id);
     }
 }
@@ -319,7 +325,9 @@ export class ExType {
 export class Version {
     static kind = ItemTypeEnum.Version;
 
-    constructor(public readonly version: number) { }
+    constructor(
+        public readonly version: number
+    ) { }
 
     static parse(item: Item): Version {
         return new Version(item.itemData[0]!);
@@ -399,10 +407,7 @@ export class Image {
 
     static parse(item: Item, df: Datafile): Image {
         const data = Array.from(item.itemData);
-
-        //@ts-ignore
         const version = data[0]!;
-
         const width = data[1]!;
         const height = data[2]!;
         const external = !!data[3];
@@ -426,7 +431,7 @@ export class Image {
     }
 }
 
-//@ts-ignore
+//@ts-ignore FIXME: use this shit :pepeW:
 class BezierCurve {
     constructor(
         public inTangentDx: number,
@@ -569,7 +574,7 @@ export class EnvPoint<T> {
 
 }
 
-function parseEnvPointsFrFr(item: Item, df: Datafile) {
+function parseEnvPointsFrFr(item: Item, df: Datafile): EnvPoint<Int32Array>[] {
     const envelopeItems = df.getItems(new Map(), ItemTypeEnum.Envelope);
 
     const envelopeVersion = checkEnvVersion(envelopeItems, ItemTypeEnum.Envelope);
@@ -585,9 +590,9 @@ function parseEnvPointsFrFr(item: Item, df: Datafile) {
     return arrayChunks(item.itemData, size).map(chunk => EnvPoint.parse(chunk));
 }
 
-function parseEnvPointsFr(df: Datafile, exIndex: ExTypeIndex) {
+function parseEnvPointsFr(df: Datafile, exIndex: ExTypeIndex): (EnvPoint<Int32Array>[])[] {
     const items = df.getItems(exIndex, ItemTypeEnum.EnvPoints) || [];
-    const parsed: any[] = [];
+    const parsed: (EnvPoint<Int32Array>[])[] = [];
 
     for (const item of items) {
         parsed.push(parseEnvPointsFrFr(item, df));
@@ -596,8 +601,7 @@ function parseEnvPointsFr(df: Datafile, exIndex: ExTypeIndex) {
     return parsed;
 }
 
-//@ts-ignore
-export function parseEnvPoints(df: Datafile, exIndex: ExTypeIndex) {
+export function parseEnvPoints(df: Datafile, exIndex: ExTypeIndex): EnvPoint<Int32Array>[] {
     const items = df.getItems(exIndex, ItemTypeEnum.EnvPoints);
 
     if (items.length !== 1) {
@@ -609,7 +613,7 @@ export function parseEnvPoints(df: Datafile, exIndex: ExTypeIndex) {
         throw new Error("Why the hell heres not one element");
     }
 
-    return all.pop();
+    return all.pop()!;
 }
 
 type Volume = number; //NOTE: dont say anything...
@@ -690,7 +694,7 @@ export class Sound {
         public size: number,
     ) { }
 
-    static parse(item: Item, df: Datafile) {
+    static parse(item: Item, df: Datafile): Sound {
         const data = item.itemData;
 
         //@ts-ignore
@@ -770,7 +774,7 @@ export class Group {
 export class Layer {
     static kind = ItemTypeEnum.Layer;
 
-    static parse(item: Item, df: Datafile) {
+    static parse(item: Item, df: Datafile): LayerT {
         switch (layerKind(item)) {
             case LayerKind.Game:
             case LayerKind.Tiles:
@@ -789,7 +793,7 @@ export class Layer {
         }
     }
 
-    static distribute(layers: LayerT[], groups: Group[]) {
+    static distribute(layers: LayerT[], groups: Group[]): void {
         for (const group of groups) {
             group.layers = layers.splice(0, group.layers.length)
         }

@@ -27,25 +27,26 @@ export class CMap {
         const images = parseAll(Image, df, new Map());
         const envPoints = parseEnvPoints(df, new Map());
         const envelopes = parseAll(Envelope, df, new Map());
-        EnvPoint.distribute(envPoints, envelopes as Envelope[]);
+        EnvPoint.distribute(envPoints, envelopes);
 
         //FIXME: gotta do something about these `as`
-        const groups = parseAll(Group, df, new Map()) as Group[];
-        const layers = parseAll(Layer, df, new Map()) as LayerT[];
+        const groups = parseAll(Group, df, new Map());
+        //FIXME: ehm.... not gud
+        const layers = parseAll(Layer, df, new Map()) as any as LayerT[];
 
         //NOTE: someone gotta do check version for layer :DDDD
         Layer.distribute(layers, groups);
 
         const sounds = parseAll(Sound, df, new Map());
-
         //TODO: automappers
+
         return new CMap(
-            version as Version,
-            info as Info,
-            images as Image[],
-            envelopes as Envelope[],
-            groups as Group[],
-            sounds as Sound[]
+            version,
+            info,
+            images,
+            envelopes,
+            groups,
+            sounds,
         );
     }
 }

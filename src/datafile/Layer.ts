@@ -274,24 +274,18 @@ export class TilesLayer {
         const height = item.itemData[5]!;
 
         const tileAmount = width * height;
-        //@ts-ignore
         const size: [number, number] = [width, height];
 
-        //@ts-ignore
         const color = new Rgba(
             item.itemData[7]!,
             item.itemData[8]!,
             item.itemData[9]!,
             item.itemData[10]!,
         );
-        //@ts-ignore
         const colorEnv = convertOptIndex(item.itemData[11]!);
-        //@ts-ignore
         const colorEnvOffset = item.itemData[12]!;
-        //@ts-ignore
         const image = convertOptIndex(item.itemData[13]!);
 
-        //@ts-ignore
         let compression = false;
 
         if (kind == LayerKind.Game || kind == LayerKind.Tiles) {
@@ -299,7 +293,6 @@ export class TilesLayer {
         }
 
         let dataIndexx = dataIndex(kind);
-        //@ts-ignore
         let name = "";
 
         if (version < 3) {
@@ -326,7 +319,6 @@ export class TilesLayer {
         }
 
         //FIXME: do something about old tile versions
-
         const tilesLoadInfo = new TilesLoadInfo(size, compression);
 
         return [
@@ -368,7 +360,7 @@ class BinaryColor {
         public a: number
     ) { }
 
-    public toColor() {
+    public toColor(): Rgba {
         // dont event fukcing dare to say anything about this stupid fukcing shit
         return new Rgba(this.a, this.g, this.b, this.a);
     }
@@ -435,7 +427,7 @@ export class QuadsLayer {
         public image: number | null
     ) { }
 
-    static parse(item: Item, df: Datafile) {
+    static parse(item: Item, df: Datafile): QuadsLayer {
         const version = item.itemData[3]!;
         //FIXME: when do flags??
         //@ts-ignore
@@ -503,7 +495,7 @@ class BinaryDepricatedSoundSource {
         public soundEnvOffset: number,
     ) { }
 
-    public toSource() {
+    public toSource(): SoundSource {
         const pos = this.position.toTwo(I27F5);
 
         return new SoundSource(
@@ -568,7 +560,7 @@ class BinarySoundSource {
         public shape: BinarySoundShape,
     ) { }
 
-    public toSource() {
+    public toSource(): SoundSource {
         return new SoundSource(
             this.shape.toShape(this.position.toTwo(I27F5)),
             !!this.looping,
@@ -596,9 +588,7 @@ export class SoundsLayer {
         public sound: number | null
     ) { }
 
-    static parse(item: Item, df: Datafile) {
-        item;
-
+    static parse(item: Item, df: Datafile): SoundsLayer {
         let soundsLayerVersion: SoundsLayerVersion | null = null;
         if (item.itemData[1] === 9) {
             soundsLayerVersion = SoundsLayerVersion.Deprecated;
