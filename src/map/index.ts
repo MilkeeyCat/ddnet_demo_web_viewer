@@ -1,4 +1,4 @@
-import { Datafile, ExType, Image, Info, RawDatafile, Sound, Version, Group, parseAll, parseSingleItemOnly, Layer, parseEnvPoints } from '../datafile';
+import { Datafile, ExType, Image, Info, RawDatafile, Sound, Version, Group, parseAll, parseSingleItemOnly, Layer, parseEnvPoints, Envelope } from '../datafile';
 import { LayerT } from '../datafile/Layer';
 
 export class CMap {
@@ -20,10 +20,9 @@ export class CMap {
         const images = parseAll(Image, df, new Map());
         //@ts-ignore
         const envPoints = parseEnvPoints(df, new Map());
-        //@ts-ignore
         //TODO: fix this xD
-        //const envelopes = parseAll(Envelope, df, new Map());
-        //console.log(envelopes);
+        //@ts-ignore
+        const envelopes = parseAll(Envelope, df, new Map());
         //EnvPoint.distribute(envPoints, envelopes as Envelope[]);
         //console.log(envelopes);
         //NOTE: leave envelopes as they are for now

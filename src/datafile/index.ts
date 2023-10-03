@@ -2,7 +2,7 @@ import { inflate } from 'pako';
 import { Reader } from '../reader';
 import { Uuid } from '../uuid';
 import { splitArray } from '../utils/splitArray';
-import { LayerKind, LayerT, QuadsLayer, Rect, SoundsLayer, TilesLayer, layerKind } from './Layer';
+import { LayerKind, LayerT, QuadsLayer, Rect, Rgba, SoundsLayer, TilesLayer, layerKind } from './Layer';
 import { parseI32String } from '../utils/parseI32String';
 import { I27F5 } from '../utils/fixed';
 import { arrayChunks } from '../utils/uint8arraychunks';
@@ -246,8 +246,7 @@ type MapItem =
     | typeof Version
     | typeof Info
     | typeof Image
-    //| typeof EnvPoint
-    //| typeof Envelope
+    | typeof Envelope
     | typeof Sound
     | typeof Group
     | typeof Layer;
@@ -561,6 +560,72 @@ export function parseEnvPoints(df: Datafile, exIndex: ExTypeIndex) {
     }
 
     return all.pop();
+}
+
+type Volume = number; //NOTE: dont say anything...
+
+enum EnvelopeTypeEnum {
+    Position,
+    Color,
+    Sound,
+}
+
+class Position {
+    constructor(
+        public offset: [number, number],
+        public rotation: number
+    ) { }
+}
+
+
+export class Envelope {
+    static kind = ItemTypeEnum.Envelope;
+
+    constructor(
+        public name: string,
+        public synchronized: boolean,
+        public points: EnvPoint<Position | Rgba | Volume>[],
+        public envType: EnvelopeTypeEnum
+    ) {
+    }
+
+    static parse(item: Item, df: Datafile): Envelope {
+        const version = item.itemData[0]!;
+        const start = item.itemData[2]!;
+        //NOTE: add checks :D
+
+        const bytesPerEnvPoint = envPointLengthInBytes(version);
+        const totalPoints = df.getItems(new Map(), ItemTypeEnum.EnvPoints)[0]!.itemData.length / bytesPerEnvPoint;
+        const remainingPoints = totalPoints - start;
+        const amount = item.itemData[3]!;
+        if (amount > remainingPoints) {
+            throw new Error("Fucking hell");
+        }
+
+        let name = "";
+        let synchronized = false;
+
+        if (item.itemData.length > 5) {
+            name = parseI32String(item.itemData.slice(4, 12), new TextDecoder());
+
+            if (version >= 2) {
+                synchronized = !!item.itemData[12]!;
+            }
+        } else if (item.itemData[4] !== -1) {
+            throw new Error("Tbh i dont even know the fukc this error means");
+        }
+
+        switch (item.itemData[1]) {
+            case 1:
+                return new Envelope(name, synchronized, new Array(amount), EnvelopeTypeEnum.Sound);
+            case 3:
+                return new Envelope(name, synchronized, new Array(amount), EnvelopeTypeEnum.Position);
+            case 4:
+                return new Envelope(name, synchronized, new Array(amount), EnvelopeTypeEnum.Color);
+            default:
+                throw new Error("Idk");
+        }
+    }
 }
 
 
