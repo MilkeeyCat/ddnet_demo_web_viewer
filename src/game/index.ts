@@ -73,11 +73,9 @@ class SystemOrGame {
 }
 
 class SvModt {
-    message: string;
-
-    constructor(message: string) {
-        this.message = message;
-    }
+    constructor(
+        public message: string
+    ) { }
 
     static decode(unpacker: Reader) {
         return new SvModt(textDecoder.decode(unpacker.readString()));
@@ -85,11 +83,9 @@ class SvModt {
 }
 
 class SvBroadcast {
-    message: string;
-
-    constructor(message: string) {
-        this.message = message;
-    }
+    constructor(
+        public message: string
+    ) { }
 
     static decode(unpacker: Reader) {
         return new SvBroadcast(textDecoder.decode(unpacker.readString()));
@@ -97,15 +93,11 @@ class SvBroadcast {
 }
 
 class SvChat {
-    team: boolean;
-    clientId: number;
-    message: string;
-
-    constructor(team: boolean, clientId: number, message: string) {
-        this.team = team;
-        this.clientId = clientId;
-        this.message = message;
-    }
+    constructor(
+        public team: boolean,
+        public clientId: number,
+        public message: string
+    ) { }
 
     static decode(unpacker: Reader) {
         return new SvChat(
@@ -117,22 +109,12 @@ class SvChat {
 }
 
 class SvKillMsg {
-    killer: number;
-    victim: number;
-    weapon: number;
-    modeSpecial: number;
-
     constructor(
-        killer: number,
-        victim: number,
-        weapon: number,
-        modeSpecial: number,
-    ) {
-        this.killer = killer;
-        this.victim = victim;
-        this.weapon = weapon;
-        this.modeSpecial = modeSpecial;
-    }
+        public killer: number,
+        public victim: number,
+        public weapon: number,
+        public modeSpecial: number,
+    ) { }
 
     static decode(unpacker: Reader) {
         return new SvKillMsg(
@@ -187,11 +169,9 @@ enum Sound {
 }
 
 class SvSoundGlobal {
-    sound_id: Sound;
-
-    constructor(sound_id: Sound) {
-        this.sound_id = sound_id;
-    }
+    constructor(
+        public soundId: Sound
+    ) { }
 
     static decode(unpacker: Reader) {
         return new SvSoundGlobal(unpacker.readInt());
@@ -199,109 +179,41 @@ class SvSoundGlobal {
 }
 
 class SvTuneParams {
-    groundControlSpeed: number;
-    ground_controlAccel: number;
-    groundFriction: number;
-    groundJumpImpulse: number;
-    airJumpImpulse: number;
-    airControlSpeed: number;
-    airControlAccel: number;
-    airFriction: number;
-    hookLength: number;
-    hookFireSpeed: number;
-    hookDragAccel: number;
-    hookDragSpeed: number;
-    gravity: number;
-    velrampStart: number;
-    velrampRange: number;
-    velrampCurvature: number;
-    gunCurvature: number;
-    gunSpeed: number;
-    gunLifetime: number;
-    shotgunCurvature: number;
-    shotgunSpeed: number;
-    shotgunSpeeddiff: number;
-    shotgunLifetime: number;
-    grenadeCurvature: number;
-    grenadeSpeed: number;
-    grenadeLifetime: number;
-    laserReach: number;
-    laserBounceDelay: number;
-    laserBounceNum: number;
-    laserBounceCost: number;
-    laserDamage: number;
-    playerCollision: number;
-    playerHooking: number;
-
     constructor(
-        groundControlSpeed: number,
-        ground_controlAccel: number,
-        groundFriction: number,
-        groundJumpImpulse: number,
-        airJumpImpulse: number,
-        airControlSpeed: number,
-        airControlAccel: number,
-        airFriction: number,
-        hookLength: number,
-        hookFireSpeed: number,
-        hookDragAccel: number,
-        hookDragSpeed: number,
-        gravity: number,
-        velrampStart: number,
-        velrampRange: number,
-        velrampCurvature: number,
-        gunCurvature: number,
-        gunSpeed: number,
-        gunLifetime: number,
-        shotgunCurvature: number,
-        shotgunSpeed: number,
-        shotgunSpeeddiff: number,
-        shotgunLifetime: number,
-        grenadeCurvature: number,
-        grenadeSpeed: number,
-        grenadeLifetime: number,
-        laserReach: number,
-        laserBounceDelay: number,
-        laserBounceNum: number,
-        laserBounceCost: number,
-        laserDamage: number,
-        playerCollision: number,
-        playerHooking: number,
-    ) {
-        this.groundControlSpeed = groundControlSpeed;
-        this.ground_controlAccel = ground_controlAccel;
-        this.groundFriction = groundFriction;
-        this.groundJumpImpulse = groundJumpImpulse;
-        this.airJumpImpulse = airJumpImpulse;
-        this.airControlSpeed = airControlSpeed;
-        this.airControlAccel = airControlAccel;
-        this.airFriction = airFriction;
-        this.hookLength = hookLength;
-        this.hookFireSpeed = hookFireSpeed;
-        this.hookDragAccel = hookDragAccel;
-        this.hookDragSpeed = hookDragSpeed;
-        this.gravity = gravity;
-        this.velrampStart = velrampStart;
-        this.velrampRange = velrampRange;
-        this.velrampCurvature = velrampCurvature;
-        this.gunCurvature = gunCurvature;
-        this.gunSpeed = gunSpeed;
-        this.gunLifetime = gunLifetime;
-        this.shotgunCurvature = shotgunCurvature;
-        this.shotgunSpeed = shotgunSpeed;
-        this.shotgunSpeeddiff = shotgunSpeeddiff;
-        this.shotgunLifetime = shotgunLifetime;
-        this.grenadeCurvature = grenadeCurvature;
-        this.grenadeSpeed = grenadeSpeed;
-        this.grenadeLifetime = grenadeLifetime;
-        this.laserReach = laserReach;
-        this.laserBounceDelay = laserBounceDelay;
-        this.laserBounceNum = laserBounceNum;
-        this.laserBounceCost = laserBounceCost;
-        this.laserDamage = laserDamage;
-        this.playerCollision = playerCollision;
-        this.playerHooking = playerHooking;
-    }
+        public groundControlSpeed: number,
+        public groundControlAccel: number,
+        public groundFriction: number,
+        public groundJumpImpulse: number,
+        public airJumpImpulse: number,
+        public airControlSpeed: number,
+        public airControlAccel: number,
+        public airFriction: number,
+        public hookLength: number,
+        public hookFireSpeed: number,
+        public hookDragAccel: number,
+        public hookDragSpeed: number,
+        public gravity: number,
+        public velrampStart: number,
+        public velrampRange: number,
+        public velrampCurvature: number,
+        public gunCurvature: number,
+        public gunSpeed: number,
+        public gunLifetime: number,
+        public shotgunCurvature: number,
+        public shotgunSpeed: number,
+        public shotgunSpeeddiff: number,
+        public shotgunLifetime: number,
+        public grenadeCurvature: number,
+        public grenadeSpeed: number,
+        public grenadeLifetime: number,
+        public laserReach: number,
+        public laserBounceDelay: number,
+        public laserBounceNum: number,
+        public laserBounceCost: number,
+        public laserDamage: number,
+        public playerCollision: number,
+        public playerHooking: number,
+    ) { }
 
     static decode(unpacker: Reader) {
         return new SvTuneParams(
@@ -361,11 +273,9 @@ type Projectile = {
 };
 
 class SvExtraProjectile {
-    projectile: Projectile;
-
-    constructor(projectile: Projectile) {
-        this.projectile = projectile;
-    }
+    constructor(
+        public projectile: Projectile
+    ) { }
 
     static decode(unpacker: Reader) {
         return new SvExtraProjectile({
@@ -380,18 +290,15 @@ class SvExtraProjectile {
 }
 
 class SvReadyToEnter {
-    //@ts-ignore
-    static decode(unpacker: Reader) {
+    static decode(_: Reader) {
         return new SvReadyToEnter();
     }
 }
 
 class SvWeaponPickup {
-    weapon: Weapon;
-
-    constructor(weapon: Weapon) {
-        this.weapon = weapon;
-    }
+    constructor(
+        public weapon: Weapon
+    ) { }
 
     static decode(unpacker: Reader) {
         return new SvWeaponPickup(unpacker.readInt());
@@ -417,13 +324,10 @@ enum Emoticon {
 }
 
 class SvEmotion {
-    clientId: number;
-    emoticon: Emoticon;
-
-    constructor(clientId: number, emoticon: Emoticon) {
-        this.clientId = clientId;
-        this.emoticon = emoticon;
-    }
+    constructor(
+        public clientId: number,
+        public emoticon: Emoticon
+    ) { }
 
     static decode(unpacker: Reader) {
         return new SvEmotion(unpacker.readInt(), unpacker.readInt());
@@ -431,48 +335,45 @@ class SvEmotion {
 }
 
 class SvVoteClearOptions {
-    //@ts-ignore
-    static decode(unpacker: Reader) {
+    static decode(_: Reader) {
         return new SvVoteClearOptions();
     }
 }
 
 class SvVoteOptionListAdd {
-    numOptions: number;
-    description: string[];
-
-    constructor(numOptions: number, description: string[]) {
-        this.numOptions = numOptions;
-        this.description = description;
-    }
+    constructor(
+        public numOptions: number,
+        public description: string[]
+    ) { }
 
     static decode(unpacker: Reader) {
-        return new SvVoteOptionListAdd(unpacker.readInt(), [
-            textDecoder.decode(unpacker.readString()),
-            textDecoder.decode(unpacker.readString()),
-            textDecoder.decode(unpacker.readString()),
-            textDecoder.decode(unpacker.readString()),
-            textDecoder.decode(unpacker.readString()),
-            textDecoder.decode(unpacker.readString()),
-            textDecoder.decode(unpacker.readString()),
-            textDecoder.decode(unpacker.readString()),
-            textDecoder.decode(unpacker.readString()),
-            textDecoder.decode(unpacker.readString()),
-            textDecoder.decode(unpacker.readString()),
-            textDecoder.decode(unpacker.readString()),
-            textDecoder.decode(unpacker.readString()),
-            textDecoder.decode(unpacker.readString()),
-            textDecoder.decode(unpacker.readString()),
-        ]);
+        return new SvVoteOptionListAdd(
+            unpacker.readInt(),
+            [
+                textDecoder.decode(unpacker.readString()),
+                textDecoder.decode(unpacker.readString()),
+                textDecoder.decode(unpacker.readString()),
+                textDecoder.decode(unpacker.readString()),
+                textDecoder.decode(unpacker.readString()),
+                textDecoder.decode(unpacker.readString()),
+                textDecoder.decode(unpacker.readString()),
+                textDecoder.decode(unpacker.readString()),
+                textDecoder.decode(unpacker.readString()),
+                textDecoder.decode(unpacker.readString()),
+                textDecoder.decode(unpacker.readString()),
+                textDecoder.decode(unpacker.readString()),
+                textDecoder.decode(unpacker.readString()),
+                textDecoder.decode(unpacker.readString()),
+                textDecoder.decode(unpacker.readString()),
+            ]
+        );
     }
 }
 
 class SvVoteOptionAdd {
-    description: string;
-
-    constructor(description: string) {
-        this.description = description;
-    }
+    constructor(
+        public description: string
+    ) { }
 
     static decode(unpacker: Reader) {
         return new SvVoteOptionAdd(textDecoder.decode(unpacker.readString()));
@@ -480,11 +381,9 @@ class SvVoteOptionAdd {
 }
 
 class SvVoteOptionRemove {
-    description: string;
-
-    constructor(description: string) {
-        this.description = description;
-    }
+    constructor(
+        public description: string
+    ) { }
 
     static decode(unpacker: Reader) {
         return new SvVoteOptionRemove(
@@ -494,15 +393,11 @@ class SvVoteOptionRemove {
 }
 
 class SvVoteSet {
-    timeout: number;
-    description: string;
-    reason: string;
-
-    constructor(timeout: number, description: string, reason: string) {
-        this.timeout = timeout;
-        this.description = description;
-        this.reason = reason;
-    }
+    constructor(
+        public timeout: number,
+        public description: string,
+        public reason: string
+    ) { }
 
     static decode(unpacker: Reader) {
         return new SvVoteSet(
@@ -514,17 +409,12 @@ class SvVoteSet {
 }
 
 class SvVoteStatus {
-    yes: number;
-    no: number;
-    pass: number;
-    total: number;
-
-    constructor(yes: number, no: number, pass: number, total: number) {
-        this.yes = yes;
-        this.no = no;
-        this.pass = pass;
-        this.total = total;
-    }
+    constructor(
+        public yes: number,
+        public no: number,
+        public pass: number,
+        public total: number
+    ) { }
 
     static decode(unpacker: Reader) {
         return new SvVoteStatus(
@@ -537,13 +427,10 @@ class SvVoteStatus {
 }
 
 class ClSay {
-    team: boolean;
-    message: string;
-
-    constructor(team: boolean, message: string) {
-        this.team = team;
-        this.message = message;
-    }
+    constructor(
+        public team: boolean,
+        public message: string
+    ) { }
 
     static decode(unpacker: Reader) {
         return new ClSay(
@@ -560,11 +447,9 @@ enum Team {
 }
 
 class ClSetTeam {
-    team: Team;
-
-    constructor(team: Team) {
-        this.team = team;
-    }
+    constructor(
+        public team: Team
+    ) { }
 
     static decode(unpacker: Reader) {
         return new ClSetTeam(unpacker.readInt());
@@ -572,11 +457,9 @@ class ClSetTeam {
 }
 
 class ClSetSpectatorMode {
-    spectatorId: number;
-
-    constructor(spectatorId: number) {
-        this.spectatorId = spectatorId;
-    }
+    constructor(
+        public spectatorId: number
+    ) { }
 
     static decode(unpacker: Reader) {
         return new ClSetSpectatorMode(unpacker.readInt());
@@ -584,31 +467,15 @@ class ClSetSpectatorMode {
 }
 
 class ClStartInfo {
-    name: string;
-    clan: string;
-    country: number;
-    skin: string;
-    useCustomColor: boolean;
-    colorBody: number;
-    colorFeet: number;
-
     constructor(
-        name: string,
-        clan: string,
-        country: number,
-        skin: string,
-        useCustomColor: boolean,
-        colorBody: number,
-        colorFeet: number,
-    ) {
-        this.name = name;
-        this.clan = clan;
-        this.country = country;
-        this.skin = skin;
-        this.useCustomColor = useCustomColor;
-        this.colorBody = colorBody;
-        this.colorFeet = colorFeet;
-    }
+        public name: string,
+        public clan: string,
+        public country: number,
+        public skin: string,
+        public useCustomColor: boolean,
+        public colorBody: number,
+        public colorFeet: number,
+    ) { }
 
     static decode(unpacker: Reader) {
         return new ClStartInfo(
@@ -624,31 +491,15 @@ class ClStartInfo {
 }
 
 class ClChangeInfo {
-    name: string;
-    clan: string;
-    country: number;
-    skin: string;
-    useCustomColor: boolean;
-    colorBody: number;
-    colorFeet: number;
-
     constructor(
-        name: string,
-        clan: string,
-        country: number,
-        skin: string,
-        useCustomColor: boolean,
-        colorBody: number,
-        colorFeet: number,
-    ) {
-        this.name = name;
-        this.clan = clan;
-        this.country = country;
-        this.skin = skin;
-        this.useCustomColor = useCustomColor;
-        this.colorBody = colorBody;
-        this.colorFeet = colorFeet;
-    }
+        public name: string,
+        public clan: string,
+        public country: number,
+        public skin: string,
+        public useCustomColor: boolean,
+        public colorBody: number,
+        public colorFeet: number,
+    ) { }
 
     static decode(unpacker: Reader) {
         return new ClChangeInfo(
@@ -664,16 +515,13 @@ class ClChangeInfo {
 }
 
 class ClKill {
-    //@ts-ignore
-    static decode(unpacker: Reader) { }
+    static decode(_: Reader) { }
 }
 
 class ClEmoticon {
-    emoticon: Emoticon;
-
-    constructor(emoticon: Emoticon) {
-        this.emoticon = emoticon;
-    }
+    constructor(
+        public emoticon: Emoticon
+    ) { }
 
     static decode(unpacker: Reader) {
         return new ClEmoticon(unpacker.readInt());
@@ -681,11 +529,9 @@ class ClEmoticon {
 }
 
 class ClVote {
-    vote: number;
-
-    constructor(vote: number) {
-        this.vote = vote;
-    }
+    constructor(
+        public vote: number
+    ) { }
 
     static decode(unpacker: Reader) {
         return new ClVote(unpacker.readInt());
@@ -693,15 +539,11 @@ class ClVote {
 }
 
 class ClCallVote {
-    type: string;
-    value: string;
-    reason: string;
-
-    constructor(type: string, value: string, reason: string) {
-        this.type = type;
-        this.value = value;
-        this.reason = reason;
-    }
+    constructor(
+        public type: string,
+        public value: string,
+        public reason: string
+    ) { }
 
     static decode(unpacker: Reader) {
         return new ClCallVote(
@@ -713,11 +555,9 @@ class ClCallVote {
 }
 
 class ClIsDdnetLegacy {
-    ddnetVersion: number;
-
-    constructor(ddnetVersion: number) {
-        this.ddnetVersion = ddnetVersion;
-    }
+    constructor(
+        public ddnetVersion: number
+    ) { }
 
     static decode(unpacker: Reader) {
         return new ClIsDdnetLegacy(unpacker.readInt());
@@ -725,15 +565,11 @@ class ClIsDdnetLegacy {
 }
 
 class SvDdraceTimeLegacy {
-    time: number;
-    check: number;
-    finish: number;
-
-    constructor(time: number, check: number, finish: number) {
-        this.time = time;
-        this.check = check;
-        this.finish = finish;
-    }
+    constructor(
+        public time: number,
+        public check: number,
+        public finish: number
+    ) { }
 
     static decode(unpacker: Reader) {
         return new SvDdraceTimeLegacy(
@@ -745,13 +581,10 @@ class SvDdraceTimeLegacy {
 }
 
 class SvRecordLegacy {
-    serverTimeBest: number;
-    playerTimeBest: number;
-
-    constructor(serverTimeBest: number, playerTimeBest: number) {
-        this.serverTimeBest = serverTimeBest;
-        this.playerTimeBest = playerTimeBest;
-    }
+    constructor(
+        public serverTimeBest: number,
+        public playerTimeBest: number
+    ) { }
 
     static decode(unpacker: Reader) {
         return new SvRecordLegacy(unpacker.readInt(), unpacker.readInt());
@@ -759,21 +592,17 @@ class SvRecordLegacy {
 }
 
 class Unused {
-    //@ts-ignore
-    static decode(unpacker: Reader) { }
+    static decode(_: Reader) { }
 }
 
 class SvTeamsStateLegacy {
-    //@ts-ignore
-    static decode(unpacker: Reader) { }
+    static decode(_: Reader) { }
 }
 
 class ClShowOthersLegacy {
-    show: boolean;
-
-    constructor(show: boolean) {
-        this.show = show;
-    }
+    constructor(
+        public show: boolean
+    ) { }
 
     static decode(unpacker: Reader) {
         return new ClShowOthersLegacy(unpacker.readInt() == 1);
@@ -781,11 +610,9 @@ class ClShowOthersLegacy {
 }
 
 class SvMyOwnMessage {
-    test: number;
-
-    constructor(test: number) {
-        this.test = test;
-    }
+    constructor(
+        public test: number
+    ) { }
 
     static decode(unpacker: Reader) {
         return new SvMyOwnMessage(unpacker.readInt());
@@ -793,13 +620,10 @@ class SvMyOwnMessage {
 }
 
 class ClShowDistance {
-    x: number;
-    y: number;
-
-    constructor(x: number, y: number) {
-        this.x = x;
-        this.y = y;
-    }
+    constructor(
+        public x: number,
+        public y: number
+    ) { }
 
     static decode(unpacker: Reader) {
         return new ClShowDistance(unpacker.readInt(), unpacker.readInt());
@@ -807,11 +631,9 @@ class ClShowDistance {
 }
 
 class ClShowOthers {
-    show: number;
-
-    constructor(show: number) {
-        this.show = show;
-    }
+    constructor(
+        public show: number
+    ) { }
 
     static decode(unpacker: Reader) {
         return new ClShowOthers(unpacker.readInt());
@@ -819,22 +641,17 @@ class ClShowOthers {
 }
 
 class SvTeamsState {
-    //@ts-ignore
-    static decode(unpacker: Reader) {
+    static decode(_: Reader) {
         return new SvTeamsState();
     }
 }
 
 class SvDdraceTime {
-    time: number;
-    check: number;
-    finish: number;
-
-    constructor(time: number, check: number, finish: number) {
-        this.time = time;
-        this.check = check;
-        this.finish = finish;
-    }
+    constructor(
+        public time: number,
+        public check: number,
+        public finish: number
+    ) { }
 
     static decode(unpacker: Reader) {
         return new SvDdraceTime(
@@ -846,13 +663,10 @@ class SvDdraceTime {
 }
 
 class SvRecord {
-    serverTimeBest: number;
-    playerTimeBest: number;
-
-    constructor(serverTimeBest: number, playerTimeBest: number) {
-        this.serverTimeBest = serverTimeBest;
-        this.playerTimeBest = playerTimeBest;
-    }
+    constructor(
+        public serverTimeBest: number,
+        public playerTimeBest: number
+    ) { }
 
     static decode(unpacker: Reader) {
         return new SvRecord(unpacker.readInt(), unpacker.readInt());

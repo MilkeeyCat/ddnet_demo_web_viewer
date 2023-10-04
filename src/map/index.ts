@@ -9,7 +9,6 @@ export class TwMap {
         public envelopes: Envelope[],
         public groups: Group[],
         public sounds: Sound[]
-
     ) { }
 
     static fromBytes(bytes: Uint8Array): TwMap {
