@@ -1,6 +1,7 @@
 import { Game } from '../game';
 import { Huffman } from '../huffman';
 import { FREQUENCIES } from '../huffman/frequencies';
+import { TwMap } from '../map';
 import { Reader } from '../reader';
 import { LeI32 } from '../utils/nums';
 import { Message } from './Message';
@@ -31,6 +32,7 @@ type TimelineMarkers = {
 type Demo = {
     versionHeader: VersionHeader;
     header: Header;
+    map: TwMap;
     timelineMarkers: TimelineMarkers;
     chunks: (Chunk | ReturnType<typeof Game.decodeMsg>)[];
 };
@@ -89,7 +91,8 @@ export class DemoReader {
             timelineMarkers[i] = markerValue;
         }
 
-        this.skip(mapSize + 48);
+        this.skip(32 + 16);
+        const map = TwMap.fromBytes(this.readRaw(mapSize));
 
         const chunks = this.readChunks();
 
@@ -111,6 +114,7 @@ export class DemoReader {
                 numTimelineMarkers,
                 timelineMarkers,
             },
+            map,
             chunks,
         };
     }
@@ -244,11 +248,6 @@ export class DemoReader {
 
         while (this.buffer.length > 0) {
             const chunk = this.readChunk();
-            
-            if(chunk instanceof Snapshot) {
-                console.log(chunk);
-                break;
-            }
 
             if (chunk) {
                 if (chunk instanceof Message) {

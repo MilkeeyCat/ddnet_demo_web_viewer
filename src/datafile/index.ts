@@ -176,7 +176,7 @@ export class Datafile {
             id = exIndex.get(Array.from(res.bytes)!)!;
         }
 
-        return this.items.get(id)!;
+        return this.items.get(id) || [];
     }
 
     dataItem(index: number): [Uint8Array, number] {
@@ -576,6 +576,10 @@ export class EnvPoint<T> {
 
 function parseEnvPointsFrFr(item: Item, df: Datafile): EnvPoint<Int32Array>[] {
     const envelopeItems = df.getItems(new Map(), ItemTypeEnum.Envelope);
+
+    if (!envelopeItems.length) {
+        return [];
+    }
 
     const envelopeVersion = checkEnvVersion(envelopeItems, ItemTypeEnum.Envelope);
     if (!envelopeVersion) {

@@ -1,7 +1,7 @@
 import { Datafile, ExType, Image, Info, RawDatafile, Sound, Version, Group, parseAll, parseSingleItemOnly, Layer, parseEnvPoints, Envelope, EnvPoint } from '../datafile';
 import { LayerT } from '../datafile/Layer';
 
-export class CMap {
+export class TwMap {
     constructor(
         public version: Version,
         public info: Info,
@@ -12,14 +12,14 @@ export class CMap {
 
     ) { }
 
-    static fromBytes(bytes: Uint8Array): CMap {
+    static fromBytes(bytes: Uint8Array): TwMap {
         const rawDogDatafile = new RawDatafile(bytes);
         const datafile = new Datafile(rawDogDatafile);
 
         return this.parseDatafile(datafile);
     }
 
-    static parseDatafile(df: Datafile): CMap {
+    static parseDatafile(df: Datafile): TwMap {
         //@ts-ignore
         const ex = parseAll(ExType, df, new Map());
         const version = parseSingleItemOnly(Version, df, new Map());
@@ -40,7 +40,7 @@ export class CMap {
         const sounds = parseAll(Sound, df, new Map());
         //TODO: automappers
 
-        return new CMap(
+        return new TwMap(
             version,
             info,
             images,

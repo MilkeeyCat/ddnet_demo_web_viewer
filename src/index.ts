@@ -1,7 +1,7 @@
-import { CMap } from "./map";
+import { DemoReader } from "./demo";
 import * as fs from 'fs';
 
-fs.readFile('./daddy/Exhale.map', (_, data) => {
-    const map = CMap.fromBytes(Uint8Array.from(data));
-    console.log(map);
-});
+fs.readFile("./daddy/Kobra2.demo", (_, data) => {
+    const demo = new DemoReader(data);
+    console.log(demo.demo.chunks);
+})
