@@ -266,23 +266,23 @@ export function parseSingleItemOnly<T extends MapItem>(
 
     const all = parseAll(mapItem, df, exIndex);
 
-    return all.pop()! as InstanceType<T>;
+    return all.pop()!;
 }
 
-export function parseAll<T extends MapItem>(
+export function parseAll<T extends MapItem, R = InstanceType<T>>(
     mapItem: T,
     df: Datafile,
     exIndex: ExTypeIndex,
-): InstanceType<T>[] {
+): R[] {
     const items = df.getItems(exIndex, mapItem.kind) || [];
-    const parsed: InstanceType<MapItem>[] = [];
+    const parsed: R[] = [];
 
     for (const item of items) {
-        //@ts-ignore
-        parsed.push(mapItem.parse(item, df));
+        //NOTE: i hope it wont break everythign :clueless:
+        parsed.push(mapItem.parse(item, df) as R);
     }
 
-    return parsed as InstanceType<T>[];
+    return parsed;
 }
 
 type ExTypeIndex = Map<number[], number>;

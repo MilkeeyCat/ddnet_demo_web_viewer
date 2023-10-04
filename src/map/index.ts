@@ -27,13 +27,11 @@ export class TwMap {
         const images = parseAll(Image, df, new Map());
         const envPoints = parseEnvPoints(df, new Map());
         const envelopes = parseAll(Envelope, df, new Map());
+
         EnvPoint.distribute(envPoints, envelopes);
 
-        //FIXME: gotta do something about these `as`
         const groups = parseAll(Group, df, new Map());
-        //FIXME: ehm.... not gud
-        const layers = parseAll(Layer, df, new Map()) as any as LayerT[];
-
+        const layers = parseAll<typeof Layer, LayerT>(Layer, df, new Map());
         //NOTE: someone gotta do check version for layer :DDDD
         Layer.distribute(layers, groups);
 
