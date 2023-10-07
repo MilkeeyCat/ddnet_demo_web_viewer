@@ -72,7 +72,16 @@ export class Huffman {
         }
 
         while (frequencies.length > 1) {
-            frequencies.sort((a, b) => (a.frequency <= b.frequency ? 1 : -1));
+            frequencies.sort((a, b) => {
+                if (a.frequency > b.frequency) {
+                    return -1;
+                } else if (a.frequency < b.frequency) {
+                    return 1;
+                }
+
+                return 0;
+            });
+
 
             const freq1 = frequencies.pop()!;
             const freq2 = frequencies.pop()!;
