@@ -2,7 +2,7 @@
 
 import { CommandBuffer } from "./CommandBuffer";
 import { GraphicsBackend } from "./GraphicsBackend";
-import { CommandInit } from "./commands";
+import { ColorRGBA, Command, CommandClear, CommandInit } from "./commands";
 
 const CMD_BUFFER_DATA_BUFFER_SIZE = 1024 * 1024 * 2;
 const CMD_BUFFER_CMD_BUFFER_SIZE = 1024 * 256;
@@ -53,9 +53,35 @@ export class Graphics {
             this.commandBuffers[i] = new CommandBuffer();
         }
 
-        this.commandBuffer = this.commandBuffers[0];
+        this.commandBuffer = this.commandBuffers[0]!;
         this.backend = new GraphicsBackend(ctx);
 
         console.log(this);
+    }
+
+    kickCommandBuffer() {
+        this.backend.runBuffer(this.commandBuffer);
+
+        //TODO: warnings!?!??
+
+        this.currentCommandBuffer ^= 1;
+        this.commandBuffer = this.commandBuffers[this.currentCommandBuffer]!;
+        this.commandBuffer.reset();
+    }
+
+    swap() {
+        //some magic shit...
+
+        this.kickCommandBuffer();
+    }
+
+    addCmd(cmd: Command) {
+        this.commandBuffer.addCommand(cmd);
+    }
+
+    clear(r: number, g: number, b: number, forceClearNow: boolean) {
+        const commandClear = new CommandClear(new ColorRGBA(r, g, b, 1), forceClearNow);
+
+        this.addCmd(commandClear);
     }
 }

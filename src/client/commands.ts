@@ -72,16 +72,25 @@ export class Command {
     }
 }
 
+export class ColorRGBA {
+    constructor(
+        public r: number,
+        public g: number,
+        public b: number,
+        public a: number
+    ) { }
+}
+
 export class CommandClear extends Command {
     //@ts-ignore NOTE: do it xd
     public color: ColorRGBA;
     public forceClear: boolean;
 
-    constructor() {
+    constructor(color: ColorRGBA, forceClear: boolean) {
         super(CommandBufferCMD.CMD_CLEAR);
 
-        this.color = null;
-        this.forceClear = false;
+        this.color = color;
+        this.forceClear = forceClear;
     }
 }
 

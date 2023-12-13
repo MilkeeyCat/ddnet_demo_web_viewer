@@ -1,3 +1,6 @@
+//NOTE: this shit will probably slowdown the program
+//I better remove this stuff in prod build
+
 type Context = WebGL2RenderingContext;
 
 function glClearErrors(gl: Context) {
