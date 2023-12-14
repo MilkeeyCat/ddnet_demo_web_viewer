@@ -1,3 +1,5 @@
+import { ColorRGBA, Vertex } from "./common";
+
 export enum CommandBufferCMD {
     // command groups
     CMDGROUP_CORE = 0, // commands that everyone has to implement
@@ -72,17 +74,7 @@ export class Command {
     }
 }
 
-export class ColorRGBA {
-    constructor(
-        public r: number,
-        public g: number,
-        public b: number,
-        public a: number
-    ) { }
-}
-
 export class CommandClear extends Command {
-    //@ts-ignore NOTE: do it xd
     public color: ColorRGBA;
     public forceClear: boolean;
 
@@ -102,6 +94,17 @@ class CommandRunBuffer extends Command {
 
     constructor() {
         super(CommandBufferCMD.CMD_RUNBUFFER);
+    }
+}
+
+export class CommandRender extends Command {
+    constructor(
+        public state: any,
+        public primType: number,
+        public primCount: number,
+        public vertices: Vertex[]
+    ) {
+        super(CommandBufferCMD.CMD_RENDER);
     }
 }
 
