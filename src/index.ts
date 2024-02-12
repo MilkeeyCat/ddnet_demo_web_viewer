@@ -9,10 +9,11 @@ function update(graphics: Graphics) {
     graphics.quadsEnd();
 
     graphics.swap();
-    window.requestAnimationFrame(() => update(graphics));
 
+    window.requestAnimationFrame(() => update(graphics));
 }
 
+// entry point to the whole program
 function main() {
     const canvas = document.querySelector<HTMLCanvasElement>("#canvas");
 

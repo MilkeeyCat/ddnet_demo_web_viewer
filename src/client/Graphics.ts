@@ -39,12 +39,6 @@ const CORNER_L = CORNER_TL | CORNER_BL;
 const CORNER_ALL = CORNER_T | CORNER_B;
 
 
-const PRIMTYPE_INVALID = 0;
-const PRIMTYPE_LINES = 1;
-const PRIMTYPE_QUADS = 2;
-const PRIMTYPE_TRIANGLES = 3;
-
-
 export class Graphics {
     backend: GraphicsBackend;
     commandBuffers: Array<CommandBuffer>;
@@ -58,6 +52,7 @@ export class Graphics {
     color: [ColorRGBA, ColorRGBA, ColorRGBA, ColorRGBA];
     texture: [TexCoord, TexCoord, TexCoord, TexCoord];
     vertices: Vertex[];
+    numVertices: number;
 
     static MAX_TEXTURES = 1024 * 8;
     static MAX_VERTICES = 32 * 1024;
@@ -85,9 +80,10 @@ export class Graphics {
     constructor(ctx: WebGL2RenderingContext) {
         this.drawing = 0;
         this.angle = 0;
+        this.numVertices = 0;
         this.texture = new Array(4).fill(new TexCoord(0, 0)) as [TexCoord, TexCoord, TexCoord, TexCoord];
         this.color = new Array(4).fill(new ColorRGBA(0, 0, 0, 0)) as [ColorRGBA, ColorRGBA, ColorRGBA, ColorRGBA];
-        this.vertices = [];
+        this.vertices = new Array(Graphics.MAX_VERTICES).fill(new Vertex(new Point(0, 0), new TexCoord(0, 0), new ColorRGBA(0, 0, 0, 0)));
 
         this.currentCommandBuffer = 0;
         this.commandBuffers = new Array(NUM_CMDBUFFERS).fill(null);
@@ -154,83 +150,193 @@ export class Graphics {
         }
     }
 
+    setVertexColor(vertex: Vertex, colorIndex: number) {
+        if (vertex === undefined) {
+            debugger;
+        }
+        vertex.color = this.color[colorIndex]!;
+    }
+
     //NOTE: add rotation
     quadsDrawTL(quads: QuadItem[]) {
         const center = new Point(0, 0);
 
-        console.assert(this.drawing == DRAWING_QUADS, "error OWO");
-
-        for (const quad of quads) {
-            //first triange
-
-            this.vertices.push(
-                new Vertex(
-                    new Point(quad.x, quad.y),
-                    this.texture[0],
-                    this.color[0]
-                )
-            );
-
-            this.vertices.push(
-                new Vertex(
-                    new Point(quad.x + quad.width, quad.y),
-                    this.texture[1],
-                    this.color[1]
-                )
-            );
-
-            this.vertices.push(
-                new Vertex(
-                    new Point(quad.x + quad.width, quad.y + quad.height),
-                    this.texture[2],
-                    this.color[2]
-                )
-            );
-
-            //second triangle
-
-
-            this.vertices.push(
-                new Vertex(
-                    new Point(quad.x, quad.y),
-                    this.texture[0],
-                    this.color[0]
-                )
-            );
-
-            this.vertices.push(
-                new Vertex(
-                    new Point(quad.x + quad.width, quad.y + quad.height),
-                    this.texture[2],
-                    this.color[2]
-                )
-            );
-
-            this.vertices.push(
-                new Vertex(
-                    new Point(quad.x, quad.y + quad.height),
-                    this.texture[3],
-                    this.color[3]
-                )
-            );
+        if (this.drawing !== DRAWING_QUADS) {
+            throw new Error("im out");
         }
+
+        for (let i = 0; i < quads.length; i++) {
+            //@ts-ignore fuck ts
+            this.vertices[this.numVertices + 4 * i].pos.x = quads[i].x;
+            //@ts-ignore fuck ts
+            this.vertices[this.numVertices + 4 * i].pos.y = quads[i].y;
+            //@ts-ignore fuck ts
+            this.vertices[this.numVertices + 4 * i].tex = this.texture[0];
+            //@ts-ignore fuck ts
+            this.setVertexColor(this.vertices[this.numVertices + 4 * i], 0);
+
+            //@ts-ignore fuck ts
+            this.vertices[this.numVertices + 4 * i + 1].pos.x = quads[i].x + quads[i].width;
+            //@ts-ignore fuck ts
+            this.vertices[this.numVertices + 4 * i + 1].pos.y = quads[i].y;
+            //@ts-ignore fuck ts
+            this.vertices[this.numVertices + 4 * i + 1].tex = this.texture[1];
+            //@ts-ignore fuck ts
+            this.setVertexColor(this.vertices[this.numVertices + 4 * i + 1], 1);
+
+            //@ts-ignore fuck ts
+            this.vertices[this.numVertices + 4 * i + 2].pos.x = quads[i].x + quads[i].width;
+            //@ts-ignore fuck ts
+            this.vertices[this.numVertices + 4 * i + 2].pos.y = quads[i].y + quads[i].height;
+            //@ts-ignore fuck ts
+            this.vertices[this.numVertices + 4 * i + 2].tex = this.texture[2];
+            //@ts-ignore fuck ts
+            this.setVertexColor(this.vertices[this.numVertices + 4 * i + 2], 2);
+
+            //@ts-ignore fuck ts
+            this.vertices[this.numVertices + 4 * i + 3].pos.x = quads[i].x;
+            //@ts-ignore fuck ts
+            this.vertices[this.numVertices + 4 * i + 3].pos.y = quads[i].y + quads[i].height;
+            //@ts-ignore fuck ts
+            this.vertices[this.numVertices + 4 * i + 3].tex = this.texture[3];
+            //@ts-ignore fuck ts
+            this.setVertexColor(this.vertices[this.numVertices + 4 * i + 3], 3);
+        }
+
+        this.addVertices(4 * quads.length);
 
     }
 
     //TODO: make it look gut
-    flushVertices(keepVertices: boolean) {
+    flushVertices(keepVertices: boolean = false) {
         keepVertices;
         console.log(this.vertices.length);
-        const cmd = new CommandRender(null, PRIMTYPE_QUADS, this.vertices.length, this.vertices);
+        const cmd = new CommandRender(null, CommandBuffer.PRIMTYPE_QUADS, this.vertices.length, this.vertices);
 
         this.addCmd(cmd);
+        this.commandBuffer.addRenderCalls(1);
     }
 
     quadsEnd() {
-        console.assert(this.drawing == DRAWING_QUADS, "Nonoonon");
+        if (this.drawing != DRAWING_QUADS) {
+            throw new Error("AAAAAAAAAAAAAAAAAAa");
+        }
 
         this.flushVertices(false);
         this.drawing = 0;
+    }
+
+    quadsDrawFreeform(freeform: FreeformItem[]) {
+        if (this.drawing != DRAWING_QUADS && this.drawing != DRAWING_TRIANGLES) {
+            throw new Error("You fucking buffoon, call begin first");
+        }
+
+        if (this.drawing === DRAWING_TRIANGLES) {
+            for (let i = 0; i < freeform.length; i++) {
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 6 * i].pos.x = freeform[i].x0;
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 6 * i].pos.y = freeform[i].y0;
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 6 * i].tex = this.texture[0];
+                //@ts-ignore i kown what im doing
+                this.setVertexColor(this.vertices[this.numVertices + 6 * i], 0);
+
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 6 * i + 1].pos.x = freeform[i].x1;
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 6 * i + 1].pos.y = freeform[i].y1;
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 6 * i + 1].tex = this.texture[1];
+                //@ts-ignore i kown what im doing
+                this.setVertexColor(this.vertices[this.numVertices + 6 * i + 1], 1);
+
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 6 * i + 2].pos.x = freeform[i].x3;
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 6 * i + 2].pos.y = freeform[i].y3;
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 6 * i + 2].tex = this.texture[3];
+                //@ts-ignore i kown what im doing
+                this.setVertexColor(this.vertices[this.numVertices + 6 * i + 2], 3);
+
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 6 * i + 3].pos.x = freeform[i].x0;
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 6 * i + 3].pos.y = freeform[i].y0;
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 6 * i + 3].tex = this.texture[0];
+                //@ts-ignore i kown what im doing
+                this.setVertexColor(this.vertices[this.numVertices + 6 * i + 3], 0);
+
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 6 * i + 4].pos.x = freeform[i].x3;
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 6 * i + 4].pos.y = freeform[i].y3;
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 6 * i + 4].tex = this.texture[3];
+                //@ts-ignore i kown what im doing
+                this.setVertexColor(this.vertices[this.numVertices + 6 * i + 4], 3);
+
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 6 * i + 5].pos.x = freeform[i].x2;
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 6 * i + 5].pos.y = freeform[i].y2;
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 6 * i + 5].tex = this.texture[2];
+                //@ts-ignore i kown what im doing
+                this.setVertexColor(this.vertices[this.numVertices + 6 * i + 5], 2);
+            }
+
+            this.addVertices(3 * 2 * freeform.length);
+        } else {
+            for (let i = 0; i < freeform.length; i++) {
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 4 * i].pos.x = freeform[i].x0;
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 4 * i].pos.y = freeform[i].y0;
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 4 * i].tex = this.texture[0];
+                //@ts-ignore i kown what im doing
+                this.setVertexColor(this.vertices[this.numVertices + 4 * i], 0);
+
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 4 * i + 1].pos.x = freeform[i].x1;
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 4 * i + 1].pos.y = freeform[i].y1;
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 4 * i + 1].tex = this.texture[1];
+                //@ts-ignore i kown what im doing
+                this.setVertexColor(this.vertices[this.numVertices + 4 * i + 1], 1);
+
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 4 * i + 2].pos.x = freeform[i].x3;
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 4 * i + 2].pos.y = freeform[i].y3;
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 4 * i + 2].tex = this.texture[3];
+                //@ts-ignore i kown what im doing
+                this.setVertexColor(this.vertices[this.numVertices + 4 * i + 2], 3);
+
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 4 * i + 3].pos.x = freeform[i].x2;
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 4 * i + 3].pos.y = freeform[i].y2;
+                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 4 * i + 3].tex = this.texture[2];
+                //@ts-ignore i kown what im doing
+                this.setVertexColor(this.vertices[this.numVertices + 4 * i + 3], 2);
+            }
+
+            this.addVertices(4 * freeform.length);
+        }
+    }
+
+    addVertices(count: number) {
+        this.numVertices += count;
+        if (this.numVertices + count >= Graphics.MAX_VERTICES) {
+            this.flushVertices();
+        }
     }
 
     drawRect(x: number, y: number, w: number, h: number, r: number, corners: number) {
@@ -238,7 +344,7 @@ export class Graphics {
         const segmentsAngle = Math.PI / 2 / numSegments;
         const freeform: FreeformItem[] = [];
 
-        for (let i = 0; i < numSegments; i++) {
+        for (let i = 0; i < numSegments; i += 2) {
             const a1 = i * segmentsAngle;
             const a2 = (i + 1) * segmentsAngle;
             const a3 = (i + 2) * segmentsAngle;
@@ -289,7 +395,7 @@ export class Graphics {
             }
         }
 
-        //this.quadsDrawFreeform(freeform);
+        this.quadsDrawFreeform(freeform);
 
         const quads: QuadItem[] = [];
 
@@ -318,7 +424,9 @@ export class Graphics {
     }
 
     quadsBegin() {
-        console.assert(this.drawing == 0, "You're fucked");
+        if (this.drawing != 0) {
+            throw new Error("BAD!");
+        }
 
         this.drawing = DRAWING_QUADS;
 

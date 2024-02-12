@@ -4,15 +4,20 @@ import { Command } from "./commands";
 export class CommandBuffer {
     // cmdBuffer
     // commandCount
-    // renderCallCount
     // dataBuffer
+    static PRIMTYPE_INVALID = 0;
+    static PRIMTYPE_LINES = 1;
+    static PRIMTYPE_QUADS = 2;
+    static PRIMTYPE_TRIANGLES = 3;
 
+    renderCallCount: number;
     cmdBufferHead: Command | null;
     cmdBufferTail: Command | null;
 
     constructor() {
         this.cmdBufferHead = null;
         this.cmdBufferTail = null;
+        this.renderCallCount = 0;
     }
 
     addCommand(command: Command) {
@@ -27,5 +32,9 @@ export class CommandBuffer {
 
     reset() {
         this.cmdBufferHead = this.cmdBufferTail = null;
+    }
+
+    addRenderCalls(count: number) {
+        this.renderCallCount += count;
     }
 }
