@@ -1,4 +1,6 @@
 import { CommandBuffer } from "./CommandBuffer";
+import { GLSL } from "./GLSL";
+import { GLSLProgram } from "./GLSLProgram";
 import { Command, CommandBufferCMD, CommandClear, CommandInit, CommandRender } from "./commands";
 import { RunCommandReturnTypes } from "./enums"
 
@@ -12,6 +14,8 @@ export class CommandWebGL2CommandProcessorFragment {
     static CMD_SHUTDOWN = CommandBufferCMD.CMDGROUP_PLATFORM_GL + 2;
     static CMD_POST_SHUTDOWN = CommandBufferCMD.CMDGROUP_PLATFORM_GL + 3;
 
+    primitiveProgram: GLSLProgram;
+
     primitiveDrawBufferTex3d: WebGLBuffer | null;
     primitiveDrawBuffer: (WebGLBuffer | null)[];
 
@@ -19,11 +23,12 @@ export class CommandWebGL2CommandProcessorFragment {
     constructor(ctx: WebGL2RenderingContext) {
         this.glContext = ctx;
 
+        this.primitiveProgram = new GLSLProgram(this.glContext);
         this.primitiveDrawBufferTex3d = null
         this.primitiveDrawBuffer = new Array(MAX_STREAM_BUFFER_COUNT).fill(null);
     }
 
-    cmdInit(command: CommandInit) {
+    async cmdInit(command: CommandInit) {
         console.log("Im in a init command", command);
 
         this.primitiveDrawBufferTex3d = this.glContext.createBuffer();
@@ -31,18 +36,28 @@ export class CommandWebGL2CommandProcessorFragment {
             this.primitiveDrawBuffer[i] = this.glContext.createBuffer();
         }
 
+        //primitive program
+        //@ts-ignore
+        const primitiveVertexShader = new GLSL(this.glContext, (await import('../../shaders/prim.vert?raw')).default, this.glContext.VERTEX_SHADER);
+        //@ts-ignore
+        const primitiveFragmentShader = new GLSL(this.glContext, (await import('../../shaders/prim.frag?raw')).default, this.glContext.FRAGMENT_SHADER);
+
+        this.primitiveProgram.createProgram();
+        this.primitiveProgram.addShader(primitiveVertexShader);
+        this.primitiveProgram.addShader(primitiveFragmentShader);
+        this.primitiveProgram.linkProgram();
+        this.useProgram(this.primitiveProgram);
+
         console.log("Initialized shtuff", command);
+    }
+
+    useProgram(program: GLSLProgram) {
+        program.useProgram();
     }
 
     cmdRender(command: CommandRender) {
         command;
-
-        const program = `
-        You gotta add own glsl primitive program
-        `;
-
-        this.glContext.useProgram(program);
-        //this shit doesnt work
+        this.useProgram(this.primitiveProgram);
     }
 
     cmdClear(command: CommandClear) {
@@ -50,10 +65,10 @@ export class CommandWebGL2CommandProcessorFragment {
         this.glContext.clear(this.glContext.COLOR_BUFFER_BIT | this.glContext.DEPTH_BUFFER_BIT);
     }
 
-    runCommand(baseCommand: Command): RunCommandReturnTypes {
+    async runCommand(baseCommand: Command): Promise<RunCommandReturnTypes> {
         switch (baseCommand.cmd) {
             case CommandWebGL2CommandProcessorFragment.CMD_INIT:
-                this.cmdInit(baseCommand);
+                await this.cmdInit(baseCommand);
                 break;
             case CommandBufferCMD.CMD_RENDER:
                 this.cmdRender(baseCommand as CommandRender);
@@ -67,6 +82,7 @@ export class CommandWebGL2CommandProcessorFragment {
     }
 
     uploadStreamBufferData(primitiveType: number, vertices: any[], primitiveCount: number, asTex3d = false) {
+        vertices;
         let count = 0;
 
         switch (primitiveType) {
@@ -84,9 +100,9 @@ export class CommandWebGL2CommandProcessorFragment {
         }
 
         if (asTex3d) {
-            this.glContext.bindBuffer(this.glContext.ARRAY_BUFFER, m_PrimitiveDrawBufferIDTex3D);
+            //this.glContext.bindBuffer(this.glContext.ARRAY_BUFFER, primitiveDrawBufferIdTex3d);
         } else {
-            this.glContext.bindBuffer(this.glContext.ARRAY_BUFFER, m_aPrimitiveDrawBufferID[m_LastStreamBuffer]);
+            //this.glContext.bindBuffer(this.glContext.ARRAY_BUFFER, primitiveDrawBufferId[lastStreamBuffer]);
         }
 
         this.glContext.bufferData(this.glContext.ARRAY_BUFFER, new ArrayBuffer(10), this.glContext.STREAM_DRAW);
