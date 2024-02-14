@@ -1,4 +1,19 @@
-import { Datafile, ExType, Image, Info, RawDatafile, Sound, Version, Group, parseAll, parseSingleItemOnly, Layer, parseEnvPoints, Envelope, EnvPoint } from '../datafile';
+import {
+    Datafile,
+    ExType,
+    Image,
+    Info,
+    RawDatafile,
+    Sound,
+    Version,
+    Group,
+    parseAll,
+    parseSingleItemOnly,
+    Layer,
+    parseEnvPoints,
+    Envelope,
+    EnvPoint,
+} from '../datafile';
 import { LayerT } from '../datafile/Layer';
 
 export class TwMap {
@@ -8,8 +23,8 @@ export class TwMap {
         public images: Image[],
         public envelopes: Envelope[],
         public groups: Group[],
-        public sounds: Sound[]
-    ) { }
+        public sounds: Sound[],
+    ) {}
 
     static fromBytes(bytes: Uint8Array): TwMap {
         const rawDogDatafile = new RawDatafile(bytes);
@@ -37,13 +52,6 @@ export class TwMap {
         const sounds = parseAll(Sound, df, new Map());
         //TODO: automappers
 
-        return new TwMap(
-            version,
-            info,
-            images,
-            envelopes,
-            groups,
-            sounds,
-        );
+        return new TwMap(version, info, images, envelopes, groups, sounds);
     }
 }

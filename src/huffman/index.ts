@@ -36,8 +36,8 @@ export class Bits {
 class Frequency {
     constructor(
         public frequency: number,
-        public nodeId: number
-    ) { }
+        public nodeId: number,
+    ) {}
 }
 
 class Node {
@@ -54,9 +54,7 @@ const NUM_NODES = NUM_SYMBOLS * 2 - 1;
 const ROOT_ID = NUM_NODES - 1;
 
 export class Huffman {
-    constructor(
-        public nodes: Node[]
-    ) { }
+    constructor(public nodes: Node[]) {}
 
     static fromFrequencies(data: number[]): Huffman {
         const frequencies = data.map(
@@ -81,7 +79,6 @@ export class Huffman {
 
                 return 0;
             });
-
 
             const freq1 = frequencies.pop()!;
             const freq2 = frequencies.pop()!;

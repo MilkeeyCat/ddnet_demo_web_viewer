@@ -4,14 +4,14 @@ export enum DebugGFXModes {
     DEBUG_GFX_MODE_AFFECTS_PERFORMANCE,
     DEBUG_GFX_MODE_VERBOSE,
     DEBUG_GFX_MODE_ALL,
-};
+}
 
 export enum RunCommandReturnTypes {
     RUN_COMMAND_COMMAND_HANDLED = 0,
     RUN_COMMAND_COMMAND_UNHANDLED,
     RUN_COMMAND_COMMAND_WARNING,
     RUN_COMMAND_COMMAND_ERROR,
-};
+}
 
 export enum GFXErrorType {
     GFX_ERROR_TYPE_NONE = 0,
@@ -24,7 +24,7 @@ export enum GFXErrorType {
     GFX_ERROR_TYPE_RENDER_SUBMIT_FAILED,
     GFX_ERROR_TYPE_SWAP_FAILED,
     GFX_ERROR_TYPE_UNKNOWN,
-};
+}
 
 export enum GFXWarningType {
     GFX_WARNING_TYPE_NONE = 0,
@@ -33,4 +33,4 @@ export enum GFXWarningType {
     GFX_WARNING_LOW_ON_MEMORY,
     GFX_WARNING_MISSING_EXTENSION,
     GFX_WARNING_TYPE_UNKNOWN,
-};
+}

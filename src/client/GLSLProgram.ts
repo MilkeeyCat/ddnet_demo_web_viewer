@@ -1,18 +1,15 @@
-import { GLSL } from "./GLSL";
+import { GLSL } from './GLSL';
 
 export class GLSLProgram {
-    glContext: WebGLRenderingContext;
     private program!: WebGLProgram;
 
-    constructor(ctx: WebGLRenderingContext) {
-        this.glContext = ctx;
-    }
+    constructor(public glContext: WebGLRenderingContext) {}
 
     createProgram() {
         const program = this.glContext.createProgram();
 
         if (!program) {
-            throw new Error("Coudn't create a WebGLProgram")
+            throw new Error("Coudn't create a WebGLProgram");
         }
 
         this.program = program;
@@ -28,7 +25,10 @@ export class GLSLProgram {
 
     linkProgram() {
         this.glContext.linkProgram(this.program);
-        console.log("are we fukcked", this.glContext.getProgramInfoLog(this.program));
+        console.log(
+            'are we fukcked',
+            this.glContext.getProgramInfoLog(this.program),
+        );
     }
 
     useProgram() {

@@ -1,9 +1,7 @@
-import { Uuid } from "../uuid";
+import { Uuid } from '../uuid';
 
 export class Reader {
-    constructor(
-        public data: Uint8Array
-    ) { }
+    constructor(public data: Uint8Array) {}
 
     private next(): number | null {
         let result = this.data[0];

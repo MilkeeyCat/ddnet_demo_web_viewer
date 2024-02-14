@@ -1,5 +1,3 @@
 export class Message {
-    constructor(
-        public data: Uint8Array
-    ) { }
+    constructor(public data: Uint8Array) {}
 }

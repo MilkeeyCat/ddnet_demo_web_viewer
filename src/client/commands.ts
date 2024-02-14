@@ -1,4 +1,4 @@
-import { ColorRGBA, Vertex } from "./common";
+import { ColorRGBA, Vertex } from './common';
 
 export enum CommandBufferCMD {
     // command groups
@@ -64,10 +64,10 @@ export enum CommandBufferCMD {
     CMD_WINDOW_DESTROY_NTF,
 
     CMD_COUNT,
-};
+}
 
 export class Command {
-    next: null | Command
+    next: null | Command;
 
     constructor(public cmd: CommandBufferCMD) {
         this.next = null;
@@ -86,7 +86,7 @@ export class CommandClear extends Command {
     }
 }
 
-class CommandSignal extends Command { }
+class CommandSignal extends Command {}
 
 class CommandRunBuffer extends Command {
     //NOTE: what should be used as command buffer :thonk:
@@ -102,7 +102,7 @@ export class CommandRender extends Command {
         public state: any,
         public primType: number,
         public primCount: number,
-        public vertices: Vertex[]
+        public vertices: Vertex[],
     ) {
         super(CommandBufferCMD.CMD_RENDER);
     }

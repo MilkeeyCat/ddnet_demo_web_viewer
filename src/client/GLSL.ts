@@ -5,9 +5,8 @@ export class GLSL {
     constructor(ctx: WebGLRenderingContext, source: string, type: number) {
         this.glContext = ctx;
         const shader = ctx.createShader(type);
-
         if (!shader) {
-            throw new Error("Failed to generate a shader");
+            throw new Error('Failed to generate a shader');
         }
 
         ctx.shaderSource(shader, source);

@@ -1,9 +1,16 @@
 //NOTE: kill me, its garbage
 
-import { CommandBuffer } from "./CommandBuffer";
-import { GraphicsBackend } from "./GraphicsBackend";
-import { Command, CommandClear, CommandRender } from "./commands";
-import { ColorRGBA, FreeformItem, Point, QuadItem, TexCoord, Vertex } from "./common";
+import { CommandBuffer } from './CommandBuffer';
+import { GraphicsBackend } from './GraphicsBackend';
+import { Command, CommandClear, CommandRender } from './commands';
+import {
+    ColorRGBA,
+    FreeformItem,
+    Point,
+    QuadItem,
+    TexCoord,
+    Vertex,
+} from './common';
 
 function clampf(value: number, min: number, max: number) {
     if (value > max) {
@@ -24,7 +31,6 @@ const DRAWING_QUADS = 1;
 const DRAWING_LINES = 2;
 const DRAWING_TRIANGLES = 3;
 
-
 const CORNER_NONE = 0;
 const CORNER_TL = 1;
 const CORNER_TR = 2;
@@ -37,7 +43,6 @@ const CORNER_R = CORNER_TR | CORNER_BR;
 const CORNER_L = CORNER_TL | CORNER_BL;
 
 const CORNER_ALL = CORNER_T | CORNER_B;
-
 
 export class Graphics {
     backend: GraphicsBackend;
@@ -58,9 +63,9 @@ export class Graphics {
     static TEXFORMAT_RGBA = 1;
 
     static TEXFLAG_NOMIPMAPS = 1;
-    static TEXFLAG_TO_3D_TEXTURE = (1 << 3);
-    static TEXFLAG_TO_2D_ARRAY_TEXTURE = (1 << 4);
-    static TEXFLAG_NO_2D_TEXTURE = (1 << 5);
+    static TEXFLAG_TO_3D_TEXTURE = 1 << 3;
+    static TEXFLAG_TO_2D_ARRAY_TEXTURE = 1 << 4;
+    static TEXFLAG_NO_2D_TEXTURE = 1 << 5;
 
     static PRIMTYPE_INVALID = 0;
     static PRIMTYPE_LINES = 1;
@@ -78,9 +83,25 @@ export class Graphics {
         this.drawing = 0;
         this.angle = 0;
         this.numVertices = 0;
-        this.texture = new Array(4).fill(new TexCoord(0, 0)) as [TexCoord, TexCoord, TexCoord, TexCoord];
-        this.color = new Array(4).fill(new ColorRGBA(0, 0, 0, 0)) as [ColorRGBA, ColorRGBA, ColorRGBA, ColorRGBA];
-        this.vertices = new Array(Graphics.MAX_VERTICES).fill(new Vertex(new Point(0, 0), new TexCoord(0, 0), new ColorRGBA(0, 0, 0, 0)));
+        this.texture = new Array(4).fill(new TexCoord(0, 0)) as [
+            TexCoord,
+            TexCoord,
+            TexCoord,
+            TexCoord,
+        ];
+        this.color = new Array(4).fill(new ColorRGBA(0, 0, 0, 0)) as [
+            ColorRGBA,
+            ColorRGBA,
+            ColorRGBA,
+            ColorRGBA,
+        ];
+        this.vertices = new Array(CommandBuffer.MAX_VERTICES).fill(
+            new Vertex(
+                new Point(0, 0),
+                new TexCoord(0, 0),
+                new ColorRGBA(0, 0, 0, 0),
+            ),
+        );
 
         this.currentCommandBuffer = 0;
         this.commandBuffers = new Array(NUM_CMDBUFFERS).fill(null);
@@ -159,7 +180,7 @@ export class Graphics {
         const center = new Point(0, 0);
 
         if (this.drawing !== DRAWING_QUADS) {
-            throw new Error("im out");
+            throw new Error('im out');
         }
 
         for (let i = 0; i < quads.length; i++) {
@@ -173,7 +194,8 @@ export class Graphics {
             this.setVertexColor(this.vertices[this.numVertices + 4 * i], 0);
 
             //@ts-ignore fuck ts
-            this.vertices[this.numVertices + 4 * i + 1].pos.x = quads[i].x + quads[i].width;
+            this.vertices[this.numVertices + 4 * i + 1].pos.x =
+                quads[i].x + quads[i].width;
             //@ts-ignore fuck ts
             this.vertices[this.numVertices + 4 * i + 1].pos.y = quads[i].y;
             //@ts-ignore fuck ts
@@ -182,9 +204,11 @@ export class Graphics {
             this.setVertexColor(this.vertices[this.numVertices + 4 * i + 1], 1);
 
             //@ts-ignore fuck ts
-            this.vertices[this.numVertices + 4 * i + 2].pos.x = quads[i].x + quads[i].width;
+            this.vertices[this.numVertices + 4 * i + 2].pos.x =
+                quads[i].x + quads[i].width;
             //@ts-ignore fuck ts
-            this.vertices[this.numVertices + 4 * i + 2].pos.y = quads[i].y + quads[i].height;
+            this.vertices[this.numVertices + 4 * i + 2].pos.y =
+                quads[i].y + quads[i].height;
             //@ts-ignore fuck ts
             this.vertices[this.numVertices + 4 * i + 2].tex = this.texture[2];
             //@ts-ignore fuck ts
@@ -193,7 +217,8 @@ export class Graphics {
             //@ts-ignore fuck ts
             this.vertices[this.numVertices + 4 * i + 3].pos.x = quads[i].x;
             //@ts-ignore fuck ts
-            this.vertices[this.numVertices + 4 * i + 3].pos.y = quads[i].y + quads[i].height;
+            this.vertices[this.numVertices + 4 * i + 3].pos.y =
+                quads[i].y + quads[i].height;
             //@ts-ignore fuck ts
             this.vertices[this.numVertices + 4 * i + 3].tex = this.texture[3];
             //@ts-ignore fuck ts
@@ -201,14 +226,18 @@ export class Graphics {
         }
 
         this.addVertices(4 * quads.length);
-
     }
 
     //TODO: make it look gut
     flushVertices(keepVertices: boolean = false) {
         keepVertices;
         console.log(this.vertices.length);
-        const cmd = new CommandRender(null, CommandBuffer.PRIMTYPE_QUADS, this.vertices.length, this.vertices);
+        const cmd = new CommandRender(
+            null,
+            CommandBuffer.PRIMTYPE_QUADS,
+            this.vertices.length,
+            this.vertices,
+        );
 
         this.addCmd(cmd);
         this.commandBuffer.addRenderCalls(1);
@@ -216,7 +245,7 @@ export class Graphics {
 
     quadsEnd() {
         if (this.drawing != DRAWING_QUADS) {
-            throw new Error("AAAAAAAAAAAAAAAAAAa");
+            throw new Error('AAAAAAAAAAAAAAAAAAa');
         }
 
         this.flushVertices(false);
@@ -224,8 +253,11 @@ export class Graphics {
     }
 
     quadsDrawFreeform(freeform: FreeformItem[]) {
-        if (this.drawing != DRAWING_QUADS && this.drawing != DRAWING_TRIANGLES) {
-            throw new Error("You fucking buffoon, call begin first");
+        if (
+            this.drawing != DRAWING_QUADS &&
+            this.drawing != DRAWING_TRIANGLES
+        ) {
+            throw new Error('You fucking buffoon, call begin first');
         }
 
         if (this.drawing === DRAWING_TRIANGLES) {
@@ -240,49 +272,79 @@ export class Graphics {
                 this.setVertexColor(this.vertices[this.numVertices + 6 * i], 0);
 
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 1].pos.x = freeform[i].x1;
+                this.vertices[this.numVertices + 6 * i + 1].pos.x =
+                    freeform[i].x1;
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 1].pos.y = freeform[i].y1;
+                this.vertices[this.numVertices + 6 * i + 1].pos.y =
+                    freeform[i].y1;
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 1].tex = this.texture[1];
+                this.vertices[this.numVertices + 6 * i + 1].tex =
+                    this.texture[1];
                 //@ts-ignore i kown what im doing
-                this.setVertexColor(this.vertices[this.numVertices + 6 * i + 1], 1);
+                this.setVertexColor(
+                    this.vertices[this.numVertices + 6 * i + 1],
+                    1,
+                );
 
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 2].pos.x = freeform[i].x3;
+                this.vertices[this.numVertices + 6 * i + 2].pos.x =
+                    freeform[i].x3;
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 2].pos.y = freeform[i].y3;
+                this.vertices[this.numVertices + 6 * i + 2].pos.y =
+                    freeform[i].y3;
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 2].tex = this.texture[3];
+                this.vertices[this.numVertices + 6 * i + 2].tex =
+                    this.texture[3];
                 //@ts-ignore i kown what im doing
-                this.setVertexColor(this.vertices[this.numVertices + 6 * i + 2], 3);
+                this.setVertexColor(
+                    this.vertices[this.numVertices + 6 * i + 2],
+                    3,
+                );
 
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 3].pos.x = freeform[i].x0;
+                this.vertices[this.numVertices + 6 * i + 3].pos.x =
+                    freeform[i].x0;
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 3].pos.y = freeform[i].y0;
+                this.vertices[this.numVertices + 6 * i + 3].pos.y =
+                    freeform[i].y0;
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 3].tex = this.texture[0];
+                this.vertices[this.numVertices + 6 * i + 3].tex =
+                    this.texture[0];
                 //@ts-ignore i kown what im doing
-                this.setVertexColor(this.vertices[this.numVertices + 6 * i + 3], 0);
+                this.setVertexColor(
+                    this.vertices[this.numVertices + 6 * i + 3],
+                    0,
+                );
 
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 4].pos.x = freeform[i].x3;
+                this.vertices[this.numVertices + 6 * i + 4].pos.x =
+                    freeform[i].x3;
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 4].pos.y = freeform[i].y3;
+                this.vertices[this.numVertices + 6 * i + 4].pos.y =
+                    freeform[i].y3;
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 4].tex = this.texture[3];
+                this.vertices[this.numVertices + 6 * i + 4].tex =
+                    this.texture[3];
                 //@ts-ignore i kown what im doing
-                this.setVertexColor(this.vertices[this.numVertices + 6 * i + 4], 3);
+                this.setVertexColor(
+                    this.vertices[this.numVertices + 6 * i + 4],
+                    3,
+                );
 
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 5].pos.x = freeform[i].x2;
+                this.vertices[this.numVertices + 6 * i + 5].pos.x =
+                    freeform[i].x2;
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 5].pos.y = freeform[i].y2;
+                this.vertices[this.numVertices + 6 * i + 5].pos.y =
+                    freeform[i].y2;
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 5].tex = this.texture[2];
+                this.vertices[this.numVertices + 6 * i + 5].tex =
+                    this.texture[2];
                 //@ts-ignore i kown what im doing
-                this.setVertexColor(this.vertices[this.numVertices + 6 * i + 5], 2);
+                this.setVertexColor(
+                    this.vertices[this.numVertices + 6 * i + 5],
+                    2,
+                );
             }
 
             this.addVertices(3 * 2 * freeform.length);
@@ -298,31 +360,49 @@ export class Graphics {
                 this.setVertexColor(this.vertices[this.numVertices + 4 * i], 0);
 
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 4 * i + 1].pos.x = freeform[i].x1;
+                this.vertices[this.numVertices + 4 * i + 1].pos.x =
+                    freeform[i].x1;
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 4 * i + 1].pos.y = freeform[i].y1;
+                this.vertices[this.numVertices + 4 * i + 1].pos.y =
+                    freeform[i].y1;
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 4 * i + 1].tex = this.texture[1];
+                this.vertices[this.numVertices + 4 * i + 1].tex =
+                    this.texture[1];
                 //@ts-ignore i kown what im doing
-                this.setVertexColor(this.vertices[this.numVertices + 4 * i + 1], 1);
+                this.setVertexColor(
+                    this.vertices[this.numVertices + 4 * i + 1],
+                    1,
+                );
 
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 4 * i + 2].pos.x = freeform[i].x3;
+                this.vertices[this.numVertices + 4 * i + 2].pos.x =
+                    freeform[i].x3;
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 4 * i + 2].pos.y = freeform[i].y3;
+                this.vertices[this.numVertices + 4 * i + 2].pos.y =
+                    freeform[i].y3;
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 4 * i + 2].tex = this.texture[3];
+                this.vertices[this.numVertices + 4 * i + 2].tex =
+                    this.texture[3];
                 //@ts-ignore i kown what im doing
-                this.setVertexColor(this.vertices[this.numVertices + 4 * i + 2], 3);
+                this.setVertexColor(
+                    this.vertices[this.numVertices + 4 * i + 2],
+                    3,
+                );
 
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 4 * i + 3].pos.x = freeform[i].x2;
+                this.vertices[this.numVertices + 4 * i + 3].pos.x =
+                    freeform[i].x2;
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 4 * i + 3].pos.y = freeform[i].y2;
+                this.vertices[this.numVertices + 4 * i + 3].pos.y =
+                    freeform[i].y2;
                 //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 4 * i + 3].tex = this.texture[2];
+                this.vertices[this.numVertices + 4 * i + 3].tex =
+                    this.texture[2];
                 //@ts-ignore i kown what im doing
-                this.setVertexColor(this.vertices[this.numVertices + 4 * i + 3], 2);
+                this.setVertexColor(
+                    this.vertices[this.numVertices + 4 * i + 3],
+                    2,
+                );
             }
 
             this.addVertices(4 * freeform.length);
@@ -331,12 +411,19 @@ export class Graphics {
 
     addVertices(count: number) {
         this.numVertices += count;
-        if (this.numVertices + count >= Graphics.MAX_VERTICES) {
+        if (this.numVertices + count >= CommandBuffer.MAX_VERTICES) {
             this.flushVertices();
         }
     }
 
-    drawRect(x: number, y: number, w: number, h: number, r: number, corners: number) {
+    drawRect(
+        x: number,
+        y: number,
+        w: number,
+        h: number,
+        r: number,
+        corners: number,
+    ) {
         const numSegments = 8;
         const segmentsAngle = Math.PI / 2 / numSegments;
         const freeform: FreeformItem[] = [];
@@ -353,41 +440,62 @@ export class Graphics {
             const Sa3 = Math.sin(a3);
 
             if (corners & CORNER_TL) {
-                freeform.push(new FreeformItem(
-                    x + r, y + r,
-                    x + (1 - Ca1) * r, y + (1 - Sa1) * r,
-                    x + (1 - Ca3) * r, y + (1 - Sa3) * r,
-                    x + (1 - Ca2) * r, y + (1 - Sa2) * r)
+                freeform.push(
+                    new FreeformItem(
+                        x + r,
+                        y + r,
+                        x + (1 - Ca1) * r,
+                        y + (1 - Sa1) * r,
+                        x + (1 - Ca3) * r,
+                        y + (1 - Sa3) * r,
+                        x + (1 - Ca2) * r,
+                        y + (1 - Sa2) * r,
+                    ),
                 );
             }
 
             if (corners & CORNER_TR) {
                 freeform.push(
                     new FreeformItem(
-                        x + w - r, y + r,
-                        x + w - r + Ca1 * r, y + (1 - Sa1) * r,
-                        x + w - r + Ca3 * r, y + (1 - Sa3) * r,
-                        x + w - r + Ca2 * r, y + (1 - Sa2) * r)
+                        x + w - r,
+                        y + r,
+                        x + w - r + Ca1 * r,
+                        y + (1 - Sa1) * r,
+                        x + w - r + Ca3 * r,
+                        y + (1 - Sa3) * r,
+                        x + w - r + Ca2 * r,
+                        y + (1 - Sa2) * r,
+                    ),
                 );
             }
 
             if (corners & CORNER_BL) {
                 freeform.push(
                     new FreeformItem(
-                        x + r, y + h - r,
-                        x + (1 - Ca1) * r, y + h - r + Sa1 * r,
-                        x + (1 - Ca3) * r, y + h - r + Sa3 * r,
-                        x + (1 - Ca2) * r, y + h - r + Sa2 * r)
+                        x + r,
+                        y + h - r,
+                        x + (1 - Ca1) * r,
+                        y + h - r + Sa1 * r,
+                        x + (1 - Ca3) * r,
+                        y + h - r + Sa3 * r,
+                        x + (1 - Ca2) * r,
+                        y + h - r + Sa2 * r,
+                    ),
                 );
             }
 
             if (corners & CORNER_BR) {
                 freeform.push(
                     new FreeformItem(
-                        x + w - r, y + h - r,
-                        x + w - r + Ca1 * r, y + h - r + Sa1 * r,
-                        x + w - r + Ca3 * r, y + h - r + Sa3 * r,
-                        x + w - r + Ca2 * r, y + h - r + Sa2 * r)
+                        x + w - r,
+                        y + h - r,
+                        x + w - r + Ca1 * r,
+                        y + h - r + Sa1 * r,
+                        x + w - r + Ca3 * r,
+                        y + h - r + Sa3 * r,
+                        x + w - r + Ca2 * r,
+                        y + h - r + Sa2 * r,
+                    ),
                 );
             }
         }
@@ -417,12 +525,11 @@ export class Graphics {
 
         //TL - top left btw
         this.quadsDrawTL(quads);
-
     }
 
     quadsBegin() {
         if (this.drawing != 0) {
-            throw new Error("BAD!");
+            throw new Error('BAD!');
         }
 
         this.drawing = DRAWING_QUADS;
@@ -437,7 +544,10 @@ export class Graphics {
     }
 
     clear(r: number, g: number, b: number, forceClearNow: boolean) {
-        const commandClear = new CommandClear(new ColorRGBA(r, g, b, 1), forceClearNow);
+        const commandClear = new CommandClear(
+            new ColorRGBA(r, g, b, 1),
+            forceClearNow,
+        );
 
         this.addCmd(commandClear);
     }

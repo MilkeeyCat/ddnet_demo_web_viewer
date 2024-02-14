@@ -5,7 +5,7 @@ export class LeI32 {
             (num >> 8) & 0xff,
             (num >> 16) & 0xff,
             (num >> 24) & 0xff,
-        ]
+        ];
     }
 }
 
@@ -16,6 +16,6 @@ export class BeI32 {
             (num >> 16) & 0xff,
             (num >> 8) & 0xff,
             num & 0xff,
-        ]
+        ];
     }
 }

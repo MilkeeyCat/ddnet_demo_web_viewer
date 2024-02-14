@@ -2,8 +2,8 @@
 class Fixed {
     constructor(
         public num: number,
-        public fracBits: number
-    ) { }
+        public fracBits: number,
+    ) {}
 
     toFloat() {
         return this.num / (1 << this.fracBits);

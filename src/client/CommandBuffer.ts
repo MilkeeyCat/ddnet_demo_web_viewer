@@ -1,4 +1,4 @@
-import { Command } from "./commands";
+import { Command } from './commands';
 //NOTE: dont forget about TypedArray.subarray
 
 export class CommandBuffer {
@@ -27,9 +27,11 @@ export class CommandBuffer {
         if (this.cmdBufferTail) {
             this.cmdBufferTail.next = command;
         }
+
         if (!this.cmdBufferHead) {
             this.cmdBufferHead = command;
         }
+
         this.cmdBufferTail = command;
     }
 

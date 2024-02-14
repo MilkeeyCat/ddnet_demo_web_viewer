@@ -73,9 +73,7 @@ class SystemOrGame {
 }
 
 class SvModt {
-    constructor(
-        public message: string
-    ) { }
+    constructor(public message: string) {}
 
     static decode(unpacker: Reader) {
         return new SvModt(textDecoder.decode(unpacker.readString()));
@@ -83,9 +81,7 @@ class SvModt {
 }
 
 class SvBroadcast {
-    constructor(
-        public message: string
-    ) { }
+    constructor(public message: string) {}
 
     static decode(unpacker: Reader) {
         return new SvBroadcast(textDecoder.decode(unpacker.readString()));
@@ -96,8 +92,8 @@ class SvChat {
     constructor(
         public team: boolean,
         public clientId: number,
-        public message: string
-    ) { }
+        public message: string,
+    ) {}
 
     static decode(unpacker: Reader) {
         return new SvChat(
@@ -114,7 +110,7 @@ class SvKillMsg {
         public victim: number,
         public weapon: number,
         public modeSpecial: number,
-    ) { }
+    ) {}
 
     static decode(unpacker: Reader) {
         return new SvKillMsg(
@@ -169,9 +165,7 @@ enum Sound {
 }
 
 class SvSoundGlobal {
-    constructor(
-        public soundId: Sound
-    ) { }
+    constructor(public soundId: Sound) {}
 
     static decode(unpacker: Reader) {
         return new SvSoundGlobal(unpacker.readInt());
@@ -213,7 +207,7 @@ class SvTuneParams {
         public laserDamage: number,
         public playerCollision: number,
         public playerHooking: number,
-    ) { }
+    ) {}
 
     static decode(unpacker: Reader) {
         return new SvTuneParams(
@@ -273,9 +267,7 @@ type Projectile = {
 };
 
 class SvExtraProjectile {
-    constructor(
-        public projectile: Projectile
-    ) { }
+    constructor(public projectile: Projectile) {}
 
     static decode(unpacker: Reader) {
         return new SvExtraProjectile({
@@ -296,9 +288,7 @@ class SvReadyToEnter {
 }
 
 class SvWeaponPickup {
-    constructor(
-        public weapon: Weapon
-    ) { }
+    constructor(public weapon: Weapon) {}
 
     static decode(unpacker: Reader) {
         return new SvWeaponPickup(unpacker.readInt());
@@ -326,8 +316,8 @@ enum Emoticon {
 class SvEmotion {
     constructor(
         public clientId: number,
-        public emoticon: Emoticon
-    ) { }
+        public emoticon: Emoticon,
+    ) {}
 
     static decode(unpacker: Reader) {
         return new SvEmotion(unpacker.readInt(), unpacker.readInt());
@@ -343,37 +333,32 @@ class SvVoteClearOptions {
 class SvVoteOptionListAdd {
     constructor(
         public numOptions: number,
-        public description: string[]
-    ) { }
+        public description: string[],
+    ) {}
 
     static decode(unpacker: Reader) {
-        return new SvVoteOptionListAdd(
-            unpacker.readInt(),
-            [
-                textDecoder.decode(unpacker.readString()),
-                textDecoder.decode(unpacker.readString()),
-                textDecoder.decode(unpacker.readString()),
-                textDecoder.decode(unpacker.readString()),
-                textDecoder.decode(unpacker.readString()),
-                textDecoder.decode(unpacker.readString()),
-                textDecoder.decode(unpacker.readString()),
-                textDecoder.decode(unpacker.readString()),
-                textDecoder.decode(unpacker.readString()),
-                textDecoder.decode(unpacker.readString()),
-                textDecoder.decode(unpacker.readString()),
-                textDecoder.decode(unpacker.readString()),
-                textDecoder.decode(unpacker.readString()),
-                textDecoder.decode(unpacker.readString()),
-                textDecoder.decode(unpacker.readString()),
-            ]
-        );
+        return new SvVoteOptionListAdd(unpacker.readInt(), [
+            textDecoder.decode(unpacker.readString()),
+            textDecoder.decode(unpacker.readString()),
+            textDecoder.decode(unpacker.readString()),
+            textDecoder.decode(unpacker.readString()),
+            textDecoder.decode(unpacker.readString()),
+            textDecoder.decode(unpacker.readString()),
+            textDecoder.decode(unpacker.readString()),
+            textDecoder.decode(unpacker.readString()),
+            textDecoder.decode(unpacker.readString()),
+            textDecoder.decode(unpacker.readString()),
+            textDecoder.decode(unpacker.readString()),
+            textDecoder.decode(unpacker.readString()),
+            textDecoder.decode(unpacker.readString()),
+            textDecoder.decode(unpacker.readString()),
+            textDecoder.decode(unpacker.readString()),
+        ]);
     }
 }
 
 class SvVoteOptionAdd {
-    constructor(
-        public description: string
-    ) { }
+    constructor(public description: string) {}
 
     static decode(unpacker: Reader) {
         return new SvVoteOptionAdd(textDecoder.decode(unpacker.readString()));
@@ -381,9 +366,7 @@ class SvVoteOptionAdd {
 }
 
 class SvVoteOptionRemove {
-    constructor(
-        public description: string
-    ) { }
+    constructor(public description: string) {}
 
     static decode(unpacker: Reader) {
         return new SvVoteOptionRemove(
@@ -396,8 +379,8 @@ class SvVoteSet {
     constructor(
         public timeout: number,
         public description: string,
-        public reason: string
-    ) { }
+        public reason: string,
+    ) {}
 
     static decode(unpacker: Reader) {
         return new SvVoteSet(
@@ -413,8 +396,8 @@ class SvVoteStatus {
         public yes: number,
         public no: number,
         public pass: number,
-        public total: number
-    ) { }
+        public total: number,
+    ) {}
 
     static decode(unpacker: Reader) {
         return new SvVoteStatus(
@@ -429,8 +412,8 @@ class SvVoteStatus {
 class ClSay {
     constructor(
         public team: boolean,
-        public message: string
-    ) { }
+        public message: string,
+    ) {}
 
     static decode(unpacker: Reader) {
         return new ClSay(
@@ -447,9 +430,7 @@ enum Team {
 }
 
 class ClSetTeam {
-    constructor(
-        public team: Team
-    ) { }
+    constructor(public team: Team) {}
 
     static decode(unpacker: Reader) {
         return new ClSetTeam(unpacker.readInt());
@@ -457,9 +438,7 @@ class ClSetTeam {
 }
 
 class ClSetSpectatorMode {
-    constructor(
-        public spectatorId: number
-    ) { }
+    constructor(public spectatorId: number) {}
 
     static decode(unpacker: Reader) {
         return new ClSetSpectatorMode(unpacker.readInt());
@@ -475,7 +454,7 @@ class ClStartInfo {
         public useCustomColor: boolean,
         public colorBody: number,
         public colorFeet: number,
-    ) { }
+    ) {}
 
     static decode(unpacker: Reader) {
         return new ClStartInfo(
@@ -499,7 +478,7 @@ class ClChangeInfo {
         public useCustomColor: boolean,
         public colorBody: number,
         public colorFeet: number,
-    ) { }
+    ) {}
 
     static decode(unpacker: Reader) {
         return new ClChangeInfo(
@@ -515,13 +494,11 @@ class ClChangeInfo {
 }
 
 class ClKill {
-    static decode(_: Reader) { }
+    static decode(_: Reader) {}
 }
 
 class ClEmoticon {
-    constructor(
-        public emoticon: Emoticon
-    ) { }
+    constructor(public emoticon: Emoticon) {}
 
     static decode(unpacker: Reader) {
         return new ClEmoticon(unpacker.readInt());
@@ -529,9 +506,7 @@ class ClEmoticon {
 }
 
 class ClVote {
-    constructor(
-        public vote: number
-    ) { }
+    constructor(public vote: number) {}
 
     static decode(unpacker: Reader) {
         return new ClVote(unpacker.readInt());
@@ -542,8 +517,8 @@ class ClCallVote {
     constructor(
         public type: string,
         public value: string,
-        public reason: string
-    ) { }
+        public reason: string,
+    ) {}
 
     static decode(unpacker: Reader) {
         return new ClCallVote(
@@ -555,9 +530,7 @@ class ClCallVote {
 }
 
 class ClIsDdnetLegacy {
-    constructor(
-        public ddnetVersion: number
-    ) { }
+    constructor(public ddnetVersion: number) {}
 
     static decode(unpacker: Reader) {
         return new ClIsDdnetLegacy(unpacker.readInt());
@@ -568,8 +541,8 @@ class SvDdraceTimeLegacy {
     constructor(
         public time: number,
         public check: number,
-        public finish: number
-    ) { }
+        public finish: number,
+    ) {}
 
     static decode(unpacker: Reader) {
         return new SvDdraceTimeLegacy(
@@ -583,8 +556,8 @@ class SvDdraceTimeLegacy {
 class SvRecordLegacy {
     constructor(
         public serverTimeBest: number,
-        public playerTimeBest: number
-    ) { }
+        public playerTimeBest: number,
+    ) {}
 
     static decode(unpacker: Reader) {
         return new SvRecordLegacy(unpacker.readInt(), unpacker.readInt());
@@ -592,17 +565,15 @@ class SvRecordLegacy {
 }
 
 class Unused {
-    static decode(_: Reader) { }
+    static decode(_: Reader) {}
 }
 
 class SvTeamsStateLegacy {
-    static decode(_: Reader) { }
+    static decode(_: Reader) {}
 }
 
 class ClShowOthersLegacy {
-    constructor(
-        public show: boolean
-    ) { }
+    constructor(public show: boolean) {}
 
     static decode(unpacker: Reader) {
         return new ClShowOthersLegacy(unpacker.readInt() == 1);
@@ -610,9 +581,7 @@ class ClShowOthersLegacy {
 }
 
 class SvMyOwnMessage {
-    constructor(
-        public test: number
-    ) { }
+    constructor(public test: number) {}
 
     static decode(unpacker: Reader) {
         return new SvMyOwnMessage(unpacker.readInt());
@@ -622,8 +591,8 @@ class SvMyOwnMessage {
 class ClShowDistance {
     constructor(
         public x: number,
-        public y: number
-    ) { }
+        public y: number,
+    ) {}
 
     static decode(unpacker: Reader) {
         return new ClShowDistance(unpacker.readInt(), unpacker.readInt());
@@ -631,9 +600,7 @@ class ClShowDistance {
 }
 
 class ClShowOthers {
-    constructor(
-        public show: number
-    ) { }
+    constructor(public show: number) {}
 
     static decode(unpacker: Reader) {
         return new ClShowOthers(unpacker.readInt());
@@ -650,8 +617,8 @@ class SvDdraceTime {
     constructor(
         public time: number,
         public check: number,
-        public finish: number
-    ) { }
+        public finish: number,
+    ) {}
 
     static decode(unpacker: Reader) {
         return new SvDdraceTime(
@@ -665,8 +632,8 @@ class SvDdraceTime {
 class SvRecord {
     constructor(
         public serverTimeBest: number,
-        public playerTimeBest: number
-    ) { }
+        public playerTimeBest: number,
+    ) {}
 
     static decode(unpacker: Reader) {
         return new SvRecord(unpacker.readInt(), unpacker.readInt());

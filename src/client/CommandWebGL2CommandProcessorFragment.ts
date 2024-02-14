@@ -1,48 +1,69 @@
-import { CommandBuffer } from "./CommandBuffer";
-import { GLSL } from "./GLSL";
-import { GLSLProgram } from "./GLSLProgram";
-import { Command, CommandBufferCMD, CommandClear, CommandInit, CommandRender } from "./commands";
-import { RunCommandReturnTypes } from "./enums"
+import { CommandBuffer } from './CommandBuffer';
+import { GLSL } from './GLSL';
+import { GLSLProgram } from './GLSLProgram';
+import {
+    Command,
+    CommandBufferCMD,
+    CommandClear,
+    CommandInit,
+    CommandRender,
+} from './commands';
+import { RunCommandReturnTypes } from './enums';
 
 const MAX_STREAM_BUFFER_COUNT = 10;
 
 export class CommandWebGL2CommandProcessorFragment {
-    glContext: WebGL2RenderingContext;
-
     static CMD_PRE_INIT = CommandBufferCMD.CMDGROUP_PLATFORM_GL;
     static CMD_INIT = CommandBufferCMD.CMDGROUP_PLATFORM_GL + 1;
     static CMD_SHUTDOWN = CommandBufferCMD.CMDGROUP_PLATFORM_GL + 2;
     static CMD_POST_SHUTDOWN = CommandBufferCMD.CMDGROUP_PLATFORM_GL + 3;
 
-    primitiveProgram: GLSLProgram;
+    primitiveProgram!: GLSLProgram;
 
-    primitiveDrawBufferTex3d: WebGLBuffer | null;
-    primitiveDrawBuffer: (WebGLBuffer | null)[];
+    primitiveDrawBufferTex3d!: WebGLBuffer;
+    primitiveDrawBuffer!: WebGLBuffer[];
+    lastStreamBuffer!: number;
 
     quadDrawIndexBuffer!: WebGLBuffer;
 
-
-    constructor(ctx: WebGL2RenderingContext) {
-        this.glContext = ctx;
-
-        this.primitiveProgram = new GLSLProgram(this.glContext);
-        this.primitiveDrawBufferTex3d = null
-        this.primitiveDrawBuffer = new Array(MAX_STREAM_BUFFER_COUNT).fill(null);
-    }
+    constructor(public glContext: WebGL2RenderingContext) {}
 
     async cmdInit(command: CommandInit) {
-        console.log("Im in a init command", command);
+        console.log('Im in a init command', command);
 
-        this.primitiveDrawBufferTex3d = this.glContext.createBuffer();
-        for (let i = 0; i < this.primitiveDrawBuffer.length; i++) {
-            this.primitiveDrawBuffer[i] = this.glContext.createBuffer();
+        this.primitiveProgram = new GLSLProgram(this.glContext);
+
+        const buffer = this.glContext.createBuffer();
+        if (!buffer) {
+            throw new Error('Failed to create buffer');
         }
+        this.primitiveDrawBufferTex3d = buffer;
+
+        this.primitiveDrawBuffer = new Array(MAX_STREAM_BUFFER_COUNT);
+        for (let i = 0; i < this.primitiveDrawBuffer.length; i++) {
+            const buffer = this.glContext.createBuffer();
+            if (!buffer) {
+                throw new Error('Failed to create buffer');
+            }
+
+            this.primitiveDrawBuffer[i] = buffer;
+        }
+
+        this.lastStreamBuffer = 0;
 
         //primitive program
         //@ts-ignore
-        const primitiveVertexShader = new GLSL(this.glContext, (await import('../../shaders/prim.vert?raw')).default, this.glContext.VERTEX_SHADER);
+        const primitiveVertexShader = new GLSL(
+            this.glContext,
+            (await import('../../shaders/prim.vert?raw')).default,
+            this.glContext.VERTEX_SHADER,
+        );
         //@ts-ignore
-        const primitiveFragmentShader = new GLSL(this.glContext, (await import('../../shaders/prim.frag?raw')).default, this.glContext.FRAGMENT_SHADER);
+        const primitiveFragmentShader = new GLSL(
+            this.glContext,
+            (await import('../../shaders/prim.frag?raw')).default,
+            this.glContext.FRAGMENT_SHADER,
+        );
 
         this.primitiveProgram.createProgram();
         this.primitiveProgram.addShader(primitiveVertexShader);
@@ -52,17 +73,20 @@ export class CommandWebGL2CommandProcessorFragment {
 
         const quadDrawIndexBuffer = this.glContext.createBuffer();
         if (!quadDrawIndexBuffer) {
-            throw new Error("Failed to create buffer");
+            throw new Error('Failed to create buffer');
         }
 
         this.quadDrawIndexBuffer = quadDrawIndexBuffer;
 
-        this.glContext.bindBuffer(this.glContext.COPY_WRITE_BUFFER, this.quadDrawIndexBuffer);
+        this.glContext.bindBuffer(
+            this.glContext.COPY_WRITE_BUFFER,
+            this.quadDrawIndexBuffer,
+        );
 
-        const indices = new Array(CommandBuffer.MAX_VERTICES / 4 * 6);
+        const indices = new Array((CommandBuffer.MAX_VERTICES / 4) * 6);
         let primq = 0;
 
-        for (let i = 0; i < CommandBuffer.MAX_VERTICES / 4 * 6; i += 6) {
+        for (let i = 0; i < (CommandBuffer.MAX_VERTICES / 4) * 6; i += 6) {
             indices[i] = primq;
             indices[i + 1] = primq + 1;
             indices[i + 2] = primq + 2;
@@ -73,9 +97,13 @@ export class CommandWebGL2CommandProcessorFragment {
             primq += 4;
         }
 
-        this.glContext.bufferData(this.glContext.COPY_WRITE_BUFFER, new Uint8Array(indices), this.glContext.STATIC_DRAW);
+        this.glContext.bufferData(
+            this.glContext.COPY_WRITE_BUFFER,
+            new Uint8Array(indices),
+            this.glContext.STATIC_DRAW,
+        );
 
-        console.log("Initialized shtuff", command);
+        console.log('Initialized shtuff', command);
     }
 
     useProgram(program: GLSLProgram) {
@@ -88,8 +116,15 @@ export class CommandWebGL2CommandProcessorFragment {
     }
 
     cmdClear(command: CommandClear) {
-        this.glContext.clearColor(command.color.r, command.color.g, command.color.b, command.color.a);
-        this.glContext.clear(this.glContext.COLOR_BUFFER_BIT | this.glContext.DEPTH_BUFFER_BIT);
+        this.glContext.clearColor(
+            command.color.r,
+            command.color.g,
+            command.color.b,
+            command.color.a,
+        );
+        this.glContext.clear(
+            this.glContext.COLOR_BUFFER_BIT | this.glContext.DEPTH_BUFFER_BIT,
+        );
     }
 
     async runCommand(baseCommand: Command): Promise<RunCommandReturnTypes> {
@@ -108,8 +143,12 @@ export class CommandWebGL2CommandProcessorFragment {
         return RunCommandReturnTypes.RUN_COMMAND_COMMAND_HANDLED;
     }
 
-    uploadStreamBufferData(primitiveType: number, vertices: any[], primitiveCount: number, asTex3d = false) {
-        vertices;
+    uploadStreamBufferData(
+        primitiveType: number,
+        vertices: number[],
+        primitiveCount: number,
+        asTex3d = false,
+    ) {
         let count = 0;
 
         switch (primitiveType) {
@@ -123,15 +162,25 @@ export class CommandWebGL2CommandProcessorFragment {
                 count = primitiveCount * 4;
                 break;
             default:
-                return
+                return;
         }
 
         if (asTex3d) {
-            //this.glContext.bindBuffer(this.glContext.ARRAY_BUFFER, primitiveDrawBufferIdTex3d);
+            this.glContext.bindBuffer(
+                this.glContext.ARRAY_BUFFER,
+                this.primitiveDrawBufferTex3d,
+            );
         } else {
-            //this.glContext.bindBuffer(this.glContext.ARRAY_BUFFER, primitiveDrawBufferId[lastStreamBuffer]);
+            this.glContext.bindBuffer(
+                this.glContext.ARRAY_BUFFER,
+                this.primitiveDrawBuffer[this.lastStreamBuffer]!,
+            );
         }
 
-        this.glContext.bufferData(this.glContext.ARRAY_BUFFER, new ArrayBuffer(10), this.glContext.STREAM_DRAW);
+        this.glContext.bufferData(
+            this.glContext.ARRAY_BUFFER,
+            new Uint8Array(vertices),
+            this.glContext.STREAM_DRAW,
+        );
     }
 }

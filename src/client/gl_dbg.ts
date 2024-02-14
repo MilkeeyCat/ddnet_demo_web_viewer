@@ -11,7 +11,7 @@ function glGetError(gl: Context): boolean {
     const error = gl.getError();
 
     if (error != gl.NO_ERROR) {
-        throw new Error("Error lmao: 0x" + error.toString(16));
+        throw new Error('Error lmao: 0x' + error.toString(16));
     }
 
     return true;

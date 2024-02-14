@@ -39,15 +39,15 @@ type Demo = {
 
 type ChunkHeader =
     | {
-        isTick: false;
-        type: 'MESSAGE' | 'SNAPSHOT' | 'SNAPSHOT_DELTA';
-        size: number;
-    }
+          isTick: false;
+          type: 'MESSAGE' | 'SNAPSHOT' | 'SNAPSHOT_DELTA';
+          size: number;
+      }
     | {
-        isTick: true;
-        inlineTick: boolean;
-        tickDelta: number;
-    };
+          isTick: true;
+          inlineTick: boolean;
+          tickDelta: number;
+      };
 
 type Chunk = Message | Tick | Snapshot | SnapshotDelta;
 

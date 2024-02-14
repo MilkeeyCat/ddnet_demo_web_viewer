@@ -1,5 +1,3 @@
 export class Tick {
-    constructor(
-        public tick: number
-    ) { }
+    constructor(public tick: number) {}
 }

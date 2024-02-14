@@ -2,7 +2,16 @@ import { inflate } from 'pako';
 import { Reader } from '../reader';
 import { Uuid } from '../uuid';
 import { splitArray } from '../utils/splitArray';
-import { LayerKind, LayerT, QuadsLayer, Rect, Rgba, SoundsLayer, TilesLayer, layerKind } from './Layer';
+import {
+    LayerKind,
+    LayerT,
+    QuadsLayer,
+    Rect,
+    Rgba,
+    SoundsLayer,
+    TilesLayer,
+    layerKind,
+} from './Layer';
 import { parseI32String } from '../utils/parseI32String';
 import { I17F15, I22F10, I27F5 } from '../utils/fixed';
 import { arrayChunks } from '../utils/uint8arraychunks';
@@ -10,8 +19,8 @@ import { arrayChunks } from '../utils/uint8arraychunks';
 export class Item {
     constructor(
         public id: number,
-        public itemData: Int32Array
-    ) { }
+        public itemData: Int32Array,
+    ) {}
 }
 
 type VersionHeader = {
@@ -183,7 +192,7 @@ export class Datafile {
         const item = this.dataItems[index];
 
         if (!item) {
-            throw new Error("Theres not such a focken item you dumb fuck");
+            throw new Error('Theres not such a focken item you dumb fuck');
         }
 
         return item;
@@ -211,9 +220,7 @@ export class Datafile {
 }
 
 class TypeId {
-    constructor(
-        public typeId: number
-    ) { }
+    constructor(public typeId: number) {}
 }
 
 function identifier(kind: ItemTypeEnum): TypeId | Uuid {
@@ -305,8 +312,8 @@ export class ExType {
 
     constructor(
         public uuid: Uuid,
-        public typeId: number
-    ) { }
+        public typeId: number,
+    ) {}
 
     static parse(item: Item): ExType {
         const { itemData, id } = item;
@@ -325,9 +332,7 @@ export class ExType {
 export class Version {
     static kind = ItemTypeEnum.Version;
 
-    constructor(
-        public readonly version: number
-    ) { }
+    constructor(public readonly version: number) {}
 
     static parse(item: Item): Version {
         return new Version(item.itemData[0]!);
@@ -343,7 +348,7 @@ export class Info {
         public credits: string,
         public license: string,
         public settings: string[],
-    ) { }
+    ) {}
 
     static parse(item: Item, df: Datafile): Info {
         const data = Array.from(item.itemData);
@@ -403,7 +408,7 @@ export class Image {
         public name: string,
         public data: Uint8Array | null,
         public variant: number,
-    ) { }
+    ) {}
 
     static parse(item: Item, df: Datafile): Image {
         const data = Array.from(item.itemData);
@@ -438,7 +443,7 @@ class BezierCurve {
         public inTangentDy: number,
         public outTangentDx: number,
         public outTangentDy: number,
-    ) { }
+    ) {}
 }
 
 function envPointLengthInBytes(envVersion: number): number {
@@ -449,10 +454,9 @@ function envPointLengthInBytes(envVersion: number): number {
         case 3:
             return 22;
         default:
-            throw new Error("Get lost");
+            throw new Error('Get lost');
     }
 }
-
 
 function checkEnvVersion(items: Item[], itemType: ItemTypeEnum): number | null {
     itemType;
@@ -465,10 +469,11 @@ function checkEnvVersion(items: Item[], itemType: ItemTypeEnum): number | null {
             expectedVersion = version;
         } else {
             if (expectedVersion != version) {
-                throw new Error("Oh my fuckign god, can u have right versions u bitch ass");
+                throw new Error(
+                    'Oh my fuckign god, can u have right versions u bitch ass',
+                );
             }
         }
-
     }
 
     //TODO: any checkers???
@@ -482,7 +487,7 @@ enum CurveKind {
     Fast,
     Smooth,
     //Bezier(BezierCurve<T>),
-    Unknown//(number),
+    Unknown, //(number),
 }
 
 function parseCurveKind(id: number, bezier: Int32Array | null): CurveKind {
@@ -499,22 +504,24 @@ function parseCurveKind(id: number, bezier: Int32Array | null): CurveKind {
             return CurveKind.Smooth;
         case 5:
             bezier;
-            throw new Error("Fukcnig bezier curve :madge:");
+            throw new Error('Fukcnig bezier curve :madge:');
         default:
             return CurveKind.Unknown;
-
     }
 }
 
-function gimmeRightContentForAFuckingEnvPoint(content: Int32Array, type: EnvelopeTypeEnum): Volume | Position | Rgba {
+function gimmeRightContentForAFuckingEnvPoint(
+    content: Int32Array,
+    type: EnvelopeTypeEnum,
+): Volume | Position | Rgba {
     switch (type) {
         case EnvelopeTypeEnum.Position:
             return new Position(
                 [
                     I17F15.gimmeFloat(content[0]!),
-                    I17F15.gimmeFloat(content[1]!)
+                    I17F15.gimmeFloat(content[1]!),
                 ],
-                I22F10.gimmeFloat(content[2]!)
+                I22F10.gimmeFloat(content[2]!),
             );
         case EnvelopeTypeEnum.Color:
             return new Rgba(
@@ -524,27 +531,35 @@ function gimmeRightContentForAFuckingEnvPoint(content: Int32Array, type: Envelop
                 I22F10.gimmeFloat(content[3]!),
             );
         case EnvelopeTypeEnum.Sound:
-            return I22F10.gimmeFloat(content[0]!)
+            return I22F10.gimmeFloat(content[0]!);
     }
 }
 
-function convertEnvPoints(points: EnvPoint<Int32Array>[], type: EnvelopeTypeEnum): EnvPoint<Volume | Position | Rgba>[] {
-    return points.map(point => {
-        return new EnvPoint(point.time, gimmeRightContentForAFuckingEnvPoint(point.content, type), point.curveType);
-    })
+function convertEnvPoints(
+    points: EnvPoint<Int32Array>[],
+    type: EnvelopeTypeEnum,
+): EnvPoint<Volume | Position | Rgba>[] {
+    return points.map((point) => {
+        return new EnvPoint(
+            point.time,
+            gimmeRightContentForAFuckingEnvPoint(point.content, type),
+            point.curveType,
+        );
+    });
 }
 
 export class EnvPoint<T> {
     constructor(
         public time: number,
         public content: T,
-        public curveType: CurveKind
-    ) { }
+        public curveType: CurveKind,
+    ) {}
 
     static parse(data: Int32Array): EnvPoint<Int32Array> {
         const time = data[0]!;
         const content = data.slice(2, 6);
-        const bezierData: Int32Array | null = data.length > 6 ? data.slice(6, 22) : null;
+        const bezierData: Int32Array | null =
+            data.length > 6 ? data.slice(6, 22) : null;
         const curve = parseCurveKind(data[1]!, bezierData);
 
         return new EnvPoint(time, content, curve);
@@ -571,7 +586,6 @@ export class EnvPoint<T> {
             }
         }
     }
-
 }
 
 function parseEnvPointsFrFr(item: Item, df: Datafile): EnvPoint<Int32Array>[] {
@@ -581,22 +595,30 @@ function parseEnvPointsFrFr(item: Item, df: Datafile): EnvPoint<Int32Array>[] {
         return [];
     }
 
-    const envelopeVersion = checkEnvVersion(envelopeItems, ItemTypeEnum.Envelope);
+    const envelopeVersion = checkEnvVersion(
+        envelopeItems,
+        ItemTypeEnum.Envelope,
+    );
     if (!envelopeVersion) {
-        throw new Error("I fukcing cant");
+        throw new Error('I fukcing cant');
     }
 
     const size = envPointLengthInBytes(envelopeVersion);
     if (item.itemData.length % size !== 0) {
-        throw new Error("Bro...");
+        throw new Error('Bro...');
     }
 
-    return arrayChunks(item.itemData, size).map(chunk => EnvPoint.parse(chunk));
+    return arrayChunks(item.itemData, size).map((chunk) =>
+        EnvPoint.parse(chunk),
+    );
 }
 
-function parseEnvPointsFr(df: Datafile, exIndex: ExTypeIndex): (EnvPoint<Int32Array>[])[] {
+function parseEnvPointsFr(
+    df: Datafile,
+    exIndex: ExTypeIndex,
+): EnvPoint<Int32Array>[][] {
     const items = df.getItems(exIndex, ItemTypeEnum.EnvPoints) || [];
-    const parsed: (EnvPoint<Int32Array>[])[] = [];
+    const parsed: EnvPoint<Int32Array>[][] = [];
 
     for (const item of items) {
         parsed.push(parseEnvPointsFrFr(item, df));
@@ -605,16 +627,19 @@ function parseEnvPointsFr(df: Datafile, exIndex: ExTypeIndex): (EnvPoint<Int32Ar
     return parsed;
 }
 
-export function parseEnvPoints(df: Datafile, exIndex: ExTypeIndex): EnvPoint<Int32Array>[] {
+export function parseEnvPoints(
+    df: Datafile,
+    exIndex: ExTypeIndex,
+): EnvPoint<Int32Array>[] {
     const items = df.getItems(exIndex, ItemTypeEnum.EnvPoints);
 
     if (items.length !== 1) {
-        throw new Error("im fukcing done");
+        throw new Error('im fukcing done');
     }
 
     const all = parseEnvPointsFr(df, exIndex);
     if (all.length !== 1) {
-        throw new Error("Why the hell heres not one element");
+        throw new Error('Why the hell heres not one element');
     }
 
     return all.pop()!;
@@ -631,10 +656,9 @@ enum EnvelopeTypeEnum {
 class Position {
     constructor(
         public offset: [number, number],
-        public rotation: number
-    ) { }
+        public rotation: number,
+    ) {}
 }
-
 
 export class Envelope {
     static kind = ItemTypeEnum.Envelope;
@@ -643,9 +667,8 @@ export class Envelope {
         public name: string,
         public synchronized: boolean,
         public points: EnvPoint<Position | Rgba | Volume>[],
-        public envType: EnvelopeTypeEnum
-    ) {
-    }
+        public envType: EnvelopeTypeEnum,
+    ) {}
 
     static parse(item: Item, df: Datafile): Envelope {
         const version = item.itemData[0]!;
@@ -653,39 +676,58 @@ export class Envelope {
         //NOTE: add checks :D
 
         const bytesPerEnvPoint = envPointLengthInBytes(version);
-        const totalPoints = df.getItems(new Map(), ItemTypeEnum.EnvPoints)[0]!.itemData.length / bytesPerEnvPoint;
+        const totalPoints =
+            df.getItems(new Map(), ItemTypeEnum.EnvPoints)[0]!.itemData.length /
+            bytesPerEnvPoint;
         const remainingPoints = totalPoints - start;
         const amount = item.itemData[3]!;
         if (amount > remainingPoints) {
-            throw new Error("Fucking hell");
+            throw new Error('Fucking hell');
         }
 
-        let name = "";
+        let name = '';
         let synchronized = false;
 
         if (item.itemData.length > 5) {
-            name = parseI32String(item.itemData.slice(4, 12), new TextDecoder());
+            name = parseI32String(
+                item.itemData.slice(4, 12),
+                new TextDecoder(),
+            );
 
             if (version >= 2) {
                 synchronized = !!item.itemData[12]!;
             }
         } else if (item.itemData[4] !== -1) {
-            throw new Error("Tbh i dont even know the fukc this error means");
+            throw new Error('Tbh i dont even know the fukc this error means');
         }
 
         switch (item.itemData[1]) {
             case 1:
-                return new Envelope(name, synchronized, new Array(amount), EnvelopeTypeEnum.Sound);
+                return new Envelope(
+                    name,
+                    synchronized,
+                    new Array(amount),
+                    EnvelopeTypeEnum.Sound,
+                );
             case 3:
-                return new Envelope(name, synchronized, new Array(amount), EnvelopeTypeEnum.Position);
+                return new Envelope(
+                    name,
+                    synchronized,
+                    new Array(amount),
+                    EnvelopeTypeEnum.Position,
+                );
             case 4:
-                return new Envelope(name, synchronized, new Array(amount), EnvelopeTypeEnum.Color);
+                return new Envelope(
+                    name,
+                    synchronized,
+                    new Array(amount),
+                    EnvelopeTypeEnum.Color,
+                );
             default:
-                throw new Error("Idk");
+                throw new Error('Idk');
         }
     }
 }
-
 
 //NOTE: ddnet only btw
 export class Sound {
@@ -696,7 +738,7 @@ export class Sound {
         public name: string,
         public data: Uint8Array,
         public size: number,
-    ) { }
+    ) {}
 
     static parse(item: Item, df: Datafile): Sound {
         const data = item.itemData;
@@ -721,8 +763,8 @@ export class Group {
         public parallax: [number, number],
         public layers: LayerT[],
         public clipping: boolean,
-        public clip: Rect
-    ) { }
+        public clip: Rect,
+    ) {}
 
     static parse(item: Item, df: Datafile): Group {
         const version = item.itemData[0]!; // NOTE: has to be 3
@@ -733,7 +775,9 @@ export class Group {
         const amount = item.itemData[6]!;
 
         if (amount > remainingLayers) {
-            throw new Error("Oh, boy you are fucked and also too high amount :)");
+            throw new Error(
+                'Oh, boy you are fucked and also too high amount :)',
+            );
         }
 
         let clipping = false;
@@ -741,7 +785,7 @@ export class Group {
         let clipY = 0;
         let clipWidth = 0;
         let clipHeight = 0;
-        let name = "";
+        let name = '';
 
         if (version >= 2) {
             clipping = !!item.itemData[7];
@@ -751,26 +795,25 @@ export class Group {
             clipHeight = I27F5.gimmeFloat(item.itemData[11]!);
 
             if (version >= 3) {
-                name = parseI32String(item.itemData.slice(12, 15), textDecoder)
+                name = parseI32String(item.itemData.slice(12, 15), textDecoder);
             }
-
         }
 
         const parallax: [number, number] = [
             item.itemData[3]!,
-            item.itemData[4]!
+            item.itemData[4]!,
         ];
 
         return new Group(
             name,
             [
                 I27F5.gimmeFloat(item.itemData[1]!),
-                I27F5.gimmeFloat(item.itemData[2]!)
+                I27F5.gimmeFloat(item.itemData[2]!),
             ],
             parallax,
             new Array(amount),
             clipping,
-            new Rect(clipX, clipY, clipWidth, clipHeight)
+            new Rect(clipX, clipY, clipWidth, clipHeight),
         );
     }
 }
@@ -787,7 +830,10 @@ export class Layer {
             case LayerKind.Speedup:
             case LayerKind.Switch:
             case LayerKind.Tune:
-                const [tilesLayer, tilemapKind] = TilesLayer.parseGeneric(item, df);
+                const [tilesLayer, tilemapKind] = TilesLayer.parseGeneric(
+                    item,
+                    df,
+                );
                 return tilesLayer.convertTo(tilemapKind);
 
             case LayerKind.Quads:
@@ -799,7 +845,7 @@ export class Layer {
 
     static distribute(layers: LayerT[], groups: Group[]): void {
         for (const group of groups) {
-            group.layers = layers.splice(0, group.layers.length)
+            group.layers = layers.splice(0, group.layers.length);
         }
     }
 }

@@ -1,4 +1,4 @@
-import { Reader } from "../reader";
+import { Reader } from '../reader';
 
 export class SnapshotDelta {
     constructor(bytes: Uint8Array) {

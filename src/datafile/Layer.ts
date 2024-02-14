@@ -1,8 +1,8 @@
-import { Datafile, Item } from ".";
-import { Reader } from "../reader";
-import { I17F15, I22F10, I27F5 } from "../utils/fixed";
-import { parseI32String } from "../utils/parseI32String";
-import { arrayChunks } from "../utils/uint8arraychunks";
+import { Datafile, Item } from '.';
+import { Reader } from '../reader';
+import { I17F15, I22F10, I27F5 } from '../utils/fixed';
+import { parseI32String } from '../utils/parseI32String';
+import { arrayChunks } from '../utils/uint8arraychunks';
 
 //class GameTile {
 //    constructor(
@@ -17,8 +17,8 @@ class CompressedData {
     constructor(
         public data: Uint8Array,
         public dataSize: number,
-        public loadInfo: TilesLoadInfo
-    ) { }
+        public loadInfo: TilesLoadInfo,
+    ) {}
 }
 
 export enum LayerKind {
@@ -30,7 +30,7 @@ export enum LayerKind {
     Speedup,
     Switch,
     Tune,
-    Sounds
+    Sounds,
 }
 
 export function layerKind(item: Item): LayerKind {
@@ -53,7 +53,7 @@ export function layerKind(item: Item): LayerKind {
                 case 32:
                     return LayerKind.Tune;
                 default:
-                    throw new Error("Sus tilemap layer :raise_eyebrow:");
+                    throw new Error('Sus tilemap layer :raise_eyebrow:');
             }
         case 3:
             return LayerKind.Quads;
@@ -61,8 +61,7 @@ export function layerKind(item: Item): LayerKind {
         case 10:
             return LayerKind.Sounds;
         default:
-            throw new Error("Sus layer kind :raise_eyebrow:");
-
+            throw new Error('Sus layer kind :raise_eyebrow:');
     }
 }
 
@@ -71,16 +70,16 @@ export class Rect {
         public x: number,
         public y: number,
         public width: number,
-        public height: number
-    ) { }
+        public height: number,
+    ) {}
 }
 
 export class Disk {
     constructor(
         public centerX: number,
         public centerY: number,
-        public radius: number
-    ) { }
+        public radius: number,
+    ) {}
 }
 
 class Quad {
@@ -99,9 +98,8 @@ class Quad {
         public positionEnv: number | null,
         public positionEnvOffset: number,
         public colorEnv: number | null,
-        public colorEnvOffset: number
-    ) { }
-
+        public colorEnvOffset: number,
+    ) {}
 }
 
 export class Rgba {
@@ -109,8 +107,8 @@ export class Rgba {
         public r: number,
         public g: number,
         public b: number,
-        public a: number
-    ) { }
+        public a: number,
+    ) {}
 
     public static default(): Rgba {
         return new Rgba(0, 0, 0, 0);
@@ -118,48 +116,35 @@ export class Rgba {
 }
 
 export class GameLayer {
-    constructor(
-        public tiles: CompressedData
-    ) { }
+    constructor(public tiles: CompressedData) {}
 }
 
 export class FrontLayer {
-    constructor(
-        public tiles: CompressedData
-    ) { }
+    constructor(public tiles: CompressedData) {}
 }
 
 export class TeleLayer {
-    constructor(
-        public tiles: CompressedData
-    ) { }
+    constructor(public tiles: CompressedData) {}
 }
 
 export class SpeedupLayer {
-    constructor(
-        public tiles: CompressedData
-    ) { }
+    constructor(public tiles: CompressedData) {}
 }
 
 export class SwitchLayer {
-    constructor(
-        public tiles: CompressedData
-    ) { }
+    constructor(public tiles: CompressedData) {}
 }
 
 export class TuneLayer {
-    constructor(
-        public tiles: CompressedData
-    ) { }
+    constructor(public tiles: CompressedData) {}
 }
-
 
 class AutomapperConfig {
     constructor(
         public config: number | null,
         public seed: number,
-        public automatic: boolean
-    ) { }
+        public automatic: boolean,
+    ) {}
 
     static default() {
         return new AutomapperConfig(null, 0, false);
@@ -167,15 +152,11 @@ class AutomapperConfig {
 }
 
 class RectangleSoundArea {
-    constructor(
-        public area: Rect
-    ) { }
+    constructor(public area: Rect) {}
 }
 
 class CircleSoundArea {
-    constructor(
-        public area: Disk
-    ) { }
+    constructor(public area: Disk) {}
 }
 
 type SoundArea = RectangleSoundArea | CircleSoundArea;
@@ -190,8 +171,8 @@ class SoundSource {
         public positionEnv: number | null,
         public positionEnvOffset: number,
         public soundEnv: number | null,
-        public soundEnvOffset: number
-    ) { }
+        public soundEnvOffset: number,
+    ) {}
 }
 
 function convertOptIndex(value: number): number | null {
@@ -200,7 +181,6 @@ function convertOptIndex(value: number): number | null {
     } else {
         return value;
     }
-
 }
 
 function dataIndex(kind: LayerKind): number {
@@ -219,16 +199,15 @@ function dataIndex(kind: LayerKind): number {
         case LayerKind.Tune:
             return 22;
         default:
-            throw new Error("What the fukc are you even passing in me????");
-
+            throw new Error('What the fukc are you even passing in me????');
     }
 }
 
 class TilesLoadInfo {
     constructor(
         public size: [number, number],
-        public compression: boolean
-    ) { }
+        public compression: boolean,
+    ) {}
 }
 
 export class TilesLayer {
@@ -240,8 +219,8 @@ export class TilesLayer {
         public colorEnvOffset: number | null,
         public image: number | null,
         public tiles: CompressedData, // NOTE: here also should be Loaded class
-        public automapperConfig: AutomapperConfig
-    ) { }
+        public automapperConfig: AutomapperConfig,
+    ) {}
 
     convertTo(kind: LayerKind): LayerT {
         //NOTE: i dont do any checks kekw, if something goes wrong everything is fucked =]
@@ -261,8 +240,9 @@ export class TilesLayer {
             case LayerKind.Tune:
                 return new TuneLayer(this.tiles);
             default:
-                throw new Error("Idk man im focken tired to handle this bullshit");
-
+                throw new Error(
+                    'Idk man im focken tired to handle this bullshit',
+                );
         }
     }
 
@@ -293,14 +273,17 @@ export class TilesLayer {
         }
 
         let dataIndexx = dataIndex(kind);
-        let name = "";
+        let name = '';
 
         if (version < 3) {
             if (dataIndexx > 14) {
                 dataIndexx = -3;
             }
         } else {
-            name = parseI32String(item.itemData.slice(15, 18), new TextDecoder());
+            name = parseI32String(
+                item.itemData.slice(15, 18),
+                new TextDecoder(),
+            );
         }
 
         const [data, dataSize] = df.dataItem(item.itemData[dataIndexx]!);
@@ -310,11 +293,11 @@ export class TilesLayer {
             const expectedSize = tileAmount * 4;
 
             if (compatibilityData.length !== expectedSize) {
-                throw new Error("Yo size aint right :p");
+                throw new Error('Yo size aint right :p');
             }
 
-            if (compatibilityData.some(a => a != 0)) {
-                throw new Error("You have some really weird data ong");
+            if (compatibilityData.some((a) => a != 0)) {
+                throw new Error('You have some really weird data ong');
             }
         }
 
@@ -330,25 +313,21 @@ export class TilesLayer {
                 colorEnvOffset,
                 image,
                 new CompressedData(data, dataSize, tilesLoadInfo),
-                AutomapperConfig.default()
+                AutomapperConfig.default(),
             ),
-            kind
+            kind,
         ];
-
     }
 }
 
 class BinaryPoint {
     constructor(
         public x: number,
-        public y: number
-    ) { }
+        public y: number,
+    ) {}
 
     public toTwo(fixed: typeof I22F10 | typeof I17F15): [number, number] {
-        return [
-            fixed.gimmeFloat(this.x),
-            fixed.gimmeFloat(this.y)
-        ];
+        return [fixed.gimmeFloat(this.x), fixed.gimmeFloat(this.y)];
     }
 }
 
@@ -357,8 +336,8 @@ class BinaryColor {
         public r: number,
         public g: number,
         public b: number,
-        public a: number
-    ) { }
+        public a: number,
+    ) {}
 
     public toColor(): Rgba {
         // dont event fukcing dare to say anything about this stupid fukcing shit
@@ -369,8 +348,8 @@ class BinaryColor {
 class Uv {
     constructor(
         public u: number,
-        public v: number
-    ) { }
+        public v: number,
+    ) {}
 }
 
 class BinaryQuad {
@@ -380,12 +359,17 @@ class BinaryQuad {
         public corners: [BinaryPoint, BinaryPoint, BinaryPoint, BinaryPoint],
         public position: BinaryPoint,
         public colors: [BinaryColor, BinaryColor, BinaryColor, BinaryColor],
-        public textureCoords: [BinaryPoint, BinaryPoint, BinaryPoint, BinaryPoint],
+        public textureCoords: [
+            BinaryPoint,
+            BinaryPoint,
+            BinaryPoint,
+            BinaryPoint,
+        ],
         public positionEnv: number,
         public positionEnvOffset: number,
         public colorEnv: number,
-        public colorEnvOffset: number
-    ) { }
+        public colorEnvOffset: number,
+    ) {}
 
     public toQuad(): Quad {
         const corners = new Array(4) as [
@@ -402,7 +386,7 @@ class BinaryQuad {
             colors[i] = this.colors[i]!.toColor();
 
             const texturecoords = this.textureCoords[i]!.toTwo(I22F10);
-            textureCoords[i] = new Uv(texturecoords[0], texturecoords[1])
+            textureCoords[i] = new Uv(texturecoords[0], texturecoords[1]);
         }
 
         return new Quad(
@@ -413,10 +397,9 @@ class BinaryQuad {
             convertOptIndex(this.positionEnv),
             this.positionEnvOffset,
             convertOptIndex(this.colorEnv),
-            this.colorEnvOffset
+            this.colorEnvOffset,
         );
     }
-
 }
 
 export class QuadsLayer {
@@ -424,8 +407,8 @@ export class QuadsLayer {
         public name: string,
         public detail: boolean,
         public quads: Quad[],
-        public image: number | null
-    ) { }
+        public image: number | null,
+    ) {}
 
     static parse(item: Item, df: Datafile): QuadsLayer {
         const version = item.itemData[3]!;
@@ -435,50 +418,71 @@ export class QuadsLayer {
         const quadData = df.decompressedDataItem(item.itemData[5]!);
         //fuck checks :clueless:
 
-        const quads =
-            arrayChunks(quadData, BinaryQuad.size)
-                .map(chunk => {
-                    const reader = new Reader(chunk);
+        const quads = arrayChunks(quadData, BinaryQuad.size).map((chunk) => {
+            const reader = new Reader(chunk);
 
-                    return new BinaryQuad(
-                        [
-                            new BinaryPoint(reader.readBeI32(), reader.readLeI32()),
-                            new BinaryPoint(reader.readLeI32(), reader.readLeI32()),
-                            new BinaryPoint(reader.readLeI32(), reader.readLeI32()),
-                            new BinaryPoint(reader.readLeI32(), reader.readLeI32()),
-                        ],
-                        new BinaryPoint(reader.readLeI32(), reader.readLeI32()),
-                        [
-                            new BinaryColor(reader.readLeI32(), reader.readLeI32(), reader.readLeI32(), reader.readLeI32()),
-                            new BinaryColor(reader.readLeI32(), reader.readLeI32(), reader.readLeI32(), reader.readLeI32()),
-                            new BinaryColor(reader.readLeI32(), reader.readLeI32(), reader.readLeI32(), reader.readLeI32()),
-                            new BinaryColor(reader.readLeI32(), reader.readLeI32(), reader.readLeI32(), reader.readLeI32()),
-                        ],
-                        [
-                            new BinaryPoint(reader.readLeI32(), reader.readLeI32()),
-                            new BinaryPoint(reader.readLeI32(), reader.readLeI32()),
-                            new BinaryPoint(reader.readLeI32(), reader.readLeI32()),
-                            new BinaryPoint(reader.readLeI32(), reader.readLeI32()),
-                        ],
+            return new BinaryQuad(
+                [
+                    new BinaryPoint(reader.readBeI32(), reader.readLeI32()),
+                    new BinaryPoint(reader.readLeI32(), reader.readLeI32()),
+                    new BinaryPoint(reader.readLeI32(), reader.readLeI32()),
+                    new BinaryPoint(reader.readLeI32(), reader.readLeI32()),
+                ],
+                new BinaryPoint(reader.readLeI32(), reader.readLeI32()),
+                [
+                    new BinaryColor(
                         reader.readLeI32(),
                         reader.readLeI32(),
                         reader.readLeI32(),
                         reader.readLeI32(),
-                    ).toQuad();
-                });
+                    ),
+                    new BinaryColor(
+                        reader.readLeI32(),
+                        reader.readLeI32(),
+                        reader.readLeI32(),
+                        reader.readLeI32(),
+                    ),
+                    new BinaryColor(
+                        reader.readLeI32(),
+                        reader.readLeI32(),
+                        reader.readLeI32(),
+                        reader.readLeI32(),
+                    ),
+                    new BinaryColor(
+                        reader.readLeI32(),
+                        reader.readLeI32(),
+                        reader.readLeI32(),
+                        reader.readLeI32(),
+                    ),
+                ],
+                [
+                    new BinaryPoint(reader.readLeI32(), reader.readLeI32()),
+                    new BinaryPoint(reader.readLeI32(), reader.readLeI32()),
+                    new BinaryPoint(reader.readLeI32(), reader.readLeI32()),
+                    new BinaryPoint(reader.readLeI32(), reader.readLeI32()),
+                ],
+                reader.readLeI32(),
+                reader.readLeI32(),
+                reader.readLeI32(),
+                reader.readLeI32(),
+            ).toQuad();
+        });
 
         const image = convertOptIndex(item.itemData[6]!);
-        let name = "";
+        let name = '';
 
         if (version >= 2) {
-            name = parseI32String(item.itemData.slice(7, 10), new TextDecoder());
+            name = parseI32String(
+                item.itemData.slice(7, 10),
+                new TextDecoder(),
+            );
         }
 
         return new QuadsLayer(
             name,
             false, //NOTE: maybe not false kekw
             quads,
-            image
+            image,
         );
     }
 }
@@ -493,14 +497,14 @@ class BinaryDepricatedSoundSource {
         public positionEnvOffset: number,
         public soundEnv: number,
         public soundEnvOffset: number,
-    ) { }
+    ) {}
 
     public toSource(): SoundSource {
         const pos = this.position.toTwo(I27F5);
 
         return new SoundSource(
             new CircleSoundArea(
-                new Disk(pos[0], pos[1], I27F5.gimmeFloat(this.radius))
+                new Disk(pos[0], pos[1], I27F5.gimmeFloat(this.radius)),
             ),
             !!this.looping,
             true,
@@ -509,7 +513,7 @@ class BinaryDepricatedSoundSource {
             convertOptIndex(this.positionEnv),
             this.positionEnvOffset,
             convertOptIndex(this.soundEnv),
-            this.soundEnvOffset
+            this.soundEnvOffset,
         );
     }
 }
@@ -519,7 +523,7 @@ class BinarySoundShape {
         public kind: number,
         public value1: number,
         public value2: number,
-    ) { }
+    ) {}
 
     public toShape(position: [number, number]): SoundArea {
         switch (this.kind) {
@@ -530,21 +534,21 @@ class BinarySoundShape {
                         position[1],
                         I17F15.gimmeFloat(this.value1),
                         I17F15.gimmeFloat(this.value2),
-                    )
+                    ),
                 );
             case 1:
                 return new CircleSoundArea(
                     new Disk(
-                        position[0], position[1], I27F5.gimmeFloat(this.value1)
-                    )
+                        position[0],
+                        position[1],
+                        I27F5.gimmeFloat(this.value1),
+                    ),
                 );
             default:
-                throw new Error("LAJSDLAKJFA");
-
+                throw new Error('LAJSDLAKJFA');
         }
     }
 }
-
 
 class BinarySoundSource {
     constructor(
@@ -558,7 +562,7 @@ class BinarySoundSource {
         public soundEnv: number,
         public soundEnvOffset: number,
         public shape: BinarySoundShape,
-    ) { }
+    ) {}
 
     public toSource(): SoundSource {
         return new SoundSource(
@@ -570,7 +574,7 @@ class BinarySoundSource {
             convertOptIndex(this.positionEnv),
             this.positionEnvOffset,
             convertOptIndex(this.soundEnv),
-            this.soundEnvOffset
+            this.soundEnvOffset,
         );
     }
 }
@@ -585,8 +589,8 @@ export class SoundsLayer {
         public name: string,
         public detail: boolean,
         public sources: SoundSource[],
-        public sound: number | null
-    ) { }
+        public sound: number | null,
+    ) {}
 
     static parse(item: Item, df: Datafile): SoundsLayer {
         let soundsLayerVersion: SoundsLayerVersion | null = null;
@@ -609,61 +613,67 @@ export class SoundsLayer {
         const impliedSourceAmount = soundSourceData.length / sourceLen;
 
         if (impliedSourceAmount !== sourceAmount) {
-            throw new Error("Who do you think i am. Did you fucking try to fool me? My code is the safest shit youve ever seen in your life, dont even fukcing try to pass me some goofy ahh map file");
+            throw new Error(
+                'Who do you think i am. Did you fucking try to fool me? My code is the safest shit youve ever seen in your life, dont even fukcing try to pass me some goofy ahh map file',
+            );
         }
 
-        const sources: SoundSource[] =
-            arrayChunks(soundSourceData, sourceLen)
-                .map(chunk => {
-                    const reader = new Reader(chunk);
+        const sources: SoundSource[] = arrayChunks(
+            soundSourceData,
+            sourceLen,
+        ).map((chunk) => {
+            const reader = new Reader(chunk);
 
-                    if (soundsLayerVersion === SoundsLayerVersion.Deprecated) {
-                        return new BinaryDepricatedSoundSource(
-                            new BinaryPoint(reader.readLeI32(), reader.readLeI32()),
-                            reader.readLeI32(),
-                            reader.readLeI32(),
-                            reader.readLeI32(),
-                            reader.readLeI32(),
-                            reader.readLeI32(),
-                            reader.readLeI32(),
-                            reader.readLeI32()
-                        ).toSource();
-                    } else if (soundsLayerVersion === SoundsLayerVersion.Normal) {
-                        return new BinarySoundSource(
-                            new BinaryPoint(reader.readLeI32(), reader.readLeI32()),
-                            reader.readLeI32(),
-                            reader.readLeI32(),
-                            reader.readLeI32(),
-                            reader.readLeI32(),
-                            reader.readLeI32(),
-                            reader.readLeI32(),
-                            reader.readLeI32(),
-                            reader.readLeI32(),
-                            new BinarySoundShape(
-                                reader.readLeI32(),
-                                reader.readLeI32(),
-                                reader.readLeI32()
-                            )
-                        ).toSource();
-                    } else {
-                        throw new Error();
-                    }
-                });
+            if (soundsLayerVersion === SoundsLayerVersion.Deprecated) {
+                return new BinaryDepricatedSoundSource(
+                    new BinaryPoint(reader.readLeI32(), reader.readLeI32()),
+                    reader.readLeI32(),
+                    reader.readLeI32(),
+                    reader.readLeI32(),
+                    reader.readLeI32(),
+                    reader.readLeI32(),
+                    reader.readLeI32(),
+                    reader.readLeI32(),
+                ).toSource();
+            } else if (soundsLayerVersion === SoundsLayerVersion.Normal) {
+                return new BinarySoundSource(
+                    new BinaryPoint(reader.readLeI32(), reader.readLeI32()),
+                    reader.readLeI32(),
+                    reader.readLeI32(),
+                    reader.readLeI32(),
+                    reader.readLeI32(),
+                    reader.readLeI32(),
+                    reader.readLeI32(),
+                    reader.readLeI32(),
+                    reader.readLeI32(),
+                    new BinarySoundShape(
+                        reader.readLeI32(),
+                        reader.readLeI32(),
+                        reader.readLeI32(),
+                    ),
+                ).toSource();
+            } else {
+                throw new Error();
+            }
+        });
 
         const sound = convertOptIndex(item.itemData[6]!);
-        const name = parseI32String(item.itemData.slice(7, 10), new TextDecoder());
+        const name = parseI32String(
+            item.itemData.slice(7, 10),
+            new TextDecoder(),
+        );
 
         return new SoundsLayer(
             name,
-            false,//NOTE: MAYBE NOT FAAAAAAAAAALSE
+            false, //NOTE: MAYBE NOT FAAAAAAAAAALSE
             sources,
-            sound
+            sound,
         );
     }
 }
 
 export type LayerT =
-    GameLayer
+    | GameLayer
     | TilesLayer
     | QuadsLayer
     | FrontLayer
