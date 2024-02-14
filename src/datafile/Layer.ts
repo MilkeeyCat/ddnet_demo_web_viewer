@@ -413,7 +413,6 @@ export class QuadsLayer {
     static parse(item: Item, df: Datafile): QuadsLayer {
         const version = item.itemData[3]!;
         //FIXME: when do flags??
-        //@ts-ignore
         const quadAmount = item.itemData[4];
         const quadData = df.decompressedDataItem(item.itemData[5]!);
         //fuck checks :clueless:

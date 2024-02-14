@@ -353,7 +353,6 @@ export class Info {
     static parse(item: Item, df: Datafile): Info {
         const data = Array.from(item.itemData);
 
-        //@ts-ignore
         const _version = data.shift();
         const values: {
             author: string;
@@ -743,7 +742,6 @@ export class Sound {
     static parse(item: Item, df: Datafile): Sound {
         const data = item.itemData;
 
-        //@ts-ignore
         const version = data[0]!;
         const external = data[1]!;
         const name = df.optionalDecompressedDataItem(data[2]!)!;

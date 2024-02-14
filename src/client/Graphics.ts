@@ -184,45 +184,38 @@ export class Graphics {
         }
 
         for (let i = 0; i < quads.length; i++) {
-            //@ts-ignore fuck ts
-            this.vertices[this.numVertices + 4 * i].pos.x = quads[i].x;
-            //@ts-ignore fuck ts
-            this.vertices[this.numVertices + 4 * i].pos.y = quads[i].y;
-            //@ts-ignore fuck ts
-            this.vertices[this.numVertices + 4 * i].tex = this.texture[0];
-            //@ts-ignore fuck ts
-            this.setVertexColor(this.vertices[this.numVertices + 4 * i], 0);
+            this.vertices[this.numVertices + 4 * i]!.pos.x = quads[i]!.x;
+            this.vertices[this.numVertices + 4 * i]!.pos.y = quads[i]!.y;
+            this.vertices[this.numVertices + 4 * i]!.tex = this.texture[0];
+            this.setVertexColor(this.vertices[this.numVertices + 4 * i]!, 0);
 
-            //@ts-ignore fuck ts
-            this.vertices[this.numVertices + 4 * i + 1].pos.x =
-                quads[i].x + quads[i].width;
-            //@ts-ignore fuck ts
-            this.vertices[this.numVertices + 4 * i + 1].pos.y = quads[i].y;
-            //@ts-ignore fuck ts
-            this.vertices[this.numVertices + 4 * i + 1].tex = this.texture[1];
-            //@ts-ignore fuck ts
-            this.setVertexColor(this.vertices[this.numVertices + 4 * i + 1], 1);
+            this.vertices[this.numVertices + 4 * i + 1]!.pos.x =
+                quads[i]!.x + quads[i]!.width;
+            this.vertices[this.numVertices + 4 * i + 1]!.pos.y = quads[i]!.y;
+            this.vertices[this.numVertices + 4 * i + 1]!.tex = this.texture[1];
+            this.setVertexColor(
+                this.vertices[this.numVertices + 4 * i + 1]!,
+                1,
+            );
 
-            //@ts-ignore fuck ts
-            this.vertices[this.numVertices + 4 * i + 2].pos.x =
-                quads[i].x + quads[i].width;
-            //@ts-ignore fuck ts
-            this.vertices[this.numVertices + 4 * i + 2].pos.y =
-                quads[i].y + quads[i].height;
-            //@ts-ignore fuck ts
-            this.vertices[this.numVertices + 4 * i + 2].tex = this.texture[2];
-            //@ts-ignore fuck ts
-            this.setVertexColor(this.vertices[this.numVertices + 4 * i + 2], 2);
+            this.vertices[this.numVertices + 4 * i + 2]!.pos.x =
+                quads[i]!.x + quads[i]!.width;
+            this.vertices[this.numVertices + 4 * i + 2]!.pos.y =
+                quads[i]!.y + quads[i]!.height;
+            this.vertices[this.numVertices + 4 * i + 2]!.tex = this.texture[2];
+            this.setVertexColor(
+                this.vertices[this.numVertices + 4 * i + 2]!,
+                2,
+            );
 
-            //@ts-ignore fuck ts
-            this.vertices[this.numVertices + 4 * i + 3].pos.x = quads[i].x;
-            //@ts-ignore fuck ts
-            this.vertices[this.numVertices + 4 * i + 3].pos.y =
-                quads[i].y + quads[i].height;
-            //@ts-ignore fuck ts
-            this.vertices[this.numVertices + 4 * i + 3].tex = this.texture[3];
-            //@ts-ignore fuck ts
-            this.setVertexColor(this.vertices[this.numVertices + 4 * i + 3], 3);
+            this.vertices[this.numVertices + 4 * i + 3]!.pos.x = quads[i]!.x;
+            this.vertices[this.numVertices + 4 * i + 3]!.pos.y =
+                quads[i]!.y + quads[i]!.height;
+            this.vertices[this.numVertices + 4 * i + 3]!.tex = this.texture[3];
+            this.setVertexColor(
+                this.vertices[this.numVertices + 4 * i + 3]!,
+                3,
+            );
         }
 
         this.addVertices(4 * quads.length);
@@ -262,87 +255,68 @@ export class Graphics {
 
         if (this.drawing === DRAWING_TRIANGLES) {
             for (let i = 0; i < freeform.length; i++) {
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i].pos.x = freeform[i].x0;
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i].pos.y = freeform[i].y0;
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i].tex = this.texture[0];
-                //@ts-ignore i kown what im doing
-                this.setVertexColor(this.vertices[this.numVertices + 6 * i], 0);
-
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 1].pos.x =
-                    freeform[i].x1;
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 1].pos.y =
-                    freeform[i].y1;
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 1].tex =
-                    this.texture[1];
-                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 6 * i]!.pos.x =
+                    freeform[i]!.x0;
+                this.vertices[this.numVertices + 6 * i]!.pos.y =
+                    freeform[i]!.y0;
+                this.vertices[this.numVertices + 6 * i]!.tex = this.texture[0];
                 this.setVertexColor(
-                    this.vertices[this.numVertices + 6 * i + 1],
-                    1,
-                );
-
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 2].pos.x =
-                    freeform[i].x3;
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 2].pos.y =
-                    freeform[i].y3;
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 2].tex =
-                    this.texture[3];
-                //@ts-ignore i kown what im doing
-                this.setVertexColor(
-                    this.vertices[this.numVertices + 6 * i + 2],
-                    3,
-                );
-
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 3].pos.x =
-                    freeform[i].x0;
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 3].pos.y =
-                    freeform[i].y0;
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 3].tex =
-                    this.texture[0];
-                //@ts-ignore i kown what im doing
-                this.setVertexColor(
-                    this.vertices[this.numVertices + 6 * i + 3],
+                    this.vertices[this.numVertices + 6 * i]!,
                     0,
                 );
 
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 4].pos.x =
-                    freeform[i].x3;
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 4].pos.y =
-                    freeform[i].y3;
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 4].tex =
-                    this.texture[3];
-                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 6 * i + 1]!.pos.x =
+                    freeform[i]!.x1;
+                this.vertices[this.numVertices + 6 * i + 1]!.pos.y =
+                    freeform[i]!.y1;
+                this.vertices[this.numVertices + 6 * i + 1]!.tex =
+                    this.texture[1];
                 this.setVertexColor(
-                    this.vertices[this.numVertices + 6 * i + 4],
+                    this.vertices[this.numVertices + 6 * i + 1]!,
+                    1,
+                );
+
+                this.vertices[this.numVertices + 6 * i + 2]!.pos.x =
+                    freeform[i]!.x3;
+                this.vertices[this.numVertices + 6 * i + 2]!.pos.y =
+                    freeform[i]!.y3;
+                this.vertices[this.numVertices + 6 * i + 2]!.tex =
+                    this.texture[3];
+                this.setVertexColor(
+                    this.vertices[this.numVertices + 6 * i + 2]!,
                     3,
                 );
 
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 5].pos.x =
-                    freeform[i].x2;
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 5].pos.y =
-                    freeform[i].y2;
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 6 * i + 5].tex =
-                    this.texture[2];
-                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 6 * i + 3]!.pos.x =
+                    freeform[i]!.x0;
+                this.vertices[this.numVertices + 6 * i + 3]!.pos.y =
+                    freeform[i]!.y0;
+                this.vertices[this.numVertices + 6 * i + 3]!.tex =
+                    this.texture[0];
                 this.setVertexColor(
-                    this.vertices[this.numVertices + 6 * i + 5],
+                    this.vertices[this.numVertices + 6 * i + 3]!,
+                    0,
+                );
+
+                this.vertices[this.numVertices + 6 * i + 4]!.pos.x =
+                    freeform[i]!.x3;
+                this.vertices[this.numVertices + 6 * i + 4]!.pos.y =
+                    freeform[i]!.y3;
+                this.vertices[this.numVertices + 6 * i + 4]!.tex =
+                    this.texture[3];
+                this.setVertexColor(
+                    this.vertices[this.numVertices + 6 * i + 4]!,
+                    3,
+                );
+
+                this.vertices[this.numVertices + 6 * i + 5]!.pos.x =
+                    freeform[i]!.x2;
+                this.vertices[this.numVertices + 6 * i + 5]!.pos.y =
+                    freeform[i]!.y2;
+                this.vertices[this.numVertices + 6 * i + 5]!.tex =
+                    this.texture[2];
+                this.setVertexColor(
+                    this.vertices[this.numVertices + 6 * i + 5]!,
                     2,
                 );
             }
@@ -350,57 +324,46 @@ export class Graphics {
             this.addVertices(3 * 2 * freeform.length);
         } else {
             for (let i = 0; i < freeform.length; i++) {
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 4 * i].pos.x = freeform[i].x0;
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 4 * i].pos.y = freeform[i].y0;
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 4 * i].tex = this.texture[0];
-                //@ts-ignore i kown what im doing
-                this.setVertexColor(this.vertices[this.numVertices + 4 * i], 0);
-
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 4 * i + 1].pos.x =
-                    freeform[i].x1;
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 4 * i + 1].pos.y =
-                    freeform[i].y1;
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 4 * i + 1].tex =
-                    this.texture[1];
-                //@ts-ignore i kown what im doing
+                this.vertices[this.numVertices + 4 * i]!.pos.x =
+                    freeform[i]!.x0;
+                this.vertices[this.numVertices + 4 * i]!.pos.y =
+                    freeform[i]!.y0;
+                this.vertices[this.numVertices + 4 * i]!.tex = this.texture[0];
                 this.setVertexColor(
-                    this.vertices[this.numVertices + 4 * i + 1],
+                    this.vertices[this.numVertices + 4 * i]!,
+                    0,
+                );
+
+                this.vertices[this.numVertices + 4 * i + 1]!.pos.x =
+                    freeform[i]!.x1;
+                this.vertices[this.numVertices + 4 * i + 1]!.pos.y =
+                    freeform[i]!.y1;
+                this.vertices[this.numVertices + 4 * i + 1]!.tex =
+                    this.texture[1];
+                this.setVertexColor(
+                    this.vertices[this.numVertices + 4 * i + 1]!,
                     1,
                 );
 
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 4 * i + 2].pos.x =
-                    freeform[i].x3;
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 4 * i + 2].pos.y =
-                    freeform[i].y3;
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 4 * i + 2].tex =
+                this.vertices[this.numVertices + 4 * i + 2]!.pos.x =
+                    freeform[i]!.x3;
+                this.vertices[this.numVertices + 4 * i + 2]!.pos.y =
+                    freeform[i]!.y3;
+                this.vertices[this.numVertices + 4 * i + 2]!.tex =
                     this.texture[3];
-                //@ts-ignore i kown what im doing
                 this.setVertexColor(
-                    this.vertices[this.numVertices + 4 * i + 2],
+                    this.vertices[this.numVertices + 4 * i + 2]!,
                     3,
                 );
 
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 4 * i + 3].pos.x =
-                    freeform[i].x2;
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 4 * i + 3].pos.y =
-                    freeform[i].y2;
-                //@ts-ignore i kown what im doing
-                this.vertices[this.numVertices + 4 * i + 3].tex =
+                this.vertices[this.numVertices + 4 * i + 3]!.pos.x =
+                    freeform[i]!.x2;
+                this.vertices[this.numVertices + 4 * i + 3]!.pos.y =
+                    freeform[i]!.y2;
+                this.vertices[this.numVertices + 4 * i + 3]!.tex =
                     this.texture[2];
-                //@ts-ignore i kown what im doing
                 this.setVertexColor(
-                    this.vertices[this.numVertices + 4 * i + 3],
+                    this.vertices[this.numVertices + 4 * i + 3]!,
                     2,
                 );
             }

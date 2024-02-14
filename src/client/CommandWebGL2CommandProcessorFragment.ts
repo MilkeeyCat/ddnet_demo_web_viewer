@@ -52,13 +52,11 @@ export class CommandWebGL2CommandProcessorFragment {
         this.lastStreamBuffer = 0;
 
         //primitive program
-        //@ts-ignore
         const primitiveVertexShader = new GLSL(
             this.glContext,
             (await import('../../shaders/prim.vert?raw')).default,
             this.glContext.VERTEX_SHADER,
         );
-        //@ts-ignore
         const primitiveFragmentShader = new GLSL(
             this.glContext,
             (await import('../../shaders/prim.frag?raw')).default,

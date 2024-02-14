@@ -34,7 +34,6 @@ export class TwMap {
     }
 
     static parseDatafile(df: Datafile): TwMap {
-        //@ts-ignore
         const ex = parseAll(ExType, df, new Map());
         const version = parseSingleItemOnly(Version, df, new Map());
         const info = parseSingleItemOnly(Info, df, new Map());

@@ -155,7 +155,6 @@ export class DemoReader {
         const isTick = byte >> 7 != 0;
 
         if (isTick) {
-            //@ts-ignore
             const keyframe = ((byte << 1) & 0xff) >> 7 != 0;
             const inlineTick = ((byte << 2) & 0xff) >> 7;
             const tickDelta = ((byte << 3) & 0xff) >> 3;
