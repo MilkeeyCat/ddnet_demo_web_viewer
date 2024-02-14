@@ -19,6 +19,8 @@ export class CommandWebGL2CommandProcessorFragment {
     primitiveDrawBufferTex3d: WebGLBuffer | null;
     primitiveDrawBuffer: (WebGLBuffer | null)[];
 
+    quadDrawIndexBuffer!: WebGLBuffer;
+
 
     constructor(ctx: WebGL2RenderingContext) {
         this.glContext = ctx;
@@ -47,6 +49,31 @@ export class CommandWebGL2CommandProcessorFragment {
         this.primitiveProgram.addShader(primitiveFragmentShader);
         this.primitiveProgram.linkProgram();
         this.useProgram(this.primitiveProgram);
+
+        const quadDrawIndexBuffer = this.glContext.createBuffer();
+        if (!quadDrawIndexBuffer) {
+            throw new Error("Failed to create buffer");
+        }
+
+        this.quadDrawIndexBuffer = quadDrawIndexBuffer;
+
+        this.glContext.bindBuffer(this.glContext.COPY_WRITE_BUFFER, this.quadDrawIndexBuffer);
+
+        const indices = new Array(CommandBuffer.MAX_VERTICES / 4 * 6);
+        let primq = 0;
+
+        for (let i = 0; i < CommandBuffer.MAX_VERTICES / 4 * 6; i += 6) {
+            indices[i] = primq;
+            indices[i + 1] = primq + 1;
+            indices[i + 2] = primq + 2;
+            indices[i + 3] = primq;
+            indices[i + 4] = primq + 2;
+            indices[i + 5] = primq + 3;
+
+            primq += 4;
+        }
+
+        this.glContext.bufferData(this.glContext.COPY_WRITE_BUFFER, new Uint8Array(indices), this.glContext.STATIC_DRAW);
 
         console.log("Initialized shtuff", command);
     }

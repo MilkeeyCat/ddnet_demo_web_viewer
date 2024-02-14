@@ -10,6 +10,9 @@ export class CommandBuffer {
     static PRIMTYPE_QUADS = 2;
     static PRIMTYPE_TRIANGLES = 3;
 
+    static MAX_TEXTURES = 1024 * 8;
+    static MAX_VERTICES = 32 * 1024;
+
     renderCallCount: number;
     cmdBufferHead: Command | null;
     cmdBufferTail: Command | null;

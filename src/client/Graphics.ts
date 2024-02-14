@@ -54,9 +54,6 @@ export class Graphics {
     vertices: Vertex[];
     numVertices: number;
 
-    static MAX_TEXTURES = 1024 * 8;
-    static MAX_VERTICES = 32 * 1024;
-
     static TEXFORMAT_INVALID = 0;
     static TEXFORMAT_RGBA = 1;
 
