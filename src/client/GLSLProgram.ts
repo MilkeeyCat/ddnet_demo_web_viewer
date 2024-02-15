@@ -1,9 +1,10 @@
 import { GLSL } from './GLSL';
+import { glDbg } from './gl_dbg';
 
 export class GLSLProgram {
     private program!: WebGLProgram;
 
-    constructor(public glContext: WebGLRenderingContext) {}
+    constructor(public glContext: WebGL2RenderingContext) {}
 
     createProgram() {
         const program = this.glContext.createProgram();
@@ -16,22 +17,26 @@ export class GLSLProgram {
     }
 
     addShader(shader: GLSL) {
-        this.glContext.attachShader(this.program, shader.shader);
+        glDbg(this.glContext, () => {
+            this.glContext.attachShader(this.program, shader.shader);
+        });
     }
 
     detachShader(shader: GLSL) {
-        this.glContext.detachShader(this.program, shader.shader);
+        glDbg(this.glContext, () => {
+            this.glContext.detachShader(this.program, shader.shader);
+        });
     }
 
     linkProgram() {
-        this.glContext.linkProgram(this.program);
-        console.log(
-            'are we fukcked',
-            this.glContext.getProgramInfoLog(this.program),
-        );
+        glDbg(this.glContext, () => {
+            this.glContext.linkProgram(this.program);
+        });
     }
 
     useProgram() {
-        this.glContext.useProgram(this.program);
+        glDbg(this.glContext, () => {
+            this.glContext.useProgram(this.program);
+        });
     }
 }

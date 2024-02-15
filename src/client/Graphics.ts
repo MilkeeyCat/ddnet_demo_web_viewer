@@ -222,13 +222,11 @@ export class Graphics {
     }
 
     //TODO: make it look gut
-    flushVertices(keepVertices: boolean = false) {
-        keepVertices;
-        console.log(this.vertices.length);
+    flushVertices(_keepVertices: boolean = false) {
         const cmd = new CommandRender(
             null,
             CommandBuffer.PRIMTYPE_QUADS,
-            this.vertices.length,
+            this.vertices.length / 4,
             this.vertices,
         );
 

@@ -8,7 +8,9 @@ import {
     CommandInit,
     CommandRender,
 } from './commands';
+import { Vertex } from './common';
 import { RunCommandReturnTypes } from './enums';
+import { glDbg } from './gl_dbg';
 
 const MAX_STREAM_BUFFER_COUNT = 10;
 
@@ -20,6 +22,8 @@ export class CommandWebGL2CommandProcessorFragment {
 
     primitiveProgram!: GLSLProgram;
 
+    primitiveDrawVertex!: WebGLBuffer[];
+    primitiveDrawVertexTex3d!: WebGLBuffer;
     primitiveDrawBufferTex3d!: WebGLBuffer;
     primitiveDrawBuffer!: WebGLBuffer[];
     lastStreamBuffer!: number;
@@ -49,6 +53,58 @@ export class CommandWebGL2CommandProcessorFragment {
             this.primitiveDrawBuffer[i] = buffer;
         }
 
+        const vertexArray = this.glContext.createVertexArray();
+        if (!vertexArray) {
+            throw new Error('Failed to create vertex array object');
+        }
+        this.primitiveDrawVertexTex3d = vertexArray;
+
+        this.primitiveDrawVertex = new Array(MAX_STREAM_BUFFER_COUNT);
+        for (let i = 0; i < this.primitiveDrawVertex.length; i++) {
+            const vertexArray = this.glContext.createVertexArray();
+            if (!vertexArray) {
+                throw new Error('Failed to create vertex array object');
+            }
+
+            this.primitiveDrawVertex[i] = vertexArray;
+        }
+
+        for (let i = 0; i < MAX_STREAM_BUFFER_COUNT; i++) {
+            this.glContext.bindBuffer(
+                this.glContext.ARRAY_BUFFER,
+                this.primitiveDrawBuffer[i]!,
+            );
+            this.glContext.bindVertexArray(this.primitiveDrawVertex[i]!);
+            this.glContext.enableVertexAttribArray(0);
+            this.glContext.enableVertexAttribArray(1);
+            this.glContext.enableVertexAttribArray(2);
+
+            this.glContext.vertexAttribPointer(
+                0,
+                2,
+                this.glContext.FLOAT,
+                false,
+                2 * 4 + 2 * 4 + 4 * 4,
+                0,
+            );
+            this.glContext.vertexAttribPointer(
+                1,
+                2,
+                this.glContext.FLOAT,
+                false,
+                2 * 4 + 2 * 4 + 4 * 4,
+                4 * 2,
+            );
+            this.glContext.vertexAttribPointer(
+                2,
+                4,
+                this.glContext.UNSIGNED_BYTE,
+                true,
+                2 * 4 + 2 * 4 + 4 * 4,
+                4 * 4,
+            );
+        }
+
         this.lastStreamBuffer = 0;
 
         //primitive program
@@ -69,6 +125,7 @@ export class CommandWebGL2CommandProcessorFragment {
         this.primitiveProgram.linkProgram();
         this.useProgram(this.primitiveProgram);
 
+        this.glContext.bindVertexArray(null);
         const quadDrawIndexBuffer = this.glContext.createBuffer();
         if (!quadDrawIndexBuffer) {
             throw new Error('Failed to create buffer');
@@ -76,10 +133,12 @@ export class CommandWebGL2CommandProcessorFragment {
 
         this.quadDrawIndexBuffer = quadDrawIndexBuffer;
 
-        this.glContext.bindBuffer(
-            this.glContext.COPY_WRITE_BUFFER,
-            this.quadDrawIndexBuffer,
-        );
+        glDbg(this.glContext, () => {
+            this.glContext.bindBuffer(
+                this.glContext.ELEMENT_ARRAY_BUFFER,
+                this.quadDrawIndexBuffer,
+            );
+        });
 
         const indices = new Array((CommandBuffer.MAX_VERTICES / 4) * 6);
         let primq = 0;
@@ -96,12 +155,12 @@ export class CommandWebGL2CommandProcessorFragment {
         }
 
         this.glContext.bufferData(
-            this.glContext.COPY_WRITE_BUFFER,
+            this.glContext.ELEMENT_ARRAY_BUFFER,
             new Uint8Array(indices),
             this.glContext.STATIC_DRAW,
         );
 
-        console.log('Initialized shtuff', command);
+        console.log('Initialized stuff', command);
     }
 
     useProgram(program: GLSLProgram) {
@@ -109,8 +168,65 @@ export class CommandWebGL2CommandProcessorFragment {
     }
 
     cmdRender(command: CommandRender) {
-        command;
         this.useProgram(this.primitiveProgram);
+
+        this.uploadStreamBufferData(
+            command.primType,
+            command.vertices,
+            command.primCount,
+        );
+
+        glDbg(this.glContext, () => {
+            this.glContext.bindVertexArray(this.primitiveDrawVertex[0]!);
+        });
+
+        switch (command.primType) {
+            case CommandBuffer.PRIMTYPE_LINES:
+                glDbg(this.glContext, () => {
+                    this.glContext.drawArrays(
+                        this.glContext.LINES,
+                        0,
+                        command.primCount * 2,
+                    );
+                });
+
+                break;
+            case CommandBuffer.PRIMTYPE_TRIANGLES:
+                glDbg(this.glContext, () => {
+                    this.glContext.drawArrays(
+                        this.glContext.TRIANGLES,
+                        0,
+                        command.primCount * 3,
+                    );
+                });
+
+                break;
+            case CommandBuffer.PRIMTYPE_QUADS:
+                glDbg(this.glContext, () => {
+                    this.glContext.bindBuffer(
+                        this.glContext.ELEMENT_ARRAY_BUFFER,
+                        this.quadDrawIndexBuffer,
+                    );
+                });
+
+                //if (m_aLastIndexBufferBound[m_LastStreamBuffer] != m_QuadDrawIndexBufferID) {
+                //    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_QuadDrawIndexBufferID);
+                //    m_aLastIndexBufferBound[m_LastStreamBuffer] = m_QuadDrawIndexBufferID;
+                //}
+
+                glDbg(this.glContext, () => {
+                    this.glContext.drawElements(
+                        this.glContext.TRIANGLES,
+                        6,
+                        this.glContext.UNSIGNED_INT,
+                        0,
+                    );
+                });
+                break;
+
+            default:
+                throw new Error(`Unkdown primtype ${command.primType}`);
+        }
     }
 
     cmdClear(command: CommandClear) {
@@ -120,9 +236,13 @@ export class CommandWebGL2CommandProcessorFragment {
             command.color.b,
             command.color.a,
         );
-        this.glContext.clear(
-            this.glContext.COLOR_BUFFER_BIT | this.glContext.DEPTH_BUFFER_BIT,
-        );
+
+        glDbg(this.glContext, () => {
+            this.glContext.clear(
+                this.glContext.COLOR_BUFFER_BIT |
+                    this.glContext.DEPTH_BUFFER_BIT,
+            );
+        });
     }
 
     async runCommand(baseCommand: Command): Promise<RunCommandReturnTypes> {
@@ -143,7 +263,7 @@ export class CommandWebGL2CommandProcessorFragment {
 
     uploadStreamBufferData(
         primitiveType: number,
-        vertices: number[],
+        vertices: Vertex[],
         primitiveCount: number,
         asTex3d = false,
     ) {
@@ -164,21 +284,42 @@ export class CommandWebGL2CommandProcessorFragment {
         }
 
         if (asTex3d) {
-            this.glContext.bindBuffer(
-                this.glContext.ARRAY_BUFFER,
-                this.primitiveDrawBufferTex3d,
-            );
+            glDbg(this.glContext, () => {
+                this.glContext.bindBuffer(
+                    this.glContext.ARRAY_BUFFER,
+                    this.primitiveDrawBufferTex3d,
+                );
+            });
         } else {
-            this.glContext.bindBuffer(
-                this.glContext.ARRAY_BUFFER,
-                this.primitiveDrawBuffer[this.lastStreamBuffer]!,
-            );
+            glDbg(this.glContext, () => {
+                this.glContext.bindBuffer(
+                    this.glContext.ARRAY_BUFFER,
+                    this.primitiveDrawBuffer[this.lastStreamBuffer]!,
+                );
+            });
         }
 
-        this.glContext.bufferData(
-            this.glContext.ARRAY_BUFFER,
-            new Uint8Array(vertices),
-            this.glContext.STREAM_DRAW,
-        );
+        const arr: number[] = [];
+
+        for (let i = 0; i < vertices.length; i++) {
+            arr.push(vertices[i]!.pos.x);
+            arr.push(vertices[i]!.pos.y);
+
+            arr.push(vertices[i]!.tex.u);
+            arr.push(vertices[i]!.tex.v);
+
+            arr.push(vertices[i]!.color.r);
+            arr.push(vertices[i]!.color.g);
+            arr.push(vertices[i]!.color.b);
+            arr.push(vertices[i]!.color.a);
+        }
+
+        glDbg(this.glContext, () => {
+            this.glContext.bufferData(
+                this.glContext.ARRAY_BUFFER,
+                new Float32Array(arr),
+                this.glContext.STREAM_DRAW,
+            );
+        });
     }
 }
