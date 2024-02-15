@@ -9,19 +9,20 @@ precision highp sampler2DShadow;
 precision highp sampler2DArray;
 precision highp sampler2DArrayShadow;
 
-uniform sampler2D gTextureSampler;
+// uniform sampler2D gTextureSampler;
 
 // there was noperspective. was it important? we will see
 in vec2 texCoord;
 in vec4 vertColor;
 
 out vec4 FragClr;
-void main()
-{
-#ifdef TW_TEXTURED
-	vec4 tex = texture(gTextureSampler, texCoord);
-	FragClr = tex * vertColor;
-#else
-	FragClr = vertColor;
-#endif
+
+void main() {
+    FragClr = vec4(1, 0, 1, 1);
+    //#ifdef TW_TEXTURED
+    //	vec4 tex = texture(gTextureSampler, texCoord);
+    //	FragClr = tex * vertColor;
+    //#else
+    //	FragClr = vertColor;
+    //#endif
 }

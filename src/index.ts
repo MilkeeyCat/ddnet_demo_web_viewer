@@ -1,11 +1,11 @@
-import { Graphics } from './client/Graphics';
+import { CORNER_NONE, Graphics } from './client/Graphics';
 
 function update(graphics: Graphics) {
     graphics.clear(0.5, 0.1, 1, false);
 
     graphics.quadsBegin();
     graphics.setColor(0.5, 0.5, 1, 1);
-    graphics.drawRect(0, 0, 100, 100, 3, 2);
+    graphics.drawRect(-100, -100, 100, 100, 0, CORNER_NONE);
     graphics.quadsEnd();
 
     graphics.swap();

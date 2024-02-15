@@ -31,11 +31,11 @@ const DRAWING_QUADS = 1;
 const DRAWING_LINES = 2;
 const DRAWING_TRIANGLES = 3;
 
-const CORNER_NONE = 0;
-const CORNER_TL = 1;
-const CORNER_TR = 2;
-const CORNER_BL = 4;
-const CORNER_BR = 8;
+export const CORNER_NONE = 0;
+export const CORNER_TL = 1;
+export const CORNER_TR = 2;
+export const CORNER_BL = 4;
+export const CORNER_BR = 8;
 
 const CORNER_T = CORNER_TL | CORNER_TR;
 const CORNER_B = CORNER_BL | CORNER_BR;
@@ -95,13 +95,14 @@ export class Graphics {
             ColorRGBA,
             ColorRGBA,
         ];
-        this.vertices = new Array(CommandBuffer.MAX_VERTICES).fill(
-            new Vertex(
+        this.vertices = new Array(CommandBuffer.MAX_VERTICES);
+        for (let i = 0; i < this.vertices.length; i++) {
+            this.vertices[i] = new Vertex(
                 new Point(0, 0),
                 new TexCoord(0, 0),
                 new ColorRGBA(0, 0, 0, 0),
-            ),
-        );
+            )
+        }
 
         this.currentCommandBuffer = 0;
         this.commandBuffers = new Array(NUM_CMDBUFFERS).fill(null);
@@ -112,8 +113,6 @@ export class Graphics {
 
         this.commandBuffer = this.commandBuffers[0]!;
         this.backend = new GraphicsBackend(ctx);
-
-        console.log(this);
     }
 
     kickCommandBuffer() {
@@ -486,6 +485,10 @@ export class Graphics {
 
         //TL - top left btw
         this.quadsDrawTL(quads);
+    }
+
+    retardedSquare(x1: number, y1: number, x2: number, y2: number) {
+        this.quadsDrawFreeform([new FreeformItem(x1, y1, x2, y1, x1, y2, x2, y2,)]);
     }
 
     quadsBegin() {
