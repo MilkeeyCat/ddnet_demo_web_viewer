@@ -1,33 +1,12 @@
 import {
-    CORNER_BL,
-    CORNER_BR,
-    CORNER_TL,
-    CORNER_TR,
     Graphics,
 } from './client/Graphics';
+import { ColorRGBA } from './client/common';
 
 function update(graphics: Graphics) {
-    graphics.clear(0.5, 0.1, 1, false);
+    graphics.clear(0, 0, 0, false);
 
-    graphics.quadsBegin();
-    graphics.setColor(1, 0, 0, 1);
-    graphics.drawRect(100, 100, 100, 100, 50, CORNER_BL | CORNER_TR);
-    graphics.quadsEnd();
-
-    graphics.quadsBegin();
-    graphics.setColor(0, 1, 0, 1);
-    graphics.drawRect(300, 100, 100, 100, 50, CORNER_TL | CORNER_BR);
-    graphics.quadsEnd();
-
-    graphics.quadsBegin();
-    graphics.setColor(0, 0, 1, 1);
-    graphics.drawRect(100, 300, 100, 100, 50, CORNER_TL | CORNER_BR);
-    graphics.quadsEnd();
-
-    graphics.quadsBegin();
-    graphics.setColor(0.5, 1, 1, 1);
-    graphics.drawRect(300, 300, 100, 100, 50, CORNER_BL | CORNER_TR);
-    graphics.quadsEnd();
+    graphics.drawRect(100, 100, 100, 100, new ColorRGBA(1, 0, 0, 1), 0, 50);
 
     graphics.swap();
 

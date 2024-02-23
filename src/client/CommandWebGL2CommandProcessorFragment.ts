@@ -31,7 +31,7 @@ export class CommandWebGL2CommandProcessorFragment {
 
     quadDrawIndexBuffer!: WebGLBuffer;
 
-    constructor(public glContext: WebGL2RenderingContext) {}
+    constructor(public glContext: WebGL2RenderingContext) { }
 
     async cmdInit(command: CommandInit) {
         console.log('Im in a init command', command);
@@ -305,9 +305,7 @@ export class CommandWebGL2CommandProcessorFragment {
             );
         }
 
-        const arr: number[] = [];
-
-        const SIZE = 20;
+        const SIZE = 4 * 2 + 4 * 2 + 4 * 1;
         const buffer = new ArrayBuffer(vertices.length * SIZE);
         const dv = new DataView(buffer);
 

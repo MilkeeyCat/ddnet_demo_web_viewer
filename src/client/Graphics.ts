@@ -169,6 +169,10 @@ export class Graphics {
         }
     }
 
+    setColorC(color: ColorRGBA) {
+        this.setColor(color.r, color.g, color.b, color.a);
+    }
+
     setVertexColor(vertex: Vertex, colorIndex: number) {
         if (vertex === undefined) {
             debugger;
@@ -379,7 +383,14 @@ export class Graphics {
         }
     }
 
-    drawRect(
+    drawRect(x: number, y: number, w: number, h: number, color: ColorRGBA, corners: number, rounding: number) {
+        this.quadsBegin();
+        this.setColorC(color);
+        this.drawRectExt(x, y, w, h, rounding, corners);
+        this.quadsEnd();
+    }
+
+    drawRectExt(
         x: number,
         y: number,
         w: number,
