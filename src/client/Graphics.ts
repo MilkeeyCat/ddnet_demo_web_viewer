@@ -53,11 +53,11 @@ export class Graphics {
     //Normalized color
     //color: Color[4];
     drawing: number;
-    angle: number;
     color: [ColorRGBA, ColorRGBA, ColorRGBA, ColorRGBA];
     texture: [TexCoord, TexCoord, TexCoord, TexCoord];
     vertices: Vertex[];
     numVertices: number;
+    rotation: number;
 
     static TEXFORMAT_INVALID = 0;
     static TEXFORMAT_RGBA = 1;
@@ -81,8 +81,8 @@ export class Graphics {
 
     constructor(ctx: WebGL2RenderingContext) {
         this.drawing = 0;
-        this.angle = 0;
         this.numVertices = 0;
+        this.rotation = 0;
         this.texture = new Array(4) as [TexCoord, TexCoord, TexCoord, TexCoord];
         for (let i = 0; i < this.texture.length; i++) {
             this.texture[i] = new TexCoord(0, 0);
@@ -147,7 +147,7 @@ export class Graphics {
     }
 
     quadsSetRotation(angle: number) {
-        this.angle = angle;
+        this.rotation = angle;
     }
 
     setColor(r: number, g: number, b: number, a: number) {
@@ -174,11 +174,21 @@ export class Graphics {
     }
 
     setVertexColor(vertex: Vertex, colorIndex: number) {
-        if (vertex === undefined) {
-            debugger;
-        }
-
         vertex.color = this.color[colorIndex]!.clone();
+    }
+
+    rotate(rCenter: Point, i: number, numPoints: number) {
+        const c = Math.cos(this.rotation);
+        const s = Math.sin(this.rotation);
+        let x = 0, y = 0;
+
+        for (let j = i; j < i + numPoints; j++) {
+            x = this.vertices[j]!.pos.x - rCenter.x;
+            y = this.vertices[j]!.pos.y - rCenter.y;
+
+            this.vertices[j]!.pos.x = x * c - y * s + rCenter.x;
+            this.vertices[j]!.pos.y = x * s + y * c + rCenter.y;
+        }
     }
 
     //NOTE: add rotation
@@ -222,19 +232,30 @@ export class Graphics {
                 this.vertices[this.numVertices + 4 * i + 3]!,
                 3,
             );
+
+            if (this.rotation != 0) {
+                center.x = quads[i]!.x + quads[i]!.width / 2;
+                center.y = quads[i]!.y + quads[i]!.height / 2;
+
+                this.rotate(center, this.numVertices + 4 * i, 4);
+            }
         }
 
         this.addVertices(4 * quads.length);
     }
 
     //TODO: make it look gut
-    flushVertices(_keepVertices = false) {
+    flushVertices(keepVertices = false) {
         const cmd = new CommandRender(
             null,
             CommandBuffer.PRIMTYPE_QUADS,
-            this.vertices.length / 4,
+            this.numVertices / 4,
             this.vertices,
         );
+
+        if (!keepVertices) {
+            this.numVertices = 0;
+        }
 
         this.addCmd(cmd);
         this.commandBuffer.addRenderCalls(1);
@@ -399,7 +420,8 @@ export class Graphics {
         corners: number,
     ) {
         const numSegments = 8;
-        const segmentsAngle = Math.PI / 2 / numSegments;
+        const pi = 3.1415926535897932384626433;
+        const segmentsAngle = pi / 2 / numSegments;
         const freeform: FreeformItem[] = [];
 
         for (let i = 0; i < numSegments; i += 2) {
