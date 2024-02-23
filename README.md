@@ -7,4 +7,4 @@
 
 </div>
 It can draw a rectangle, how cool is that!? Also you can draw a rounded rectangle!
-Also you can set a custom background color. As you can see it has a lot of features.
+Also you can set a custom background color and last but not least, rotated rectangle! As you can see it has a lot of features.

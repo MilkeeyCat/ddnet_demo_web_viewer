@@ -180,7 +180,8 @@ export class Graphics {
     rotate(rCenter: Point, i: number, numPoints: number) {
         const c = Math.cos(this.rotation);
         const s = Math.sin(this.rotation);
-        let x = 0, y = 0;
+        let x = 0,
+            y = 0;
 
         for (let j = i; j < i + numPoints; j++) {
             x = this.vertices[j]!.pos.x - rCenter.x;
@@ -250,7 +251,7 @@ export class Graphics {
             null,
             CommandBuffer.PRIMTYPE_QUADS,
             this.numVertices / 4,
-            this.vertices,
+            this.vertices.map((vertex) => vertex.clone()),
         );
 
         if (!keepVertices) {
@@ -266,7 +267,7 @@ export class Graphics {
             throw new Error('AAAAAAAAAAAAAAAAAAa');
         }
 
-        this.flushVertices(false);
+        this.flushVertices();
         this.drawing = 0;
     }
 
@@ -404,7 +405,15 @@ export class Graphics {
         }
     }
 
-    drawRect(x: number, y: number, w: number, h: number, color: ColorRGBA, corners: number, rounding: number) {
+    drawRect(
+        x: number,
+        y: number,
+        w: number,
+        h: number,
+        color: ColorRGBA,
+        corners: number,
+        rounding: number,
+    ) {
         this.quadsBegin();
         this.setColorC(color);
         this.drawRectExt(x, y, w, h, rounding, corners);

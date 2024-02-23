@@ -16,6 +16,10 @@ export class TexCoord {
         public u: number,
         public v: number,
     ) {}
+
+    clone() {
+        return new TexCoord(this.u, this.v);
+    }
 }
 
 export class FreeformItem {
@@ -58,6 +62,10 @@ export class Point {
         public x: number,
         public y: number,
     ) {}
+
+    clone() {
+        return new Point(this.x, this.y);
+    }
 }
 
 export class Vertex {
@@ -66,4 +74,12 @@ export class Vertex {
         public tex: TexCoord,
         public color: ColorRGBA,
     ) {}
+
+    clone() {
+        return new Vertex(
+            this.pos.clone(),
+            this.tex.clone(),
+            this.color.clone(),
+        );
+    }
 }

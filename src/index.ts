@@ -1,5 +1,8 @@
 import {
     CORNER_BL,
+    CORNER_BR,
+    CORNER_TL,
+    CORNER_TR,
     Graphics,
 } from './client/Graphics';
 import { ColorRGBA } from './client/common';
@@ -7,11 +10,24 @@ import { ColorRGBA } from './client/common';
 function update(graphics: Graphics) {
     graphics.clear(0, 0, 0, false);
 
+    graphics.drawRect(
+        500,
+        100,
+        100,
+        100,
+        new ColorRGBA(1, 1, 1, 1),
+        CORNER_BL | CORNER_TR | CORNER_BR | CORNER_TL,
+        50,
+    );
+
     graphics.quadsBegin();
 
-    graphics.quadsSetRotation(.1);
     graphics.setColor(1, 1, 1, 1);
-    graphics.drawRectExt(100, 100, 100, 100, 50, 0);
+
+    graphics.drawRectExt(100, 100, 100, 100, 0, 0);
+
+    graphics.quadsSetRotation(Math.PI / 4);
+    graphics.drawRectExt(300, 100, 100, 100, 0, 0);
 
     graphics.quadsEnd();
 

@@ -31,7 +31,7 @@ export class CommandWebGL2CommandProcessorFragment {
 
     quadDrawIndexBuffer!: WebGLBuffer;
 
-    constructor(public glContext: WebGL2RenderingContext) { }
+    constructor(public glContext: WebGL2RenderingContext) {}
 
     async cmdInit(command: CommandInit) {
         console.log('Im in a init command', command);
