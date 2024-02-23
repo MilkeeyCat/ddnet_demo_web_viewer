@@ -1,9 +1,11 @@
+import { Point } from './common';
+
 export type State = {
     blendMode: number;
-    m_WrapMode: number;
-    m_Texture: number;
-    m_ScreenTL: number;
-    m_ScreenBR: number;
+    wrapMode: number;
+    texture: number;
+    screenTL: Point;
+    screenBR: Point;
 
     // clip
     clipEnable: boolean;

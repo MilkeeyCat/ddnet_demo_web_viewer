@@ -13,6 +13,13 @@ export class CommandBuffer {
     static MAX_TEXTURES = 1024 * 8;
     static MAX_VERTICES = 32 * 1024;
 
+    static BLEND_NONE = 0;
+    static BLEND_ALPHA = 1;
+    static BLEND_ADDITIVE = 2;
+
+    static WRAP_REPEAT = 0;
+    static WRAP_CLAMP = 1;
+
     renderCallCount: number;
     cmdBufferHead: Command | null;
     cmdBufferTail: Command | null;

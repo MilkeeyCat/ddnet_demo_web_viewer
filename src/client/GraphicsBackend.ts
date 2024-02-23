@@ -15,12 +15,5 @@ export class GraphicsBackend {
 
         this.glContext = ctx;
         this.processor = new CommandProcessor(ctx);
-
-        const buf = new CommandBuffer();
-
-        const test = new CommandInit();
-        buf.addCommand(test);
-
-        this.runBuffer(buf);
     }
 }

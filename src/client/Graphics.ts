@@ -2,7 +2,7 @@
 
 import { CommandBuffer } from './CommandBuffer';
 import { GraphicsBackend } from './GraphicsBackend';
-import { Command, CommandClear, CommandRender } from './commands';
+import { Command, CommandClear, CommandInit, CommandRender } from './commands';
 import {
     ColorRGBA,
     FreeformItem,
@@ -11,6 +11,7 @@ import {
     TexCoord,
     Vertex,
 } from './common';
+import { State } from './types';
 
 function clampf(value: number, min: number, max: number) {
     if (value > max) {
@@ -45,19 +46,21 @@ const CORNER_L = CORNER_TL | CORNER_BL;
 const CORNER_ALL = CORNER_T | CORNER_B;
 
 export class Graphics {
+    width: number;
+    height: number;
+
     backend: GraphicsBackend;
     commandBuffers: Array<CommandBuffer>;
     commandBuffer: CommandBuffer;
     currentCommandBuffer: number;
 
-    //Normalized color
-    //color: Color[4];
     drawing: number;
     color: [ColorRGBA, ColorRGBA, ColorRGBA, ColorRGBA];
     texture: [TexCoord, TexCoord, TexCoord, TexCoord];
     vertices: Vertex[];
     numVertices: number;
     rotation: number;
+    state: State;
 
     static TEXFORMAT_INVALID = 0;
     static TEXFORMAT_RGBA = 1;
@@ -72,14 +75,9 @@ export class Graphics {
     static PRIMTYPE_QUADS = 2;
     static PRIMTYPE_TRIANGLES = 3;
 
-    static BLEND_NONE = 0;
-    static BLEND_ALPHA = 1;
-    static BLEND_ADDITIVE = 2;
-
-    static WRAP_REPEAT = 0;
-    static WRAP_CLAMP = 1;
-
-    constructor(ctx: WebGL2RenderingContext) {
+    constructor(width: number, height: number, ctx: WebGL2RenderingContext) {
+        this.width = width;
+        this.height = height;
         this.drawing = 0;
         this.numVertices = 0;
         this.rotation = 0;
@@ -87,6 +85,18 @@ export class Graphics {
         for (let i = 0; i < this.texture.length; i++) {
             this.texture[i] = new TexCoord(0, 0);
         }
+        this.state = {
+            screenTL: new Point(0, 0),
+            screenBR: new Point(width, height),
+            clipEnable: false,
+            clipX: 0,
+            clipY: 0,
+            clipH: 0,
+            clipW: 0,
+            texture: 0,
+            blendMode: CommandBuffer.BLEND_NONE,
+            wrapMode: CommandBuffer.WRAP_CLAMP,
+        };
 
         this.color = new Array(4) as [
             ColorRGBA,
@@ -117,8 +127,8 @@ export class Graphics {
         this.backend = new GraphicsBackend(ctx);
     }
 
-    kickCommandBuffer() {
-        this.backend.runBuffer(this.commandBuffer);
+    async kickCommandBuffer() {
+        await this.backend.runBuffer(this.commandBuffer);
 
         //TODO: warnings!?!??
 
@@ -127,10 +137,24 @@ export class Graphics {
         this.commandBuffer.reset();
     }
 
+    async init() {
+        const cmd = new CommandInit();
+        this.addCmd(cmd);
+
+        await this.kickCommandBuffer();
+    }
+
     swap() {
         //some magic shit...
 
         this.kickCommandBuffer();
+    }
+
+    mapScreen(tlX: number, tlY: number, brX: number, brY: number) {
+        this.state.screenTL.x = tlX;
+        this.state.screenTL.y = tlY;
+        this.state.screenBR.x = brX;
+        this.state.screenBR.y = brY;
     }
 
     //not sure the fuck is this
@@ -248,7 +272,7 @@ export class Graphics {
     //TODO: make it look gut
     flushVertices(keepVertices = false) {
         const cmd = new CommandRender(
-            null,
+            this.state,
             CommandBuffer.PRIMTYPE_QUADS,
             this.numVertices / 4,
             this.vertices.map((vertex) => vertex.clone()),

@@ -112,27 +112,28 @@ export class CommandWebGL2CommandProcessorFragment {
 
         this.lastStreamBuffer = 0;
 
-        //primitive program
-        const primitiveVertexShader = new GLSL(
-            this.glContext,
-            (await import('../../shaders/prim.vert?raw')).default,
-            this.glContext.VERTEX_SHADER,
-        );
-        const primitiveFragmentShader = new GLSL(
-            this.glContext,
-            (await import('../../shaders/prim.frag?raw')).default,
-            this.glContext.FRAGMENT_SHADER,
-        );
+        {
+            const primitiveVertexShader = new GLSL(
+                this.glContext,
+                (await import('../../shaders/prim.vert?raw')).default,
+                this.glContext.VERTEX_SHADER,
+            );
+            const primitiveFragmentShader = new GLSL(
+                this.glContext,
+                (await import('../../shaders/prim.frag?raw')).default,
+                this.glContext.FRAGMENT_SHADER,
+            );
 
-        this.primitiveProgram.createProgram();
-        this.primitiveProgram.addShader(primitiveVertexShader);
-        this.primitiveProgram.addShader(primitiveFragmentShader);
-        this.primitiveProgram.linkProgram();
-        this.useProgram(this.primitiveProgram);
-        this.primitiveProgram.locPos = this.primitiveProgram.getUniformLoc(
-            this.primitiveProgram.program,
-            'gPos',
-        )!;
+            this.primitiveProgram.createProgram();
+            this.primitiveProgram.addShader(primitiveVertexShader);
+            this.primitiveProgram.addShader(primitiveFragmentShader);
+            this.primitiveProgram.linkProgram();
+            this.useProgram(this.primitiveProgram);
+            this.primitiveProgram.locPos = this.primitiveProgram.getUniformLoc(
+                this.primitiveProgram.program,
+                'gPos',
+            )!;
+        }
 
         const quadDrawIndexBuffer = this.glContext.createBuffer();
         if (!quadDrawIndexBuffer) {
@@ -173,29 +174,41 @@ export class CommandWebGL2CommandProcessorFragment {
         program.useProgram();
     }
 
-    setState(_state: State, program: GLSLTWProgram) {
-        // do black magic here
-        const tl = { x: 0, y: 0 };
-        const br = { x: 956, y: 939 };
+    setState(state: State, program: GLSLTWProgram) {
+        if (
+            state.screenBR.x !== program.lastScreenBR.x ||
+            state.screenBR.y !== program.lastScreenBR.y ||
+            state.screenTL.x !== program.lastScreenTL.x ||
+            state.screenTL.y !== program.lastScreenTL.y
+        ) {
+            program.lastScreenTL = state.screenTL.clone();
+            program.lastScreenBR = state.screenBR.clone();
 
-        const m = [
-            2 / (br.x - tl.x),
-            0,
-            0,
-            -((br.x + tl.x) / (br.x - tl.x)),
-            0,
-            2 / (tl.y - br.y),
-            0,
-            -((tl.y + br.y) / (tl.y - br.y)),
-        ];
+            const m = [
+                2 / (state.screenBR.x - state.screenTL.x),
+                0,
+                0,
+                -(
+                    (state.screenBR.x + state.screenTL.x) /
+                    (state.screenBR.x - state.screenTL.x)
+                ),
+                0,
+                2 / (state.screenTL.y - state.screenBR.y),
+                0,
+                -(
+                    (state.screenTL.y + state.screenBR.y) /
+                    (state.screenTL.y - state.screenBR.y)
+                ),
+            ];
 
-        this.glContext.uniformMatrix4x2fv(program.locPos, true, m);
+            this.glContext.uniformMatrix4x2fv(program.locPos, true, m);
+        }
     }
 
     cmdRender(command: CommandRender) {
         let program = this.primitiveProgram;
-
         this.useProgram(program);
+
         this.setState(command.state, program);
 
         this.uploadStreamBufferData(

@@ -37,7 +37,7 @@ function update(graphics: Graphics) {
 }
 
 // entry point to the whole program. nobody whould've guessed
-function main() {
+async function main() {
     const canvas = document.querySelector<HTMLCanvasElement>('#canvas');
 
     if (!canvas) {
@@ -53,7 +53,8 @@ function main() {
         throw new Error("Couldn't create a rendering context");
     }
 
-    const graphics = new Graphics(ctx);
+    const graphics = new Graphics(canvas.width, canvas.height, ctx);
+    await graphics.init();
 
     window.requestAnimationFrame(() => update(graphics));
 }
