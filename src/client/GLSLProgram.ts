@@ -2,7 +2,7 @@ import { GLSL } from './GLSL';
 import { glDbg } from './gl_dbg';
 
 export class GLSLProgram {
-    private program!: WebGLProgram;
+    program: WebGLProgram;
 
     constructor(public glContext: WebGL2RenderingContext) {}
 
@@ -38,5 +38,12 @@ export class GLSLProgram {
         glDbg(this.glContext, () => {
             this.glContext.useProgram(this.program);
         });
+    }
+
+    getUniformLoc(
+        program: WebGLProgram,
+        name: string,
+    ): WebGLUniformLocation | null {
+        return this.glContext.getUniformLocation(program, name);
     }
 }

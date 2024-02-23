@@ -1,11 +1,32 @@
-import { CORNER_NONE, Graphics } from './client/Graphics';
+import {
+    CORNER_BL,
+    CORNER_BR,
+    CORNER_TL,
+    CORNER_TR,
+    Graphics,
+} from './client/Graphics';
 
 function update(graphics: Graphics) {
     graphics.clear(0.5, 0.1, 1, false);
 
     graphics.quadsBegin();
-    graphics.setColor(0.5, 0.5, 1, 1);
-    graphics.drawRect(-100, -100, 100, 100, 0, CORNER_NONE);
+    graphics.setColor(1, 0, 0, 1);
+    graphics.drawRect(100, 100, 100, 100, 50, CORNER_BL | CORNER_TR);
+    graphics.quadsEnd();
+
+    graphics.quadsBegin();
+    graphics.setColor(0, 1, 0, 1);
+    graphics.drawRect(300, 100, 100, 100, 50, CORNER_TL | CORNER_BR);
+    graphics.quadsEnd();
+
+    graphics.quadsBegin();
+    graphics.setColor(0, 0, 1, 1);
+    graphics.drawRect(100, 300, 100, 100, 50, CORNER_TL | CORNER_BR);
+    graphics.quadsEnd();
+
+    graphics.quadsBegin();
+    graphics.setColor(0.5, 1, 1, 1);
+    graphics.drawRect(300, 300, 100, 100, 50, CORNER_BL | CORNER_TR);
     graphics.quadsEnd();
 
     graphics.swap();
@@ -13,7 +34,7 @@ function update(graphics: Graphics) {
     window.requestAnimationFrame(() => update(graphics));
 }
 
-// entry point to the whole program
+// entry point to the whole program. nobody whould've guessed
 function main() {
     const canvas = document.querySelector<HTMLCanvasElement>('#canvas');
 

@@ -10,6 +10,8 @@ import {
 } from './commands';
 import { Vertex } from './common';
 import { RunCommandReturnTypes } from './enums';
+import { GLSLPrimitiveProgram, GLSLTWProgram } from './programs';
+import { State } from './types';
 
 const MAX_STREAM_BUFFER_COUNT = 10;
 
@@ -19,7 +21,7 @@ export class CommandWebGL2CommandProcessorFragment {
     static CMD_SHUTDOWN = CommandBufferCMD.CMDGROUP_PLATFORM_GL + 2;
     static CMD_POST_SHUTDOWN = CommandBufferCMD.CMDGROUP_PLATFORM_GL + 3;
 
-    primitiveProgram!: GLSLProgram;
+    primitiveProgram: GLSLPrimitiveProgram;
 
     primitiveDrawVertex!: WebGLBuffer[];
     primitiveDrawVertexTex3d!: WebGLBuffer;
@@ -29,12 +31,12 @@ export class CommandWebGL2CommandProcessorFragment {
 
     quadDrawIndexBuffer!: WebGLBuffer;
 
-    constructor(public glContext: WebGL2RenderingContext) { }
+    constructor(public glContext: WebGL2RenderingContext) {}
 
     async cmdInit(command: CommandInit) {
         console.log('Im in a init command', command);
 
-        this.primitiveProgram = new GLSLProgram(this.glContext);
+        this.primitiveProgram = new GLSLPrimitiveProgram(this.glContext);
 
         const buffer = this.glContext.createBuffer();
         if (!buffer) {
@@ -78,12 +80,14 @@ export class CommandWebGL2CommandProcessorFragment {
             this.glContext.enableVertexAttribArray(1);
             this.glContext.enableVertexAttribArray(2);
 
+            const SIZE = 2 * 4 + 2 * 4 + 4 * 1;
+
             this.glContext.vertexAttribPointer(
                 0,
                 2,
                 this.glContext.FLOAT,
                 false,
-                2 * 4 + 2 * 4 + 4 * 4,
+                SIZE,
                 0,
             );
             this.glContext.vertexAttribPointer(
@@ -91,7 +95,7 @@ export class CommandWebGL2CommandProcessorFragment {
                 2,
                 this.glContext.FLOAT,
                 false,
-                2 * 4 + 2 * 4 + 4 * 4,
+                SIZE,
                 4 * 2,
             );
             this.glContext.vertexAttribPointer(
@@ -99,7 +103,7 @@ export class CommandWebGL2CommandProcessorFragment {
                 4,
                 this.glContext.UNSIGNED_BYTE,
                 true,
-                2 * 4 + 2 * 4 + 4 * 4,
+                SIZE,
                 4 * 4,
             );
         }
@@ -125,6 +129,10 @@ export class CommandWebGL2CommandProcessorFragment {
         this.primitiveProgram.addShader(primitiveFragmentShader);
         this.primitiveProgram.linkProgram();
         this.useProgram(this.primitiveProgram);
+        this.primitiveProgram.locPos = this.primitiveProgram.getUniformLoc(
+            this.primitiveProgram.program,
+            'gPos',
+        )!;
 
         const quadDrawIndexBuffer = this.glContext.createBuffer();
         if (!quadDrawIndexBuffer) {
@@ -165,8 +173,30 @@ export class CommandWebGL2CommandProcessorFragment {
         program.useProgram();
     }
 
+    setState(_state: State, program: GLSLTWProgram) {
+        // do black magic here
+        const tl = { x: 0, y: 0 };
+        const br = { x: 956, y: 939 };
+
+        const m = [
+            2 / (br.x - tl.x),
+            0,
+            0,
+            -((br.x + tl.x) / (br.x - tl.x)),
+            0,
+            2 / (tl.y - br.y),
+            0,
+            -((tl.y + br.y) / (tl.y - br.y)),
+        ];
+
+        this.glContext.uniformMatrix4x2fv(program.locPos, true, m);
+    }
+
     cmdRender(command: CommandRender) {
-        this.useProgram(this.primitiveProgram);
+        let program = this.primitiveProgram;
+
+        this.useProgram(program);
+        this.setState(command.state, program);
 
         this.uploadStreamBufferData(
             command.primType,
@@ -221,8 +251,7 @@ export class CommandWebGL2CommandProcessorFragment {
         );
 
         this.glContext.clear(
-            this.glContext.COLOR_BUFFER_BIT |
-            this.glContext.DEPTH_BUFFER_BIT,
+            this.glContext.COLOR_BUFFER_BIT | this.glContext.DEPTH_BUFFER_BIT,
         );
     }
 
@@ -278,25 +307,26 @@ export class CommandWebGL2CommandProcessorFragment {
 
         const arr: number[] = [];
 
+        const SIZE = 20;
+        const buffer = new ArrayBuffer(vertices.length * SIZE);
+        const dv = new DataView(buffer);
+
         for (let i = 0; i < vertices.length; i++) {
-            arr.push(vertices[i]!.pos.x);
-            arr.push(vertices[i]!.pos.y);
+            dv.setFloat32(SIZE * i, vertices[i]!.pos.x, true);
+            dv.setFloat32(SIZE * i + 4, vertices[i]!.pos.y, true);
 
-            arr.push(vertices[i]!.tex.u);
-            arr.push(vertices[i]!.tex.v);
+            dv.setFloat32(SIZE * i + 8, vertices[i]!.tex.u, true);
+            dv.setFloat32(SIZE * i + 12, vertices[i]!.tex.v, true);
 
-            arr.push(vertices[i]!.color.r);
-            arr.push(vertices[i]!.color.g);
-            arr.push(vertices[i]!.color.b);
-            arr.push(vertices[i]!.color.a);
+            dv.setUint8(SIZE * i + 16, vertices[i]!.color.r);
+            dv.setUint8(SIZE * i + 17, vertices[i]!.color.g);
+            dv.setUint8(SIZE * i + 18, vertices[i]!.color.b);
+            dv.setUint8(SIZE * i + 19, vertices[i]!.color.a);
         }
-
-        console.log(arr)
-        //debugger;
 
         this.glContext.bufferData(
             this.glContext.ARRAY_BUFFER,
-            new Float32Array(arr),
+            dv,
             this.glContext.STREAM_DRAW,
         );
     }

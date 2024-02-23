@@ -18,11 +18,10 @@ in vec4 vertColor;
 out vec4 FragClr;
 
 void main() {
-    FragClr = vec4(1, 0, 1, 1);
     //#ifdef TW_TEXTURED
     //	vec4 tex = texture(gTextureSampler, texCoord);
     //	FragClr = tex * vertColor;
     //#else
-    //	FragClr = vertColor;
+    	FragClr = vertColor;
     //#endif
 }

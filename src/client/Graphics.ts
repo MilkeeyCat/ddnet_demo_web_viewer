@@ -83,31 +83,33 @@ export class Graphics {
         this.drawing = 0;
         this.angle = 0;
         this.numVertices = 0;
-        this.texture = new Array(4).fill(new TexCoord(0, 0)) as [
-            TexCoord,
-            TexCoord,
-            TexCoord,
-            TexCoord,
-        ];
-        this.color = new Array(4).fill(new ColorRGBA(0, 0, 0, 0)) as [
+        this.texture = new Array(4) as [TexCoord, TexCoord, TexCoord, TexCoord];
+        for (let i = 0; i < this.texture.length; i++) {
+            this.texture[i] = new TexCoord(0, 0);
+        }
+
+        this.color = new Array(4) as [
             ColorRGBA,
             ColorRGBA,
             ColorRGBA,
             ColorRGBA,
         ];
+        for (let i = 0; i < this.color.length; i++) {
+            this.color[i] = new ColorRGBA(0, 0, 0, 0);
+        }
+
         this.vertices = new Array(CommandBuffer.MAX_VERTICES);
         for (let i = 0; i < this.vertices.length; i++) {
             this.vertices[i] = new Vertex(
                 new Point(0, 0),
                 new TexCoord(0, 0),
                 new ColorRGBA(0, 0, 0, 0),
-            )
+            );
         }
 
         this.currentCommandBuffer = 0;
-        this.commandBuffers = new Array(NUM_CMDBUFFERS).fill(null);
-
-        for (let [i, _] of this.commandBuffers.entries()) {
+        this.commandBuffers = new Array(NUM_CMDBUFFERS);
+        for (const [i, _] of this.commandBuffers.entries()) {
             this.commandBuffers[i] = new CommandBuffer();
         }
 
@@ -159,7 +161,7 @@ export class Graphics {
         clampedB *= 255;
         clampedA *= 255;
 
-        for (let color of this.color) {
+        for (const color of this.color) {
             color.r = clampedR;
             color.g = clampedG;
             color.b = clampedB;
@@ -171,7 +173,8 @@ export class Graphics {
         if (vertex === undefined) {
             debugger;
         }
-        vertex.color = this.color[colorIndex]!;
+
+        vertex.color = this.color[colorIndex]!.clone();
     }
 
     //NOTE: add rotation
@@ -221,7 +224,7 @@ export class Graphics {
     }
 
     //TODO: make it look gut
-    flushVertices(_keepVertices: boolean = false) {
+    flushVertices(_keepVertices = false) {
         const cmd = new CommandRender(
             null,
             CommandBuffer.PRIMTYPE_QUADS,
@@ -485,10 +488,6 @@ export class Graphics {
 
         //TL - top left btw
         this.quadsDrawTL(quads);
-    }
-
-    retardedSquare(x1: number, y1: number, x2: number, y2: number) {
-        this.quadsDrawFreeform([new FreeformItem(x1, y1, x2, y1, x1, y2, x2, y2,)]);
     }
 
     quadsBegin() {
