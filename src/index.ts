@@ -1,23 +1,32 @@
-import {
-    CORNER_ALL,
-    Graphics,
-} from './client/Graphics';
+import { Graphics } from './client/Graphics';
+import { UI } from './client/UI';
 import { UIRect } from './client/UIRect';
 import { ColorRGBA } from './client/common';
 
-const rect = new UIRect(100, 100, 100, 100);
+function onWindowResize(
+    graphics: Graphics,
+    ui: UI,
+    canvas: HTMLCanvasElement,
+    ctx: WebGL2RenderingContext,
+) {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    ctx.viewport(0, 0, canvas.width, canvas.height);
+    graphics.onWindowResize(canvas.width, canvas.height);
+    ui.mapScreen();
+}
 
 function update(graphics: Graphics) {
     graphics.clear(0, 0, 0, false);
 
-    rect.draw4(new ColorRGBA(.5, .5, 1, 1), new ColorRGBA(1, 1, .5, 1), new ColorRGBA(1, .5, 1, 1), new ColorRGBA(.5, 1, 1, 1), CORNER_ALL, 50);
+    graphics.drawRect(100, 100, 100, 100, new ColorRGBA(1, 1, 1, 1), 0, 0);
 
     graphics.swap();
 
     window.requestAnimationFrame(() => update(graphics));
 }
 
-// entry point to the whole program. nobody whould've guessed
 async function main() {
     const canvas = document.querySelector<HTMLCanvasElement>('#canvas');
 
@@ -37,8 +46,13 @@ async function main() {
     const graphics = new Graphics(canvas.width, canvas.height, ctx);
 
     await graphics.init();
+    const ui = new UI(graphics);
+    ui.mapScreen();
     UIRect.init(graphics);
 
+    window.addEventListener('resize', () => {
+        onWindowResize(graphics, ui, canvas, ctx);
+    });
     window.requestAnimationFrame(() => update(graphics));
 }
 

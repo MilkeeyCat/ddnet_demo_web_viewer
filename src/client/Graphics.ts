@@ -107,7 +107,7 @@ export class Graphics {
         }
         this.state = {
             screenTL: new Point(0, 0),
-            screenBR: new Point(width, height),
+            screenBR: new Point(0, 0),
             clipEnable: false,
             clipX: 0,
             clipY: 0,
@@ -145,6 +145,18 @@ export class Graphics {
 
         this.commandBuffer = this.commandBuffers[0]!;
         this.backend = new GraphicsBackend(ctx);
+    }
+
+    onWindowResize(width: number, height: number) {
+        this.width = width;
+        this.height = height;
+
+        this.state.screenBR.x = this.width;
+        this.state.screenBR.y = this.height;
+    }
+
+    screenAspect(): number {
+        return this.width / this.height;
     }
 
     async kickCommandBuffer() {
