@@ -1,35 +1,16 @@
 import {
-    CORNER_BL,
-    CORNER_BR,
-    CORNER_TL,
-    CORNER_TR,
+    CORNER_ALL,
     Graphics,
 } from './client/Graphics';
+import { UIRect } from './client/UIRect';
 import { ColorRGBA } from './client/common';
+
+const rect = new UIRect(100, 100, 100, 100);
 
 function update(graphics: Graphics) {
     graphics.clear(0, 0, 0, false);
 
-    graphics.drawRect(
-        500,
-        100,
-        100,
-        100,
-        new ColorRGBA(1, 1, 1, 1),
-        CORNER_BL | CORNER_TR | CORNER_BR | CORNER_TL,
-        50,
-    );
-
-    graphics.quadsBegin();
-
-    graphics.setColor(1, 1, 1, 1);
-
-    graphics.drawRectExt(100, 100, 100, 100, 0, 0);
-
-    graphics.quadsSetRotation(Math.PI / 4);
-    graphics.drawRectExt(300, 100, 100, 100, 0, 0);
-
-    graphics.quadsEnd();
+    rect.draw4(new ColorRGBA(.5, .5, 1, 1), new ColorRGBA(1, 1, .5, 1), new ColorRGBA(1, .5, 1, 1), new ColorRGBA(.5, 1, 1, 1), CORNER_ALL, 50);
 
     graphics.swap();
 
@@ -54,7 +35,9 @@ async function main() {
     }
 
     const graphics = new Graphics(canvas.width, canvas.height, ctx);
+
     await graphics.init();
+    UIRect.init(graphics);
 
     window.requestAnimationFrame(() => update(graphics));
 }

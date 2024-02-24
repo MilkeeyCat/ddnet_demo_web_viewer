@@ -38,12 +38,32 @@ export const CORNER_TR = 2;
 export const CORNER_BL = 4;
 export const CORNER_BR = 8;
 
-const CORNER_T = CORNER_TL | CORNER_TR;
-const CORNER_B = CORNER_BL | CORNER_BR;
-const CORNER_R = CORNER_TR | CORNER_BR;
-const CORNER_L = CORNER_TL | CORNER_BL;
+export const CORNER_T = CORNER_TL | CORNER_TR;
+export const CORNER_B = CORNER_BL | CORNER_BR;
+export const CORNER_R = CORNER_TR | CORNER_BR;
+export const CORNER_L = CORNER_TL | CORNER_BL;
 
-const CORNER_ALL = CORNER_T | CORNER_B;
+export const CORNER_ALL = CORNER_T | CORNER_B;
+
+function normalizeColorComponent(colorComponent: number): number {
+    return clampf(colorComponent, 0, 1) * 255 + 0.5; // +0.5 to round to nearest
+}
+
+class ColorVertex {
+    index: number;
+    r: number;
+    g: number;
+    b: number;
+    a: number;
+
+    constructor(index: number, color: ColorRGBA) {
+        this.index = index;
+        this.r = color.r;
+        this.g = color.g;
+        this.b = color.b;
+        this.a = color.a;
+    }
+}
 
 export class Graphics {
     width: number;
@@ -191,6 +211,30 @@ export class Graphics {
             color.b = clampedB;
             color.a = clampedA;
         }
+    }
+
+    setColorVertex(data: ColorVertex[]) {
+        for (const vertex of data) {
+            const color = this.color[vertex.index]!;
+            color.r = normalizeColorComponent(vertex.r);
+            color.g = normalizeColorComponent(vertex.g);
+            color.b = normalizeColorComponent(vertex.b);
+            color.a = normalizeColorComponent(vertex.a);
+        }
+    }
+
+    setColor4(
+        colorTopLeft: ColorRGBA,
+        colorTopRight: ColorRGBA,
+        colorBottomLeft: ColorRGBA,
+        colorBottomRight: ColorRGBA,
+    ) {
+        this.setColorVertex([
+            new ColorVertex(0, colorTopLeft),
+            new ColorVertex(1, colorTopRight),
+            new ColorVertex(2, colorBottomLeft),
+            new ColorVertex(3, colorBottomRight),
+        ]);
     }
 
     setColorC(color: ColorRGBA) {
@@ -554,6 +598,157 @@ export class Graphics {
 
         //TL - top left btw
         this.quadsDrawTL(quads);
+    }
+
+    drawRect4(
+        x: number,
+        y: number,
+        w: number,
+        h: number,
+        colorTopLeft: ColorRGBA,
+        colorTopRight: ColorRGBA,
+        colorBottomLeft: ColorRGBA,
+        colorBottomRight: ColorRGBA,
+        corners: number,
+        rounding: number,
+    ) {
+        this.quadsBegin();
+        this.drawRectExt4(
+            x,
+            y,
+            w,
+            h,
+            colorTopLeft,
+            colorTopRight,
+            colorBottomLeft,
+            colorBottomRight,
+            rounding,
+            corners,
+        );
+        this.quadsEnd();
+    }
+
+    drawRectExt4(
+        x: number,
+        y: number,
+        w: number,
+        h: number,
+        colorTopLeft: ColorRGBA,
+        colorTopRight: ColorRGBA,
+        colorBottomLeft: ColorRGBA,
+        colorBottomRight: ColorRGBA,
+        r: number,
+        corners: number,
+    ) {
+        if (corners == 0 || r == 0) {
+            this.setColor4(
+                colorTopLeft,
+                colorTopRight,
+                colorBottomLeft,
+                colorBottomRight,
+            );
+            this.quadsDrawTL([new QuadItem(x, y, w, h)]);
+            return;
+        }
+
+        const numSegments = 8;
+        const segmentsAngle = Math.PI / 2 / numSegments;
+        for (let i = 0; i < numSegments; i += 2) {
+            const a1 = i * segmentsAngle;
+            const a2 = (i + 1) * segmentsAngle;
+            const a3 = (i + 2) * segmentsAngle;
+            const Ca1 = Math.cos(a1);
+            const Ca2 = Math.cos(a2);
+            const Ca3 = Math.cos(a3);
+            const Sa1 = Math.sin(a1);
+            const Sa2 = Math.sin(a2);
+            const Sa3 = Math.sin(a3);
+
+            if (corners & CORNER_TL) {
+                this.setColorC(colorTopLeft);
+                const itemF = new FreeformItem(
+                    x + r, y + r,
+                    x + (1 - Ca1) * r, y + (1 - Sa1) * r,
+                    x + (1 - Ca3) * r, y + (1 - Sa3) * r,
+                    x + (1 - Ca2) * r, y + (1 - Sa2) * r);
+                this.quadsDrawFreeform([itemF]);
+            }
+
+            if (corners & CORNER_TR) {
+                this.setColorC(colorTopRight);
+                const itemF = new FreeformItem(
+                    x + w - r, y + r,
+                    x + w - r + Ca1 * r, y + (1 - Sa1) * r,
+                    x + w - r + Ca3 * r, y + (1 - Sa3) * r,
+                    x + w - r + Ca2 * r, y + (1 - Sa2) * r);
+                this.quadsDrawFreeform([itemF]);
+            }
+
+            if (corners & CORNER_BL) {
+                this.setColorC(colorBottomLeft);
+                const itemF = new FreeformItem(
+                    x + r, y + h - r,
+                    x + (1 - Ca1) * r, y + h - r + Sa1 * r,
+                    x + (1 - Ca3) * r, y + h - r + Sa3 * r,
+                    x + (1 - Ca2) * r, y + h - r + Sa2 * r);
+                this.quadsDrawFreeform([itemF]);
+            }
+
+            if (corners & CORNER_BR) {
+                this.setColorC(colorBottomRight);
+                const itemF = new FreeformItem(
+                    x + w - r, y + h - r,
+                    x + w - r + Ca1 * r, y + h - r + Sa1 * r,
+                    x + w - r + Ca3 * r, y + h - r + Sa3 * r,
+                    x + w - r + Ca2 * r, y + h - r + Sa2 * r);
+                this.quadsDrawFreeform([itemF]);
+            }
+        }
+
+        this.setColor4(colorTopLeft, colorTopRight, colorBottomLeft, colorBottomRight);
+        let itemQ = new QuadItem(x + r, y + r, w - r * 2, h - r * 2); // center
+        this.quadsDrawTL([itemQ]);
+
+        this.setColor4(colorTopLeft, colorTopRight, colorBottomLeft, colorBottomRight);
+        itemQ = new QuadItem(x + r, y, w - r * 2, r); // top
+        this.quadsDrawTL([itemQ]);
+
+        this.setColor4(colorTopLeft, colorTopRight, colorBottomLeft, colorBottomRight);
+        itemQ = new QuadItem(x + r, y + h - r, w - r * 2, r); // bottom
+        this.quadsDrawTL([itemQ]);
+
+        this.setColor4(colorTopLeft, colorTopRight, colorBottomLeft, colorBottomRight);
+        itemQ = new QuadItem(x, y + r, r, h - r * 2); // left
+        this.quadsDrawTL([itemQ]);
+
+        this.setColor4(colorTopLeft, colorTopRight, colorBottomLeft, colorBottomRight);
+        itemQ = new QuadItem(x + w - r, y + r, r, h - r * 2); // right
+        this.quadsDrawTL([itemQ]);
+
+        if (!(corners & CORNER_TL)) {
+            this.setColorC(colorTopLeft);
+            itemQ = new QuadItem(x, y, r, r);
+            this.quadsDrawTL([itemQ]);
+        }
+
+        if (!(corners & CORNER_TR)) {
+            this.setColorC(colorTopRight);
+            itemQ = new QuadItem(x + w, y, -r, r);
+            this.quadsDrawTL([itemQ]);
+        }
+
+        if (!(corners & CORNER_BL)) {
+            this.setColorC(colorBottomLeft);
+            itemQ = new QuadItem(x, y + h, r, -r);
+            this.quadsDrawTL([itemQ]);
+        }
+
+        if (!(corners & CORNER_BR)) {
+            this.setColorC(colorBottomRight);
+            itemQ = new QuadItem(x + w, y + h, -r, -r);
+            this.quadsDrawTL([itemQ]);
+        }
+
     }
 
     quadsBegin() {
