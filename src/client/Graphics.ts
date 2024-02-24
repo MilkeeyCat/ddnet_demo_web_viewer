@@ -667,61 +667,106 @@ export class Graphics {
             if (corners & CORNER_TL) {
                 this.setColorC(colorTopLeft);
                 const itemF = new FreeformItem(
-                    x + r, y + r,
-                    x + (1 - Ca1) * r, y + (1 - Sa1) * r,
-                    x + (1 - Ca3) * r, y + (1 - Sa3) * r,
-                    x + (1 - Ca2) * r, y + (1 - Sa2) * r);
+                    x + r,
+                    y + r,
+                    x + (1 - Ca1) * r,
+                    y + (1 - Sa1) * r,
+                    x + (1 - Ca3) * r,
+                    y + (1 - Sa3) * r,
+                    x + (1 - Ca2) * r,
+                    y + (1 - Sa2) * r,
+                );
                 this.quadsDrawFreeform([itemF]);
             }
 
             if (corners & CORNER_TR) {
                 this.setColorC(colorTopRight);
                 const itemF = new FreeformItem(
-                    x + w - r, y + r,
-                    x + w - r + Ca1 * r, y + (1 - Sa1) * r,
-                    x + w - r + Ca3 * r, y + (1 - Sa3) * r,
-                    x + w - r + Ca2 * r, y + (1 - Sa2) * r);
+                    x + w - r,
+                    y + r,
+                    x + w - r + Ca1 * r,
+                    y + (1 - Sa1) * r,
+                    x + w - r + Ca3 * r,
+                    y + (1 - Sa3) * r,
+                    x + w - r + Ca2 * r,
+                    y + (1 - Sa2) * r,
+                );
                 this.quadsDrawFreeform([itemF]);
             }
 
             if (corners & CORNER_BL) {
                 this.setColorC(colorBottomLeft);
                 const itemF = new FreeformItem(
-                    x + r, y + h - r,
-                    x + (1 - Ca1) * r, y + h - r + Sa1 * r,
-                    x + (1 - Ca3) * r, y + h - r + Sa3 * r,
-                    x + (1 - Ca2) * r, y + h - r + Sa2 * r);
+                    x + r,
+                    y + h - r,
+                    x + (1 - Ca1) * r,
+                    y + h - r + Sa1 * r,
+                    x + (1 - Ca3) * r,
+                    y + h - r + Sa3 * r,
+                    x + (1 - Ca2) * r,
+                    y + h - r + Sa2 * r,
+                );
                 this.quadsDrawFreeform([itemF]);
             }
 
             if (corners & CORNER_BR) {
                 this.setColorC(colorBottomRight);
                 const itemF = new FreeformItem(
-                    x + w - r, y + h - r,
-                    x + w - r + Ca1 * r, y + h - r + Sa1 * r,
-                    x + w - r + Ca3 * r, y + h - r + Sa3 * r,
-                    x + w - r + Ca2 * r, y + h - r + Sa2 * r);
+                    x + w - r,
+                    y + h - r,
+                    x + w - r + Ca1 * r,
+                    y + h - r + Sa1 * r,
+                    x + w - r + Ca3 * r,
+                    y + h - r + Sa3 * r,
+                    x + w - r + Ca2 * r,
+                    y + h - r + Sa2 * r,
+                );
                 this.quadsDrawFreeform([itemF]);
             }
         }
 
-        this.setColor4(colorTopLeft, colorTopRight, colorBottomLeft, colorBottomRight);
+        this.setColor4(
+            colorTopLeft,
+            colorTopRight,
+            colorBottomLeft,
+            colorBottomRight,
+        );
         let itemQ = new QuadItem(x + r, y + r, w - r * 2, h - r * 2); // center
         this.quadsDrawTL([itemQ]);
 
-        this.setColor4(colorTopLeft, colorTopRight, colorBottomLeft, colorBottomRight);
+        this.setColor4(
+            colorTopLeft,
+            colorTopRight,
+            colorBottomLeft,
+            colorBottomRight,
+        );
         itemQ = new QuadItem(x + r, y, w - r * 2, r); // top
         this.quadsDrawTL([itemQ]);
 
-        this.setColor4(colorTopLeft, colorTopRight, colorBottomLeft, colorBottomRight);
+        this.setColor4(
+            colorTopLeft,
+            colorTopRight,
+            colorBottomLeft,
+            colorBottomRight,
+        );
         itemQ = new QuadItem(x + r, y + h - r, w - r * 2, r); // bottom
         this.quadsDrawTL([itemQ]);
 
-        this.setColor4(colorTopLeft, colorTopRight, colorBottomLeft, colorBottomRight);
+        this.setColor4(
+            colorTopLeft,
+            colorTopRight,
+            colorBottomLeft,
+            colorBottomRight,
+        );
         itemQ = new QuadItem(x, y + r, r, h - r * 2); // left
         this.quadsDrawTL([itemQ]);
 
-        this.setColor4(colorTopLeft, colorTopRight, colorBottomLeft, colorBottomRight);
+        this.setColor4(
+            colorTopLeft,
+            colorTopRight,
+            colorBottomLeft,
+            colorBottomRight,
+        );
         itemQ = new QuadItem(x + w - r, y + r, r, h - r * 2); // right
         this.quadsDrawTL([itemQ]);
 
@@ -748,7 +793,6 @@ export class Graphics {
             itemQ = new QuadItem(x + w, y + h, -r, -r);
             this.quadsDrawTL([itemQ]);
         }
-
     }
 
     quadsBegin() {

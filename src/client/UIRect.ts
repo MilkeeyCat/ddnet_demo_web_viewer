@@ -11,11 +11,19 @@ export class UIRect {
         public h: number,
     ) {}
 
+    static default(): UIRect {
+        return new UIRect(0, 0, 0, 0);
+    }
+
     static init(graphics: Graphics): void {
         UIRect.graphics = graphics;
     }
 
-    hSplitMid(top: UIRect, bottom: UIRect, spacing: number): void {
+    hSplitMid(
+        top: UIRect | null,
+        bottom: UIRect | null,
+        spacing: number,
+    ): void {
         const cut = this.h / 2;
         const halfSpacing = spacing / 2;
 
@@ -34,7 +42,7 @@ export class UIRect {
         }
     }
 
-    hSplitTop(cut: number, top: UIRect, bottom: UIRect): void {
+    hSplitTop(cut: number, top: UIRect | null, bottom: UIRect | null): void {
         if (top) {
             top.x = this.x;
             top.y = this.y;
@@ -50,7 +58,7 @@ export class UIRect {
         }
     }
 
-    hSplitBottom(cut: number, top: UIRect, bottom: UIRect): void {
+    hSplitBottom(cut: number, top: UIRect | null, bottom: UIRect | null): void {
         if (top) {
             top.x = this.x;
             top.y = this.y;
@@ -66,7 +74,11 @@ export class UIRect {
         }
     }
 
-    vSplitMid(left: UIRect, right: UIRect, spacing: number): void {
+    vSplitMid(
+        left: UIRect | null,
+        right: UIRect | null,
+        spacing: number,
+    ): void {
         const cut = this.w / 2;
         const halfSpacing = spacing / 2;
 
@@ -85,7 +97,7 @@ export class UIRect {
         }
     }
 
-    vSplitLeft(cut: number, left: UIRect, right: UIRect): void {
+    vSplitLeft(cut: number, left: UIRect | null, right: UIRect | null): void {
         if (left) {
             left.x = this.x;
             left.y = this.y;
@@ -101,7 +113,7 @@ export class UIRect {
         }
     }
 
-    vSplitRight(cut: number, left: UIRect, right: UIRect): void {
+    vSplitRight(cut: number, left: UIRect | null, right: UIRect | null): void {
         if (left) {
             left.x = this.x;
             left.y = this.y;
