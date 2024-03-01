@@ -1,5 +1,6 @@
 //NOTE: kill me, its garbage
 
+import { clampf } from '@/utils/clampf';
 import { CommandBuffer } from './CommandBuffer';
 import { GraphicsBackend } from './GraphicsBackend';
 import {
@@ -18,16 +19,6 @@ import {
     Vertex,
 } from './common';
 import { State } from './types';
-
-function clampf(value: number, min: number, max: number) {
-    if (value > max) {
-        return max;
-    } else if (value < min) {
-        return min;
-    }
-
-    return value;
-}
 
 const CMD_BUFFER_DATA_BUFFER_SIZE = 1024 * 1024 * 2;
 const CMD_BUFFER_CMD_BUFFER_SIZE = 1024 * 256;

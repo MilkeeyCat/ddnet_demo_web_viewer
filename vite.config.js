@@ -1,4 +1,5 @@
 import { defineConfig } from "vite"
+import { resolve } from "node:path";
 
 export default defineConfig({
     root: '.',
@@ -14,7 +15,7 @@ export default defineConfig({
     },
     resolve: {
         alias: [
-            { find: /^@\/(.*)$/, replacement: 'src/$1.ts' }
+            { find: "@", replacement: resolve(__dirname, "./src") }
         ]
     },
     server: {
