@@ -12,8 +12,6 @@ export class UI {
         this.screen.h = 600;
         this.screen.w = this.graphics.screenAspect() * this.screen.h;
 
-        console.log(this.screen);
-
         return this.screen;
     }
 

@@ -7,6 +7,7 @@ import {
     CommandClear,
     CommandInit,
     CommandRender,
+    CommandUpdateViewport,
 } from './commands';
 import { Vertex } from './common';
 import { RunCommandReturnTypes } from './enums';
@@ -23,13 +24,13 @@ export class CommandWebGL2CommandProcessorFragment {
 
     primitiveProgram: GLSLPrimitiveProgram;
 
-    primitiveDrawVertex!: WebGLBuffer[];
-    primitiveDrawVertexTex3d!: WebGLBuffer;
-    primitiveDrawBufferTex3d!: WebGLBuffer;
-    primitiveDrawBuffer!: WebGLBuffer[];
-    lastStreamBuffer!: number;
+    primitiveDrawVertex: WebGLBuffer[];
+    primitiveDrawVertexTex3d: WebGLBuffer;
+    primitiveDrawBufferTex3d: WebGLBuffer;
+    primitiveDrawBuffer: WebGLBuffer[];
+    lastStreamBuffer: number;
 
-    quadDrawIndexBuffer!: WebGLBuffer;
+    quadDrawIndexBuffer: WebGLBuffer;
 
     constructor(public glContext: WebGL2RenderingContext) {}
 
@@ -268,6 +269,15 @@ export class CommandWebGL2CommandProcessorFragment {
         );
     }
 
+    cmdUpdateViewport(command: CommandUpdateViewport) {
+        this.glContext.viewport(
+            command.x,
+            command.y,
+            command.width,
+            command.height,
+        );
+    }
+
     async runCommand(baseCommand: Command): Promise<RunCommandReturnTypes> {
         switch (baseCommand.cmd) {
             case CommandWebGL2CommandProcessorFragment.CMD_INIT:
@@ -279,6 +289,8 @@ export class CommandWebGL2CommandProcessorFragment {
             case CommandBufferCMD.CMD_CLEAR:
                 this.cmdClear(baseCommand as CommandClear);
                 break;
+            case CommandBufferCMD.CMD_UPDATE_VIEWPORT:
+                this.cmdUpdateViewport(baseCommand as CommandUpdateViewport);
         }
 
         return RunCommandReturnTypes.RUN_COMMAND_COMMAND_HANDLED;

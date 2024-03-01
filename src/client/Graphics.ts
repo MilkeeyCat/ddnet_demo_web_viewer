@@ -2,7 +2,13 @@
 
 import { CommandBuffer } from './CommandBuffer';
 import { GraphicsBackend } from './GraphicsBackend';
-import { Command, CommandClear, CommandInit, CommandRender } from './commands';
+import {
+    Command,
+    CommandClear,
+    CommandInit,
+    CommandRender,
+    CommandUpdateViewport,
+} from './commands';
 import {
     ColorRGBA,
     FreeformItem,
@@ -66,8 +72,8 @@ class ColorVertex {
 }
 
 export class Graphics {
-    width: number;
-    height: number;
+    screenWidth: number;
+    screenHeight: number;
 
     backend: GraphicsBackend;
     commandBuffers: Array<CommandBuffer>;
@@ -95,9 +101,7 @@ export class Graphics {
     static PRIMTYPE_QUADS = 2;
     static PRIMTYPE_TRIANGLES = 3;
 
-    constructor(width: number, height: number, ctx: WebGL2RenderingContext) {
-        this.width = width;
-        this.height = height;
+    constructor(ctx: WebGL2RenderingContext) {
         this.drawing = 0;
         this.numVertices = 0;
         this.rotation = 0;
@@ -147,16 +151,29 @@ export class Graphics {
         this.backend = new GraphicsBackend(ctx);
     }
 
-    onWindowResize(width: number, height: number) {
-        this.width = width;
-        this.height = height;
+    adjustViewport() {
+        if (this.screenHeight > (4 * this.screenWidth) / 5) {
+            this.screenHeight = (4 * this.screenWidth) / 5;
+        }
+    }
 
-        this.state.screenBR.x = this.width;
-        this.state.screenBR.y = this.height;
+    gotResized(w: number, h: number): void {
+        this.screenWidth = w;
+        this.screenHeight = h;
+
+        this.adjustViewport();
+        this.updateViewport(0, 0, this.screenWidth, this.screenHeight);
+        this.kickCommandBuffer();
+    }
+
+    updateViewport(x: number, y: number, w: number, h: number): void {
+        const command = new CommandUpdateViewport(x, y, w, h);
+
+        this.addCmd(command);
     }
 
     screenAspect(): number {
-        return this.width / this.height;
+        return this.screenWidth / this.screenHeight;
     }
 
     async kickCommandBuffer() {
@@ -169,7 +186,11 @@ export class Graphics {
         this.commandBuffer.reset();
     }
 
-    async init() {
+    async init(width: number, height: number) {
+        this.screenWidth = width;
+        this.screenHeight = height;
+        this.gotResized(this.screenWidth, this.screenHeight);
+
         const cmd = new CommandInit();
         this.addCmd(cmd);
 

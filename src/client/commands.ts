@@ -97,6 +97,17 @@ class CommandRunBuffer extends Command {
     }
 }
 
+export class CommandUpdateViewport extends Command {
+    constructor(
+        public x: number,
+        public y: number,
+        public width: number,
+        public height: number,
+    ) {
+        super(CommandBufferCMD.CMD_UPDATE_VIEWPORT);
+    }
+}
+
 export class CommandRender extends Command {
     constructor(
         public state: any,

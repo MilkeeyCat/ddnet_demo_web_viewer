@@ -1,6 +1,5 @@
 import { CommandBuffer } from './CommandBuffer';
 import { CommandProcessor } from './CommandProcessor';
-import { CommandInit } from './commands';
 
 export class GraphicsBackend {
     processor: CommandProcessor;

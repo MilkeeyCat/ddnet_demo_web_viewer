@@ -1,13 +1,23 @@
-import { Client } from "./client";
+import { Graphics } from './Graphics';
+import { UI } from './UI';
+import { Client } from './client';
 
 export class Component {
-    protected client: Client;
+    constructor(protected client: Client) {}
 
-    onInit(): void { }
-    onReset(): void { }
-    onWindowResize(): void { }
-    onRender(): void { }
-    onRelease(): void { }
-    onCursorMove(): void { }
-    onInput(): void { }
+    get graphics(): Graphics {
+        return this.client.graphics;
+    }
+
+    get ui(): UI {
+        return this.client.ui;
+    }
+
+    onInit(): void {}
+    onReset(): void {}
+    onWindowResize(): void {}
+    onRender(): void {}
+    onRelease(): void {}
+    onCursorMove(): void {}
+    onInput(): void {}
 }
