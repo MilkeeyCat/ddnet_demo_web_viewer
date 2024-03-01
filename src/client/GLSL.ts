@@ -1,21 +1,21 @@
 export class GLSL {
-    glContext: WebGLRenderingContext;
-    shader!: WebGLShader;
+    ctx: WebGLRenderingContext;
+    shader: WebGLShader;
 
     constructor(ctx: WebGLRenderingContext, source: string, type: number) {
-        this.glContext = ctx;
+        this.ctx = ctx;
         const shader = ctx.createShader(type);
         if (!shader) {
             throw new Error('Failed to generate a shader');
         }
 
-        ctx.shaderSource(shader, source);
-        ctx.compileShader(shader);
+        this.ctx.shaderSource(shader, source);
+        this.ctx.compileShader(shader);
 
         this.shader = shader;
     }
 
     deleteShader() {
-        this.glContext.deleteShader(this.shader);
+        this.ctx.deleteShader(this.shader);
     }
 }

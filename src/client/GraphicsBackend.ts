@@ -3,7 +3,7 @@ import { CommandProcessor } from './CommandProcessor';
 
 export class GraphicsBackend {
     processor: CommandProcessor;
-    glContext: WebGL2RenderingContext;
+    ctx: WebGL2RenderingContext;
 
     async runBuffer(buffer: CommandBuffer) {
         await this.processor.runBuffer(buffer);
@@ -12,7 +12,7 @@ export class GraphicsBackend {
     constructor(ctx: WebGL2RenderingContext) {
         console.log('Im initing graphics backend lmao');
 
-        this.glContext = ctx;
+        this.ctx = ctx;
         this.processor = new CommandProcessor(ctx);
     }
 }

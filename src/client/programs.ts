@@ -6,8 +6,8 @@ export class GLSLTWProgram extends GLSLProgram {
     lastScreenTL: Point;
     lastScreenBR: Point;
 
-    constructor(glContext: WebGL2RenderingContext) {
-        super(glContext);
+    constructor(ctx: WebGL2RenderingContext) {
+        super(ctx);
         this.lastScreenTL = new Point(0, 0);
         this.lastScreenBR = new Point(0, 0);
     }
