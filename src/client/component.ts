@@ -13,7 +13,7 @@ export class Component {
         return this.client.ui;
     }
 
-    onInit(): void {}
+    async onInit(): Promise<void> {}
     onReset(): void {}
     onWindowResize(): void {}
     onRender(): void {}

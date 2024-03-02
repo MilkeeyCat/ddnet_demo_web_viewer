@@ -1,29 +1,25 @@
-import { ColorRGBA } from '../common';
 import { Component } from '../component';
+import { TextureHandle } from '../Graphics';
 
 export class Test extends Component {
-    override async onInit() {
+    handle1: TextureHandle;
+    handle2: TextureHandle;
+
+    override async onInit(): Promise<void> {
         const img = await this.graphics.loadImage('/assets/skins/default.png');
-        const smth = this.graphics.loadTexture(img);
+        this.handle1 = this.graphics.loadTexture(img);
+
         const img2 = await this.graphics.loadImage('/assets/skins/saddo.png');
-        const smth2 = this.graphics.loadTexture(img2);
-        console.log(smth);
-        console.log(smth2);
-        this.graphics.textureSet(smth);
+        this.handle2 = this.graphics.loadTexture(img2);
     }
 
-    override onRender() {
+    override onRender(): void {
         this.ui.mapScreen();
 
-        this.graphics.drawRect(
-            100,
-            100,
-            100,
-            100,
-            new ColorRGBA(1, 1, 1, 1),
-            0,
-            0,
-        );
+        this.graphics.textureSet(this.handle1);
+        this.graphics.quadsBegin();
+        this.graphics.drawRectExt(100, 100, 100, 100, 0, 0);
+        this.graphics.quadsEnd();
     }
 
     override onReset() {

@@ -62,7 +62,8 @@ class ColorVertex {
         this.a = color.a;
     }
 }
-class TextureHandle {
+
+export class TextureHandle {
     constructor(public id: number) {}
 
     isValid(): boolean {
@@ -130,7 +131,7 @@ export class Graphics {
             clipY: 0,
             clipH: 0,
             clipW: 0,
-            texture: 0,
+            texture: -1,
             blendMode: CommandBuffer.BLEND_NONE,
             wrapMode: CommandBuffer.WRAP_CLAMP,
         };
@@ -520,6 +521,10 @@ export class Graphics {
         }
     }
 
+    textureClear(): void {
+        this.textureSet(new TextureHandle(-1));
+    }
+
     drawRect(
         x: number,
         y: number,
@@ -529,6 +534,7 @@ export class Graphics {
         corners: number,
         rounding: number,
     ) {
+        this.textureClear();
         this.quadsBegin();
         this.setColorC(color);
         this.drawRectExt(x, y, w, h, rounding, corners);
@@ -917,7 +923,7 @@ export class Graphics {
         if (this.drawing !== 0) {
             throw new Error('called graphics.textureSet within begin');
         }
-        if (!textureId.isValid() && this.textureIndices[textureId.id] !== -1) {
+        if (textureId.isValid() && this.textureIndices[textureId.id] !== -1) {
             throw new Error(
                 'Texture handle was not invalid, but also did not correlate to an existing texture.',
             );

@@ -44,7 +44,7 @@ export class Client {
         UIRect.init(this.graphics);
 
         for (const component of this.components) {
-            component.onInit();
+            await component.onInit();
         }
     }
 

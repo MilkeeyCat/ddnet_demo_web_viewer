@@ -3,6 +3,8 @@ import { Point } from './common';
 
 export class GLSLTWProgram extends GLSLProgram {
     locPos: WebGLUniformLocation;
+    //NOTE: idk what this thing is for, i dont rly use it anywhere :\
+    locTextureSampler: WebGLUniformLocation;
     lastScreenTL: Point;
     lastScreenBR: Point;
 

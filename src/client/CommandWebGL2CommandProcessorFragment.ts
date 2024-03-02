@@ -31,6 +31,7 @@ export class CommandWebGL2CommandProcessorFragment {
     static CMD_POST_SHUTDOWN = CommandBufferCMD.CMDGROUP_PLATFORM_GL + 3;
 
     primitiveProgram: GLSLPrimitiveProgram;
+    primitiveProgramTextured: GLSLPrimitiveProgram;
 
     primitiveDrawVertex: WebGLBuffer[];
     primitiveDrawVertexTex3d: WebGLBuffer;
@@ -48,6 +49,7 @@ export class CommandWebGL2CommandProcessorFragment {
         this.ctx.activeTexture(this.ctx.TEXTURE0);
 
         this.primitiveProgram = new GLSLPrimitiveProgram(this.ctx);
+        this.primitiveProgramTextured = new GLSLPrimitiveProgram(this.ctx);
 
         const buffer = this.ctx.createBuffer();
         if (!buffer) {
@@ -138,6 +140,39 @@ export class CommandWebGL2CommandProcessorFragment {
                 'gPos',
             )!;
         }
+        {
+            const defines = {
+                TW_TEXTURED: '',
+            };
+            const primitiveVertexShader = new GLSL(
+                this.ctx,
+                (await import('../../shaders/prim.vert?raw')).default,
+                this.ctx.VERTEX_SHADER,
+                defines,
+            );
+            const primitiveFragmentShader = new GLSL(
+                this.ctx,
+                (await import('../../shaders/prim.frag?raw')).default,
+                this.ctx.FRAGMENT_SHADER,
+                defines,
+            );
+
+            this.primitiveProgramTextured.createProgram();
+            this.primitiveProgramTextured.addShader(primitiveVertexShader);
+            this.primitiveProgramTextured.addShader(primitiveFragmentShader);
+            this.primitiveProgramTextured.linkProgram();
+            this.useProgram(this.primitiveProgramTextured);
+            this.primitiveProgramTextured.locPos =
+                this.primitiveProgramTextured.getUniformLoc(
+                    this.primitiveProgramTextured.program,
+                    'gPos',
+                )!;
+            this.primitiveProgramTextured.locTextureSampler =
+                this.primitiveProgramTextured.getUniformLoc(
+                    this.primitiveProgramTextured.program,
+                    'gTextureSampler',
+                )!;
+        }
 
         const quadDrawIndexBuffer = this.ctx.createBuffer();
         if (!quadDrawIndexBuffer) {
@@ -183,6 +218,13 @@ export class CommandWebGL2CommandProcessorFragment {
     }
 
     setState(state: State, program: GLSLTWProgram): void {
+        if (this.isTexturedState(state)) {
+            this.ctx.bindTexture(
+                this.ctx.TEXTURE_2D,
+                this.textures[state.texture]!.tex,
+            );
+        }
+
         if (
             state.screenBR.x !== program.lastScreenBR.x ||
             state.screenBR.y !== program.lastScreenBR.y ||
@@ -213,12 +255,18 @@ export class CommandWebGL2CommandProcessorFragment {
         }
     }
 
+    isTexturedState(state: State) {
+        return state.texture >= 0 && state.texture < this.textures.length;
+    }
+
     cmdRender(command: CommandRender): void {
         let program = this.primitiveProgram;
+        if (this.isTexturedState(command.state)) {
+            program = this.primitiveProgramTextured;
+        }
+
         this.useProgram(program);
-
         this.setState(command.state, program);
-
         this.uploadStreamBufferData(
             command.primType,
             command.vertices,
