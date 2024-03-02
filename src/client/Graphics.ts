@@ -9,6 +9,7 @@ import {
     CommandInit,
     CommandRender,
     CommandUpdateViewport,
+    CommmandTextureCreate,
 } from './commands';
 import {
     ColorRGBA,
@@ -61,6 +62,21 @@ class ColorVertex {
         this.a = color.a;
     }
 }
+class TextureHandle {
+    constructor(public id: number) {}
+
+    isValid(): boolean {
+        return this.id >= 0;
+    }
+
+    isNullTexture(): boolean {
+        return this.id == 0;
+    }
+
+    invalidate(): void {
+        this.id = -1;
+    }
+}
 
 export class Graphics {
     screenWidth: number;
@@ -78,6 +94,8 @@ export class Graphics {
     numVertices: number;
     rotation: number;
     state: State;
+    textureIndices: number[];
+    firstFreeTexture: number;
 
     static TEXFORMAT_INVALID = 0;
     static TEXFORMAT_RGBA = 1;
@@ -96,10 +114,14 @@ export class Graphics {
         this.drawing = 0;
         this.numVertices = 0;
         this.rotation = 0;
-        this.texture = new Array(4) as [TexCoord, TexCoord, TexCoord, TexCoord];
-        for (let i = 0; i < this.texture.length; i++) {
-            this.texture[i] = new TexCoord(0, 0);
-        }
+        this.texture = new Array(4)
+            .fill(null)
+            .map(() => new TexCoord(0, 0)) as [
+            TexCoord,
+            TexCoord,
+            TexCoord,
+            TexCoord,
+        ];
         this.state = {
             screenTL: new Point(0, 0),
             screenBR: new Point(0, 0),
@@ -112,32 +134,33 @@ export class Graphics {
             blendMode: CommandBuffer.BLEND_NONE,
             wrapMode: CommandBuffer.WRAP_CLAMP,
         };
-
-        this.color = new Array(4) as [
+        this.textureIndices = new Array(CommandBuffer.MAX_TEXTURES)
+            .fill(null)
+            .map((_, i) => i + 1);
+        this.firstFreeTexture = 0;
+        this.color = new Array(4)
+            .fill(null)
+            .map(() => new ColorRGBA(0, 0, 0, 0)) as [
             ColorRGBA,
             ColorRGBA,
             ColorRGBA,
             ColorRGBA,
         ];
-        for (let i = 0; i < this.color.length; i++) {
-            this.color[i] = new ColorRGBA(0, 0, 0, 0);
-        }
-
-        this.vertices = new Array(CommandBuffer.MAX_VERTICES);
-        for (let i = 0; i < this.vertices.length; i++) {
-            this.vertices[i] = new Vertex(
-                new Point(0, 0),
-                new TexCoord(0, 0),
-                new ColorRGBA(0, 0, 0, 0),
+        this.vertices = new Array(CommandBuffer.MAX_VERTICES)
+            .fill(null)
+            .map(
+                () =>
+                    new Vertex(
+                        new Point(0, 0),
+                        new TexCoord(0, 0),
+                        new ColorRGBA(0, 0, 0, 0),
+                    ),
             );
-        }
 
         this.currentCommandBuffer = 0;
-        this.commandBuffers = new Array(NUM_CMDBUFFERS);
-        for (const [i, _] of this.commandBuffers.entries()) {
-            this.commandBuffers[i] = new CommandBuffer();
-        }
-
+        this.commandBuffers = new Array(NUM_CMDBUFFERS)
+            .fill(null)
+            .map(() => new CommandBuffer());
         this.commandBuffer = this.commandBuffers[0]!;
         this.backend = new GraphicsBackend(ctx);
     }
@@ -842,5 +865,64 @@ export class Graphics {
         );
 
         this.addCmd(commandClear);
+    }
+
+    loadImage(src: string): Promise<HTMLImageElement> {
+        const image = new Image();
+        image.src = src;
+
+        return new Promise((res, rej) => {
+            image.addEventListener('load', () => {
+                res(image);
+            });
+            image.addEventListener('error', () => {
+                rej(new Error('failed to load image'));
+            });
+        });
+    }
+
+    findFreeTextureIndex(): TextureHandle {
+        const size = this.textureIndices.length;
+        if (this.firstFreeTexture === size) {
+            throw new Error(
+                'holy shit, how many textures are you gonna make???',
+            );
+            //TODO: resize this.textureIndices array
+        }
+        const tex = this.firstFreeTexture;
+        this.firstFreeTexture = this.textureIndices[tex]!;
+        this.textureIndices[tex] = -1;
+
+        return new TextureHandle(tex);
+    }
+
+    loadTextureCreateCommand(textureId: number, data: HTMLImageElement) {
+        const cmd = new CommmandTextureCreate(textureId, data);
+
+        //FIXME: do i need flags here??
+
+        return cmd;
+    }
+
+    loadTexture(data: HTMLImageElement) {
+        const textureHandle = this.findFreeTextureIndex();
+        const cmd = this.loadTextureCreateCommand(textureHandle.id, data);
+
+        this.addCmd(cmd);
+
+        return textureHandle;
+    }
+
+    textureSet(textureId: TextureHandle) {
+        if (this.drawing !== 0) {
+            throw new Error('called graphics.textureSet within begin');
+        }
+        if (!textureId.isValid() && this.textureIndices[textureId.id] !== -1) {
+            throw new Error(
+                'Texture handle was not invalid, but also did not correlate to an existing texture.',
+            );
+        }
+
+        this.state.texture = textureId.id;
     }
 }

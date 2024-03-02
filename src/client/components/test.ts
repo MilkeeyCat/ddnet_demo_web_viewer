@@ -2,8 +2,14 @@ import { ColorRGBA } from '../common';
 import { Component } from '../component';
 
 export class Test extends Component {
-    override onInit() {
-        console.log('onInit');
+    override async onInit() {
+        const img = await this.graphics.loadImage('/assets/skins/default.png');
+        const smth = this.graphics.loadTexture(img);
+        const img2 = await this.graphics.loadImage('/assets/skins/saddo.png');
+        const smth2 = this.graphics.loadTexture(img2);
+        console.log(smth);
+        console.log(smth2);
+        this.graphics.textureSet(smth);
     }
 
     override onRender() {

@@ -8,11 +8,19 @@ import {
     CommandInit,
     CommandRender,
     CommandUpdateViewport,
+    CommmandTextureCreate,
 } from './commands';
 import { Vertex } from './common';
 import { RunCommandReturnTypes } from './enums';
 import { GLSLPrimitiveProgram, GLSLTWProgram } from './programs';
 import { State } from './types';
+
+class Texture {
+    constructor(
+        public tex: WebGLTexture | null,
+        public sampler: WebGLSampler | null,
+    ) {}
+}
 
 const MAX_STREAM_BUFFER_COUNT = 10;
 
@@ -29,13 +37,15 @@ export class CommandWebGL2CommandProcessorFragment {
     primitiveDrawBufferTex3d: WebGLBuffer;
     primitiveDrawBuffer: WebGLBuffer[];
     lastStreamBuffer: number;
+    textures: Texture[];
 
     quadDrawIndexBuffer: WebGLBuffer;
 
     constructor(public ctx: WebGL2RenderingContext) {}
 
-    async cmdInit(command: CommandInit) {
+    async cmdInit(command: CommandInit): Promise<void> {
         console.log('Im in a init command', command);
+        this.ctx.activeTexture(this.ctx.TEXTURE0);
 
         this.primitiveProgram = new GLSLPrimitiveProgram(this.ctx);
 
@@ -141,6 +151,10 @@ export class CommandWebGL2CommandProcessorFragment {
             this.quadDrawIndexBuffer,
         );
 
+        this.textures = new Array(CommandBuffer.MAX_TEXTURES)
+            .fill(null)
+            .map((_) => new Texture(null, null));
+
         const indices = new Array((CommandBuffer.MAX_VERTICES / 4) * 6);
         let primq = 0;
 
@@ -164,11 +178,11 @@ export class CommandWebGL2CommandProcessorFragment {
         console.log('Initialized stuff', command);
     }
 
-    useProgram(program: GLSLProgram) {
+    useProgram(program: GLSLProgram): void {
         program.useProgram();
     }
 
-    setState(state: State, program: GLSLTWProgram) {
+    setState(state: State, program: GLSLTWProgram): void {
         if (
             state.screenBR.x !== program.lastScreenBR.x ||
             state.screenBR.y !== program.lastScreenBR.y ||
@@ -199,7 +213,7 @@ export class CommandWebGL2CommandProcessorFragment {
         }
     }
 
-    cmdRender(command: CommandRender) {
+    cmdRender(command: CommandRender): void {
         let program = this.primitiveProgram;
         this.useProgram(program);
 
@@ -245,7 +259,7 @@ export class CommandWebGL2CommandProcessorFragment {
         }
     }
 
-    cmdClear(command: CommandClear) {
+    cmdClear(command: CommandClear): void {
         this.ctx.clearColor(
             command.color.r,
             command.color.g,
@@ -256,8 +270,32 @@ export class CommandWebGL2CommandProcessorFragment {
         this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT);
     }
 
-    cmdUpdateViewport(command: CommandUpdateViewport) {
+    cmdUpdateViewport(command: CommandUpdateViewport): void {
         this.ctx.viewport(command.x, command.y, command.width, command.height);
+    }
+
+    cmdTextureCreate(command: CommmandTextureCreate): void {
+        //TODO: resize this.textures is command.slot > this.texures.length
+        this.textures[command.slot]!.tex = this.ctx.createTexture();
+        this.ctx.bindTexture(
+            this.ctx.TEXTURE_2D,
+            this.textures[command.slot]!.tex,
+        );
+
+        const samplerSlot = 0;
+
+        this.textures[command.slot]!.sampler = this.ctx.createSampler();
+        this.ctx.bindSampler(samplerSlot, this.textures[command.slot]!.sampler);
+
+        this.ctx.texImage2D(
+            this.ctx.TEXTURE_2D,
+            0,
+            this.ctx.RGBA,
+            this.ctx.RGBA,
+            this.ctx.UNSIGNED_BYTE,
+            command.data,
+        );
+        this.ctx.generateMipmap(this.ctx.TEXTURE_2D);
     }
 
     async runCommand(baseCommand: Command): Promise<RunCommandReturnTypes> {
@@ -273,6 +311,10 @@ export class CommandWebGL2CommandProcessorFragment {
                 break;
             case CommandBufferCMD.CMD_UPDATE_VIEWPORT:
                 this.cmdUpdateViewport(baseCommand as CommandUpdateViewport);
+                break;
+            case CommandBufferCMD.CMD_TEXTURE_CREATE:
+                this.cmdTextureCreate(baseCommand as CommmandTextureCreate);
+                break;
         }
 
         return RunCommandReturnTypes.RUN_COMMAND_COMMAND_HANDLED;

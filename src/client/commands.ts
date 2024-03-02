@@ -119,6 +119,15 @@ export class CommandRender extends Command {
     }
 }
 
+export class CommmandTextureCreate extends Command {
+    constructor(
+        public slot: number,
+        public data: HTMLImageElement,
+    ) {
+        super(CommandBufferCMD.CMD_TEXTURE_CREATE);
+    }
+}
+
 export class CommandInit extends Command {
     constructor() {
         super(10_000 + 1);
