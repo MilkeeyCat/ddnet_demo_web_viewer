@@ -19,7 +19,6 @@ import {
     TexCoord,
     Vertex,
 } from './common';
-import { State } from './types';
 
 const CMD_BUFFER_DATA_BUFFER_SIZE = 1024 * 1024 * 2;
 const CMD_BUFFER_CMD_BUFFER_SIZE = 1024 * 256;
@@ -45,6 +44,51 @@ export const CORNER_ALL = CORNER_T | CORNER_B;
 
 function normalizeColorComponent(colorComponent: number): number {
     return clampf(colorComponent, 0, 1) * 255 + 0.5; // +0.5 to round to nearest
+}
+
+export class State {
+    blendMode: number;
+    wrapMode: number;
+    texture: number;
+    screenTL: Point;
+    screenBR: Point;
+
+    // clip
+    clipEnable: boolean;
+    clipX: number;
+    clipY: number;
+    clipW: number;
+    clipH: number;
+
+    constructor() {
+        this.screenTL = new Point(0, 0);
+        this.screenBR = new Point(0, 0);
+        this.clipEnable = false;
+        this.clipX = 0;
+        this.clipY = 0;
+        this.clipH = 0;
+        this.clipW = 0;
+        this.texture = -1;
+        this.blendMode = CommandBuffer.BLEND_NONE;
+        this.wrapMode = CommandBuffer.WRAP_CLAMP;
+    }
+
+    clone(): State {
+        const state = new State();
+
+        state.screenTL = this.screenTL.clone();
+        state.screenBR = this.screenBR.clone();
+        state.clipEnable = this.clipEnable;
+        state.clipX = this.clipX;
+        state.clipY = this.clipY;
+        state.clipH = this.clipH;
+        state.clipW = this.clipW;
+        state.texture = this.texture;
+        state.blendMode = this.blendMode;
+        state.wrapMode = this.wrapMode;
+
+        return state;
+    }
 }
 
 class ColorVertex {
@@ -123,18 +167,7 @@ export class Graphics {
             TexCoord,
             TexCoord,
         ];
-        this.state = {
-            screenTL: new Point(0, 0),
-            screenBR: new Point(0, 0),
-            clipEnable: false,
-            clipX: 0,
-            clipY: 0,
-            clipH: 0,
-            clipW: 0,
-            texture: -1,
-            blendMode: CommandBuffer.BLEND_NONE,
-            wrapMode: CommandBuffer.WRAP_CLAMP,
-        };
+        this.state = new State();
         this.textureIndices = new Array(CommandBuffer.MAX_TEXTURES)
             .fill(null)
             .map((_, i) => i + 1);
@@ -225,7 +258,6 @@ export class Graphics {
         this.state.screenBR.y = brY;
     }
 
-    //not sure the fuck is this
     quadsSetSubset(tlU: number, tlV: number, brU: number, brV: number) {
         this.texture[0].u = tlU;
         this.texture[1].u = brU;
@@ -364,7 +396,7 @@ export class Graphics {
     //TODO: make it look gut
     flushVertices(keepVertices = false) {
         const cmd = new CommandRender(
-            this.state,
+            this.state.clone(),
             CommandBuffer.PRIMTYPE_QUADS,
             this.numVertices / 4,
             this.vertices.map((vertex) => vertex.clone()),

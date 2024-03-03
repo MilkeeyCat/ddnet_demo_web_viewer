@@ -10,8 +10,6 @@ export class GraphicsBackend {
     }
 
     constructor(ctx: WebGL2RenderingContext) {
-        console.log('Im initing graphics backend lmao');
-
         this.ctx = ctx;
         this.processor = new CommandProcessor(ctx);
     }

@@ -1,12 +1,17 @@
 import { Graphics } from './Graphics';
 import { UI } from './UI';
 import { Client } from './client';
+import { RenderTools } from './render';
 
 export class Component {
     constructor(protected client: Client) {}
 
     get graphics(): Graphics {
         return this.client.graphics;
+    }
+
+    get renderTools(): RenderTools {
+        return this.client.renderTools;
     }
 
     get ui(): UI {
@@ -18,6 +23,6 @@ export class Component {
     onWindowResize(): void {}
     onRender(): void {}
     onRelease(): void {}
-    onCursorMove(): void {}
+    onCursorMove(_x: number, _y: number): void {}
     onInput(): void {}
 }

@@ -1,6 +1,7 @@
 import { CommandBuffer } from './CommandBuffer';
 import { GLSL } from './GLSL';
 import { GLSLProgram } from './GLSLProgram';
+import { State } from './Graphics';
 import {
     Command,
     CommandBufferCMD,
@@ -13,7 +14,6 @@ import {
 import { Vertex } from './common';
 import { RunCommandReturnTypes } from './enums';
 import { GLSLPrimitiveProgram, GLSLTWProgram } from './programs';
-import { State } from './types';
 
 class Texture {
     constructor(
@@ -44,8 +44,7 @@ export class CommandWebGL2CommandProcessorFragment {
 
     constructor(public ctx: WebGL2RenderingContext) {}
 
-    async cmdInit(command: CommandInit): Promise<void> {
-        console.log('Im in a init command', command);
+    async cmdInit(_command: CommandInit): Promise<void> {
         this.ctx.activeTexture(this.ctx.TEXTURE0);
 
         this.primitiveProgram = new GLSLPrimitiveProgram(this.ctx);
@@ -209,8 +208,6 @@ export class CommandWebGL2CommandProcessorFragment {
             new Uint16Array(indices),
             this.ctx.STATIC_DRAW,
         );
-
-        console.log('Initialized stuff', command);
     }
 
     useProgram(program: GLSLProgram): void {
