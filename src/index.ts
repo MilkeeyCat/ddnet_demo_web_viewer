@@ -10,7 +10,13 @@ async function main() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    const client = await createClient(canvas);
+    const input = document.querySelector<HTMLInputElement>("#input");
+
+    if(!input) {
+        throw new Error("Couldn't find the input!");
+    }
+
+    const client = await createClient(canvas, input);
 
     client.run();
 }

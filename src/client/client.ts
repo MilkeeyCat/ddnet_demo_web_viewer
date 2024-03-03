@@ -1,3 +1,4 @@
+import { DemoReader } from '@/demo';
 import { Graphics } from './Graphics';
 import { UI } from './UI';
 import { UIRect } from './UIRect';
@@ -9,6 +10,7 @@ import { RenderTools } from './render';
 
 export class Client {
     canvas: HTMLCanvasElement;
+    input: HTMLInputElement;
     ctx: WebGL2RenderingContext;
     graphics: Graphics;
     components: Component[];
@@ -22,8 +24,9 @@ export class Client {
 
     pointerLocked: boolean;
 
-    constructor(canvas: HTMLCanvasElement) {
+    constructor(canvas: HTMLCanvasElement, input: HTMLInputElement) {
         this.canvas = canvas;
+        this.input = input;
         const ctx = this.canvas.getContext('webgl2');
         if (!ctx) {
             throw new Error('failed to get context');
@@ -51,6 +54,24 @@ export class Client {
 
         window.addEventListener('mousemove', (e) => {
             this.onMouseMove(e);
+        });
+
+        this.input.onchange = async (e) => {
+            const target = e.target as HTMLInputElement
+
+            if(target.files && target.files[0]) {
+                const data = await target.files[0].arrayBuffer();
+                const demoReader = new DemoReader(new Uint8Array(data));
+                console.log(demoReader);
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            const key = e.key;
+
+            if(key === "l") {
+                this.input.click();
+            }
         });
 
         //components
@@ -106,8 +127,8 @@ export class Client {
 
 //NOTE: i dont really like making functions which create
 //instance of a class but it's the best way i could do it
-export async function createClient(canvas: HTMLCanvasElement): Promise<Client> {
-    const client = new Client(canvas);
+export async function createClient(canvas: HTMLCanvasElement, input: HTMLInputElement): Promise<Client> {
+    const client = new Client(canvas, input);
     await client.init();
 
     return client;
