@@ -1,3 +1,4 @@
+import { DemoReader } from '@/demo';
 import { Graphics } from './Graphics';
 import { UI } from './UI';
 import { Client } from './client';
@@ -12,6 +13,10 @@ export class Component {
 
     get renderTools(): RenderTools {
         return this.client.renderTools;
+    }
+
+    get demo(): DemoReader {
+        return this.client.demo;
     }
 
     get ui(): UI {

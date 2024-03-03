@@ -1,11 +1,11 @@
 import { ColorRGBA } from '../common';
 import { Component } from '../component';
-import { CORNER_NONE } from '../Graphics';
+import { CORNER_NONE, TextureHandle } from '../Graphics';
 
 export class Test extends Component {
-    override async onInit(): Promise<void> {
-        console.log('onInit');
-    }
+    handle: TextureHandle;
+
+    override async onInit(): Promise<void> {}
 
     override onRender(): void {
         this.graphics.mapScreen(0, 0, 1, 1);
@@ -19,27 +19,25 @@ export class Test extends Component {
             CORNER_NONE,
         );
 
-        this.renderTools.mapScreenToGroup(
-            this.client.camera.center.x,
-            this.client.camera.center.y,
-            {
-                parallaxX: 100,
-                parallaxY: 100,
-                offsetX: 0,
-                offsetY: 0,
-            },
-            1,
-        );
+        //this.renderTools.mapScreenToGroup(
+        //    this.client.camera.center.x,
+        //    this.client.camera.center.y,
+        //    {
+        //        parallaxX: 100,
+        //        parallaxY: 100,
+        //        offsetX: 0,
+        //        offsetY: 0,
+        //    },
+        //    1,
+        //);
 
-        this.graphics.drawRect(
-            0,
-            0,
-            100,
-            100,
-            new ColorRGBA(1, 1, 1, 1),
-            0,
-            CORNER_NONE,
-        );
+        if (this.handle) {
+            this.ui.mapScreen();
+            this.graphics.textureSet(this.handle);
+            this.graphics.quadsBegin();
+            this.graphics.drawRectExt(0, 0, 200, 200, 0, CORNER_NONE);
+            this.graphics.quadsEnd();
+        }
     }
 
     override onReset() {

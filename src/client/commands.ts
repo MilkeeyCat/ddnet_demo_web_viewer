@@ -122,7 +122,9 @@ export class CommandRender extends Command {
 export class CommmandTextureCreate extends Command {
     constructor(
         public slot: number,
-        public data: HTMLImageElement,
+        public width: number,
+        public height: number,
+        public data: Uint8Array,
     ) {
         super(CommandBufferCMD.CMD_TEXTURE_CREATE);
     }

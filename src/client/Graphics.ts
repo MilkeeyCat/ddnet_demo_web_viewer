@@ -91,6 +91,14 @@ export class State {
     }
 }
 
+class ImageInfo {
+    constructor(
+        public width: number,
+        public height: number,
+        public data: Uint8Array,
+    ) {}
+}
+
 class ColorVertex {
     index: number;
     r: number;
@@ -141,6 +149,8 @@ export class Graphics {
     state: State;
     textureIndices: number[];
     firstFreeTexture: number;
+
+    ctx2d: CanvasRenderingContext2D;
 
     static TEXFORMAT_INVALID = 0;
     static TEXFORMAT_RGBA = 1;
@@ -197,6 +207,9 @@ export class Graphics {
             .map(() => new CommandBuffer());
         this.commandBuffer = this.commandBuffers[0]!;
         this.backend = new GraphicsBackend(ctx);
+
+        const canv = document.createElement('canvas');
+        this.ctx2d = canv.getContext('2d')!;
     }
 
     adjustViewport() {
@@ -905,13 +918,27 @@ export class Graphics {
         this.addCmd(commandClear);
     }
 
-    loadImage(src: string): Promise<HTMLImageElement> {
+    loadImage(src: string): Promise<ImageInfo> {
         const image = new Image();
         image.src = src;
 
         return new Promise((res, rej) => {
             image.addEventListener('load', () => {
-                res(image);
+                this.ctx2d.drawImage(image, 0, 0);
+                res(
+                    new ImageInfo(
+                        image.width,
+                        image.height,
+                        new Uint8Array(
+                            this.ctx2d.getImageData(
+                                0,
+                                0,
+                                image.width,
+                                image.height,
+                            ).data,
+                        ),
+                    ),
+                );
             });
             image.addEventListener('error', () => {
                 rej(new Error('failed to load image'));
@@ -934,17 +961,27 @@ export class Graphics {
         return new TextureHandle(tex);
     }
 
-    loadTextureCreateCommand(textureId: number, data: HTMLImageElement) {
-        const cmd = new CommmandTextureCreate(textureId, data);
+    loadTextureCreateCommand(
+        textureId: number,
+        width: number,
+        height: number,
+        data: Uint8Array,
+    ) {
+        const cmd = new CommmandTextureCreate(textureId, width, height, data);
 
         //FIXME: do i need flags here??
 
         return cmd;
     }
 
-    loadTexture(data: HTMLImageElement) {
+    loadTexture(width: number, height: number, data: Uint8Array) {
         const textureHandle = this.findFreeTextureIndex();
-        const cmd = this.loadTextureCreateCommand(textureHandle.id, data);
+        const cmd = this.loadTextureCreateCommand(
+            textureHandle.id,
+            width,
+            height,
+            data,
+        );
 
         this.addCmd(cmd);
 

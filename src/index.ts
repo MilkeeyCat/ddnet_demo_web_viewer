@@ -10,9 +10,9 @@ async function main() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    const input = document.querySelector<HTMLInputElement>("#input");
+    const input = document.querySelector<HTMLInputElement>('#input');
 
-    if(!input) {
+    if (!input) {
         throw new Error("Couldn't find the input!");
     }
 

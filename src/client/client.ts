@@ -17,6 +17,7 @@ export class Client {
 
     ui: UI;
     renderTools: RenderTools;
+    demo: DemoReader;
 
     test: Test;
     controls: Controls;
@@ -57,19 +58,28 @@ export class Client {
         });
 
         this.input.onchange = async (e) => {
-            const target = e.target as HTMLInputElement
+            const target = e.target as HTMLInputElement;
 
-            if(target.files && target.files[0]) {
+            if (target.files && target.files[0]) {
                 const data = await target.files[0].arrayBuffer();
-                const demoReader = new DemoReader(new Uint8Array(data));
-                console.log(demoReader);
+                this.demo = new DemoReader(new Uint8Array(data));
+                console.log(this.demo.demo.map.images);
+
+                const img = this.demo.demo.map.images[29]!;
+                this.test.handle = this.graphics.loadTexture(
+                    img.width,
+                    img.height,
+                    img.data!,
+                );
+
+                //console.log(this.demo);
             }
-        }
+        };
 
         window.addEventListener('keydown', (e) => {
             const key = e.key;
 
-            if(key === "l") {
+            if (key === 'l') {
                 this.input.click();
             }
         });
@@ -127,7 +137,10 @@ export class Client {
 
 //NOTE: i dont really like making functions which create
 //instance of a class but it's the best way i could do it
-export async function createClient(canvas: HTMLCanvasElement, input: HTMLInputElement): Promise<Client> {
+export async function createClient(
+    canvas: HTMLCanvasElement,
+    input: HTMLInputElement,
+): Promise<Client> {
     const client = new Client(canvas, input);
     await client.init();
 
