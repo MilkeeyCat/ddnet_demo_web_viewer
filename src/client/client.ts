@@ -63,7 +63,6 @@ export class Client {
             if (target.files && target.files[0]) {
                 const data = await target.files[0].arrayBuffer();
                 this.demo = new DemoReader(new Uint8Array(data));
-                console.log(this.demo.demo.map.images);
 
                 const img = this.demo.demo.map.images[29]!;
                 this.test.handle = this.graphics.loadTexture(
@@ -77,10 +76,16 @@ export class Client {
         };
 
         window.addEventListener('keydown', (e) => {
-            const key = e.key;
-
-            if (key === 'l') {
-                this.input.click();
+            switch (e.key) {
+                case 'l':
+                    this.input.click();
+                    break;
+                case '-':
+                    this.camera.zoomMinus();
+                    break;
+                case '=':
+                    this.camera.zoomPlus();
+                    break;
             }
         });
 

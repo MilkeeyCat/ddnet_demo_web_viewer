@@ -19,25 +19,27 @@ export class Test extends Component {
             CORNER_NONE,
         );
 
-        //this.renderTools.mapScreenToGroup(
-        //    this.client.camera.center.x,
-        //    this.client.camera.center.y,
-        //    {
-        //        parallaxX: 100,
-        //        parallaxY: 100,
-        //        offsetX: 0,
-        //        offsetY: 0,
-        //    },
-        //    1,
-        //);
+        this.renderTools.mapScreenToGroup(
+            this.client.camera.center.x,
+            this.client.camera.center.y,
+            {
+                parallaxX: 100,
+                parallaxY: 100,
+                offsetX: 0,
+                offsetY: 0,
+            },
+            this.client.camera.zoom,
+        );
 
-        if (this.handle) {
-            this.ui.mapScreen();
-            this.graphics.textureSet(this.handle);
-            this.graphics.quadsBegin();
-            this.graphics.drawRectExt(0, 0, 200, 200, 0, CORNER_NONE);
-            this.graphics.quadsEnd();
-        }
+        this.graphics.drawRect(
+            0,
+            0,
+            100,
+            100,
+            new ColorRGBA(1, 1, 1, 1),
+            0,
+            CORNER_NONE,
+        );
     }
 
     override onReset() {
