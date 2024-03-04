@@ -1,17 +1,18 @@
+import { inflate } from 'pako';
 import { Datafile, Item } from '.';
 import { Reader } from '../reader';
 import { I17F15, I22F10, I27F5 } from '../utils/fixed';
 import { parseI32String } from '../utils/parseI32String';
 import { arrayChunks } from '../utils/uint8arraychunks';
 
-//class GameTile {
-//    constructor(
-//        public id: number,
-//        public flags: boolean, //FIXME: maybe not boolean :DDD
-//        public skip: number,
-//        public unused: number
-//    ) { }
-//}
+export class GameTile {
+    constructor(
+        public id: number,
+        public flags: number,
+        public skip: number,
+        public unused: number,
+    ) {}
+}
 
 class CompressedData {
     constructor(
@@ -61,7 +62,7 @@ export function layerKind(item: Item): LayerKind {
         case 10:
             return LayerKind.Sounds;
         default:
-            throw new Error('Sus layer kind :raise_eyebrow:');
+            throw new Error('Sus layer kind 🤨');
     }
 }
 
@@ -117,6 +118,21 @@ export class Rgba {
 
 export class GameLayer {
     constructor(public tiles: CompressedData) {}
+
+    decompress(): GameTile[] {
+        const decompressedData = inflate(this.tiles.data);
+        const data = arrayChunks(decompressedData, 4);
+
+        return data.flatMap((tile) => {
+            let res = [];
+
+            for (let i = 0; i <= tile[2]!; i++) {
+                res.push(new GameTile(tile[0]!, tile[1]!, 0, tile[3]!));
+            }
+
+            return res.flat()!;
+        });
+    }
 }
 
 export class FrontLayer {
