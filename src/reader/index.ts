@@ -11,7 +11,7 @@ export class Reader {
         return result || null;
     }
 
-    public readRaw(n: number) {
+    public readRaw(n: number): Uint8Array {
         const result = [];
 
         for (let i = 0; i < n; i++) {

@@ -66,7 +66,7 @@ export class RenderTools {
         centerY: number,
         group: any,
         zoom: number,
-    ) {
+    ): void {
         const paralaxZoom = clampf(
             Math.max(group.parallaxX, group.parallaxY),
             0,

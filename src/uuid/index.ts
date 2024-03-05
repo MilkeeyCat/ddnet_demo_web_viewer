@@ -3,7 +3,7 @@
 export class Uuid {
     constructor(public bytes: Uint8Array) {}
 
-    static fromU32(data: [number, number, number, number]) {
+    static fromU32(data: [number, number, number, number]): Uuid {
         return new Uuid(
             new Uint8Array([
                 data[0] >> 24,

@@ -119,7 +119,7 @@ export class DemoReader {
         };
     }
 
-    public readRaw(n: number) {
+    public readRaw(n: number): Uint8Array {
         const result = [];
 
         for (let i = 0; i < n; i++) {
@@ -132,7 +132,7 @@ export class DemoReader {
         return new Uint8Array(result);
     }
 
-    public skip(n: number) {
+    public skip(n: number): void {
         this.buffer = this.buffer.subarray(n);
     }
 

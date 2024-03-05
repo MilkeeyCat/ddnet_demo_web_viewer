@@ -97,7 +97,7 @@ export class Client {
         this.components = [this.test, this.controls, this.camera];
     }
 
-    async init() {
+    async init(): Promise<void> {
         await this.graphics.init(this.canvas.width, this.canvas.height);
 
         this.ui = new UI(this.graphics);
@@ -110,11 +110,11 @@ export class Client {
         }
     }
 
-    run() {
+    run(): void {
         window.requestAnimationFrame(() => this.render());
     }
 
-    render() {
+    render(): void {
         this.graphics.clear(0, 0, 0, false);
 
         for (const component of this.components) {
@@ -125,7 +125,7 @@ export class Client {
         window.requestAnimationFrame(() => this.render());
     }
 
-    onWindowResize() {
+    onWindowResize(): void {
         for (const component of this.components) {
             component.onWindowResize();
         }
@@ -133,7 +133,7 @@ export class Client {
         this.graphics.gotResized(this.canvas.width, this.canvas.height);
     }
 
-    onMouseMove(e: MouseEvent) {
+    onMouseMove(e: MouseEvent): void {
         for (const component of this.components) {
             component.onCursorMove(e.movementX, e.movementY);
         }

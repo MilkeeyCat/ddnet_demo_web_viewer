@@ -5,12 +5,12 @@ export class GraphicsBackend {
     processor: CommandProcessor;
     ctx: WebGL2RenderingContext;
 
-    async runBuffer(buffer: CommandBuffer) {
-        await this.processor.runBuffer(buffer);
-    }
-
     constructor(ctx: WebGL2RenderingContext) {
         this.ctx = ctx;
         this.processor = new CommandProcessor(ctx);
+    }
+
+    async runBuffer(buffer: CommandBuffer): Promise<void> {
+        await this.processor.runBuffer(buffer);
     }
 }

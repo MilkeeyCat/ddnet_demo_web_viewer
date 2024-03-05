@@ -17,7 +17,7 @@ export class TexCoord {
         public v: number,
     ) {}
 
-    clone() {
+    clone(): TexCoord {
         return new TexCoord(this.u, this.v);
     }
 }
@@ -43,7 +43,7 @@ export class QuadItem {
         public height: number,
     ) {}
 
-    ToFreeForm() {
+    ToFreeForm(): FreeformItem {
         return new FreeformItem(
             this.x,
             this.y,
@@ -63,7 +63,7 @@ export class Point {
         public y: number,
     ) {}
 
-    clone() {
+    clone(): Point {
         return new Point(this.x, this.y);
     }
 }
@@ -75,7 +75,7 @@ export class Vertex {
         public color: ColorRGBA,
     ) {}
 
-    clone() {
+    clone(): Vertex {
         return new Vertex(
             this.pos.clone(),
             this.tex.clone(),

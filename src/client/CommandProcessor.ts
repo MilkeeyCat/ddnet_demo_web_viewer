@@ -5,10 +5,11 @@ import { RunCommandReturnTypes } from './enums';
 export class CommandProcessor {
     glBackend: CommandWebGL2CommandProcessorFragment;
 
-    async runBuffer(buffer: CommandBuffer) {
-        // glBackend.startCommands isnt rly necessary coz its only
-        // needed for vulkan losers
+    constructor(ctx: WebGL2RenderingContext) {
+        this.glBackend = new CommandWebGL2CommandProcessorFragment(ctx);
+    }
 
+    async runBuffer(buffer: CommandBuffer): Promise<void> {
         for (
             let command = buffer.cmdBufferHead;
             command;
@@ -26,13 +27,6 @@ export class CommandProcessor {
                 console.log('We are not really that fucked but not gud');
                 return;
             }
-
-            //sdl.RunCommand()
-            //general.RunCommand();
         }
-    }
-
-    constructor(ctx: WebGL2RenderingContext) {
-        this.glBackend = new CommandWebGL2CommandProcessorFragment(ctx);
     }
 }

@@ -252,7 +252,7 @@ export class CommandWebGL2CommandProcessorFragment {
         }
     }
 
-    isTexturedState(state: State) {
+    isTexturedState(state: State): boolean {
         return state.texture >= 0 && state.texture < this.textures.length;
     }
 
@@ -373,7 +373,7 @@ export class CommandWebGL2CommandProcessorFragment {
         vertices: Vertex[],
         primitiveCount: number,
         asTex3d = false,
-    ) {
+    ): void {
         let count = 0;
 
         switch (primitiveType) {

@@ -6,7 +6,7 @@ export class GLSLProgram {
 
     constructor(public ctx: WebGL2RenderingContext) {}
 
-    createProgram() {
+    createProgram(): void {
         const program = this.ctx.createProgram();
 
         if (!program) {
@@ -16,25 +16,25 @@ export class GLSLProgram {
         this.program = program;
     }
 
-    addShader(shader: GLSL) {
+    addShader(shader: GLSL): void {
         glDbg(this.ctx, () => {
             this.ctx.attachShader(this.program, shader.shader);
         });
     }
 
-    detachShader(shader: GLSL) {
+    detachShader(shader: GLSL): void {
         glDbg(this.ctx, () => {
             this.ctx.detachShader(this.program, shader.shader);
         });
     }
 
-    linkProgram() {
+    linkProgram(): void {
         glDbg(this.ctx, () => {
             this.ctx.linkProgram(this.program);
         });
     }
 
-    useProgram() {
+    useProgram(): void {
         glDbg(this.ctx, () => {
             this.ctx.useProgram(this.program);
         });

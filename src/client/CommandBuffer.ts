@@ -30,7 +30,7 @@ export class CommandBuffer {
         this.renderCallCount = 0;
     }
 
-    addCommand(command: Command) {
+    addCommand(command: Command): void {
         if (this.cmdBufferTail) {
             this.cmdBufferTail.next = command;
         }
@@ -42,11 +42,11 @@ export class CommandBuffer {
         this.cmdBufferTail = command;
     }
 
-    reset() {
+    reset(): void {
         this.cmdBufferHead = this.cmdBufferTail = null;
     }
 
-    addRenderCalls(count: number) {
+    addRenderCalls(count: number): void {
         this.renderCallCount += count;
     }
 }

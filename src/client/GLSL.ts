@@ -25,7 +25,7 @@ export class GLSL {
         this.shader = shader;
     }
 
-    deleteShader() {
+    deleteShader(): void {
         this.ctx.deleteShader(this.shader);
     }
 }
