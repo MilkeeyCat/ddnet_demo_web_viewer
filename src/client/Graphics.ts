@@ -237,7 +237,7 @@ export class Graphics {
         return this.screenWidth / this.screenHeight;
     }
 
-    async kickCommandBuffer() {
+    async kickCommandBuffer(): Promise<void> {
         await this.backend.runBuffer(this.commandBuffer);
 
         //TODO: warnings!?!??
@@ -258,13 +258,13 @@ export class Graphics {
         await this.kickCommandBuffer();
     }
 
-    swap() {
+    swap(): void {
         //some magic shit...
 
         this.kickCommandBuffer();
     }
 
-    mapScreen(tlX: number, tlY: number, brX: number, brY: number) {
+    mapScreen(tlX: number, tlY: number, brX: number, brY: number): void {
         this.state.screenTL.x = tlX;
         this.state.screenTL.y = tlY;
         this.state.screenBR.x = brX;
@@ -280,7 +280,7 @@ export class Graphics {
         ];
     }
 
-    quadsSetSubset(tlU: number, tlV: number, brU: number, brV: number) {
+    quadsSetSubset(tlU: number, tlV: number, brU: number, brV: number): void {
         this.texture[0].u = tlU;
         this.texture[1].u = brU;
         this.texture[0].v = tlV;
@@ -292,11 +292,11 @@ export class Graphics {
         this.texture[3].v = brV;
     }
 
-    quadsSetRotation(angle: number) {
+    quadsSetRotation(angle: number): void {
         this.rotation = angle;
     }
 
-    setColor(r: number, g: number, b: number, a: number) {
+    setColor(r: number, g: number, b: number, a: number): void {
         let clampedR = clampf(r, 0, 1);
         let clampedG = clampf(g, 0, 1);
         let clampedB = clampf(b, 0, 1);
@@ -315,7 +315,7 @@ export class Graphics {
         }
     }
 
-    setColorVertex(data: ColorVertex[]) {
+    setColorVertex(data: ColorVertex[]): void {
         for (const vertex of data) {
             const color = this.color[vertex.index]!;
             color.r = normalizeColorComponent(vertex.r);
@@ -330,7 +330,7 @@ export class Graphics {
         colorTopRight: ColorRGBA,
         colorBottomLeft: ColorRGBA,
         colorBottomRight: ColorRGBA,
-    ) {
+    ): void {
         this.setColorVertex([
             new ColorVertex(0, colorTopLeft),
             new ColorVertex(1, colorTopRight),
@@ -339,15 +339,15 @@ export class Graphics {
         ]);
     }
 
-    setColorC(color: ColorRGBA) {
+    setColorC(color: ColorRGBA): void {
         this.setColor(color.r, color.g, color.b, color.a);
     }
 
-    setVertexColor(vertex: Vertex, colorIndex: number) {
+    setVertexColor(vertex: Vertex, colorIndex: number): void {
         vertex.color = this.color[colorIndex]!.clone();
     }
 
-    rotate(rCenter: Point, i: number, numPoints: number) {
+    rotate(rCenter: Point, i: number, numPoints: number): void {
         const c = Math.cos(this.rotation);
         const s = Math.sin(this.rotation);
         let x = 0,
@@ -363,7 +363,7 @@ export class Graphics {
     }
 
     //NOTE: add rotation
-    quadsDrawTL(quads: QuadItem[]) {
+    quadsDrawTL(quads: QuadItem[]): void {
         const center = new Point(0, 0);
 
         if (this.drawing !== DRAWING_QUADS) {
@@ -416,7 +416,7 @@ export class Graphics {
     }
 
     //TODO: make it look gut
-    flushVertices(keepVertices = false) {
+    flushVertices(keepVertices = false): void {
         const cmd = new CommandRender(
             this.state.clone(),
             CommandBuffer.PRIMTYPE_QUADS,
@@ -432,7 +432,7 @@ export class Graphics {
         this.commandBuffer.addRenderCalls(1);
     }
 
-    quadsEnd() {
+    quadsEnd(): void {
         if (this.drawing != DRAWING_QUADS) {
             throw new Error('AAAAAAAAAAAAAAAAAAa');
         }
@@ -441,7 +441,7 @@ export class Graphics {
         this.drawing = 0;
     }
 
-    quadsDrawFreeform(freeform: FreeformItem[]) {
+    quadsDrawFreeform(freeform: FreeformItem[]): void {
         if (
             this.drawing != DRAWING_QUADS &&
             this.drawing != DRAWING_TRIANGLES
@@ -568,7 +568,7 @@ export class Graphics {
         }
     }
 
-    addVertices(count: number) {
+    addVertices(count: number): void {
         this.numVertices += count;
         if (this.numVertices + count >= CommandBuffer.MAX_VERTICES) {
             this.flushVertices();
@@ -587,7 +587,7 @@ export class Graphics {
         color: ColorRGBA,
         corners: number,
         rounding: number,
-    ) {
+    ): void {
         this.textureClear();
         this.quadsBegin();
         this.setColorC(color);
@@ -602,10 +602,9 @@ export class Graphics {
         h: number,
         r: number,
         corners: number,
-    ) {
+    ): void {
         const numSegments = 8;
-        const pi = 3.1415926535897932384626433;
-        const segmentsAngle = pi / 2 / numSegments;
+        const segmentsAngle = Math.PI / 2 / numSegments;
         const freeform: FreeformItem[] = [];
 
         for (let i = 0; i < numSegments; i += 2) {
@@ -718,7 +717,7 @@ export class Graphics {
         colorBottomRight: ColorRGBA,
         corners: number,
         rounding: number,
-    ) {
+    ): void {
         this.quadsBegin();
         this.drawRectExt4(
             x,
@@ -746,7 +745,7 @@ export class Graphics {
         colorBottomRight: ColorRGBA,
         r: number,
         corners: number,
-    ) {
+    ): void {
         if (corners == 0 || r == 0) {
             this.setColor4(
                 colorTopLeft,
@@ -902,7 +901,37 @@ export class Graphics {
         }
     }
 
-    quadsBegin() {
+    drawCircle(
+        centerX: number,
+        centerY: number,
+        radius: number,
+        segments: number,
+    ): void {
+        const items: FreeformItem[] = [];
+        const segmentsAngle = (2 * Math.PI) / segments;
+
+        for (let i = 0; i < segments; i += 2) {
+            const a1 = i * segmentsAngle;
+            const a2 = (i + 1) * segmentsAngle;
+            const a3 = (i + 2) * segmentsAngle;
+            items.push(
+                new FreeformItem(
+                    centerX,
+                    centerY,
+                    centerX + Math.cos(a1) * radius,
+                    centerY + Math.sin(a1) * radius,
+                    centerX + Math.cos(a3) * radius,
+                    centerY + Math.sin(a3) * radius,
+                    centerX + Math.cos(a2) * radius,
+                    centerY + Math.sin(a2) * radius,
+                ),
+            );
+        }
+
+        this.quadsDrawFreeform(items);
+    }
+
+    quadsBegin(): void {
         if (this.drawing != 0) {
             throw new Error('BAD!');
         }
@@ -914,11 +943,11 @@ export class Graphics {
         this.setColor(1, 1, 1, 1);
     }
 
-    addCmd(cmd: Command) {
+    addCmd(cmd: Command): void {
         this.commandBuffer.addCommand(cmd);
     }
 
-    clear(r: number, g: number, b: number, forceClearNow: boolean) {
+    clear(r: number, g: number, b: number, forceClearNow: boolean): void {
         const commandClear = new CommandClear(
             new ColorRGBA(r, g, b, 1),
             forceClearNow,
@@ -949,6 +978,7 @@ export class Graphics {
                     ),
                 );
             });
+
             image.addEventListener('error', () => {
                 rej(new Error('failed to load image'));
             });
@@ -975,7 +1005,7 @@ export class Graphics {
         width: number,
         height: number,
         data: Uint8Array,
-    ) {
+    ): CommmandTextureCreate {
         const cmd = new CommmandTextureCreate(textureId, width, height, data);
 
         //FIXME: do i need flags here??
@@ -983,7 +1013,11 @@ export class Graphics {
         return cmd;
     }
 
-    loadTexture(width: number, height: number, data: Uint8Array) {
+    loadTexture(
+        width: number,
+        height: number,
+        data: Uint8Array,
+    ): TextureHandle {
         const textureHandle = this.findFreeTextureIndex();
         const cmd = this.loadTextureCreateCommand(
             textureHandle.id,
@@ -997,7 +1031,7 @@ export class Graphics {
         return textureHandle;
     }
 
-    textureSet(textureId: TextureHandle) {
+    textureSet(textureId: TextureHandle): void {
         if (this.drawing !== 0) {
             throw new Error('called graphics.textureSet within begin');
         }
