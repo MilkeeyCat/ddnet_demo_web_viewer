@@ -271,6 +271,15 @@ export class Graphics {
         this.state.screenBR.y = brY;
     }
 
+    getScreen(): [number, number, number, number] {
+        return [
+            this.state.screenTL.x,
+            this.state.screenTL.y,
+            this.state.screenBR.x,
+            this.state.screenBR.y,
+        ];
+    }
+
     quadsSetSubset(tlU: number, tlV: number, brU: number, brV: number) {
         this.texture[0].u = tlU;
         this.texture[1].u = brU;
