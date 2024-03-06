@@ -4,7 +4,6 @@ import { clampf } from '@/utils/clampf';
 import { CommandBuffer } from './CommandBuffer';
 import { GraphicsBackend } from './GraphicsBackend';
 import {
-    BufferContainerInfo,
     Command,
     CommandClear,
     CommandCreateBufferContainer,
@@ -22,6 +21,7 @@ import {
     TexCoord,
     Vertex,
 } from './common';
+import { BufferContainerInfo } from './CommandWebGL2CommandProcessorFragment';
 
 const CMD_BUFFER_DATA_BUFFER_SIZE = 1024 * 1024 * 2;
 const CMD_BUFFER_CMD_BUFFER_SIZE = 1024 * 256;
@@ -44,6 +44,9 @@ export const CORNER_R = CORNER_TR | CORNER_BR;
 export const CORNER_L = CORNER_TL | CORNER_BL;
 
 export const CORNER_ALL = CORNER_T | CORNER_B;
+
+export const GRAPHICS_TYPE_UNSIGNED_BYTE = 0x1401;
+export const GRAPHICS_TYPE_FLOAT = 0x1406;
 
 function normalizeColorComponent(colorComponent: number): number {
     return clampf(colorComponent, 0, 1) * 255 + 0.5; // +0.5 to round to nearest
