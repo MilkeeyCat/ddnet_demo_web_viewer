@@ -1,3 +1,4 @@
+import { BufferContainerAttribute } from './CommandWebGL2CommandProcessorFragment';
 import { ColorRGBA, Vertex } from './common';
 
 export enum CommandBufferCMD {
@@ -127,6 +128,26 @@ export class CommmandTextureCreate extends Command {
         public data: Uint8Array,
     ) {
         super(CommandBufferCMD.CMD_TEXTURE_CREATE);
+    }
+}
+
+export class CommandCreateBufferObject extends Command {
+    constructor(
+        public bufferIndex: number,
+        public data: Uint8Array,
+    ) {
+        super(CommandBufferCMD.CMD_CREATE_BUFFER_OBJECT);
+    }
+}
+
+export class CommandCreateBufferContainer extends Command {
+    constructor(
+        public bufferContainerIndex: number,
+        public stride: number,
+        public vertBufferBindingIndex: number,
+        public attributes: BufferContainerAttribute[],
+    ) {
+        super(CommandBufferCMD.CMD_CREATE_BUFFER_CONTAINER);
     }
 }
 

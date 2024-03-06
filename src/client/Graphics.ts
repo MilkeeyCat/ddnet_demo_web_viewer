@@ -4,8 +4,11 @@ import { clampf } from '@/utils/clampf';
 import { CommandBuffer } from './CommandBuffer';
 import { GraphicsBackend } from './GraphicsBackend';
 import {
+    BufferContainerInfo,
     Command,
     CommandClear,
+    CommandCreateBufferContainer,
+    CommandCreateBufferObject,
     CommandInit,
     CommandRender,
     CommandUpdateViewport,
@@ -131,12 +134,19 @@ export class TextureHandle {
     }
 }
 
+class VertexArrayInfo {
+    constructor(
+        public associatedBufferObjectIndex: number,
+        public freeIndex: number,
+    ) {}
+}
+
 export class Graphics {
     screenWidth: number;
     screenHeight: number;
 
     backend: GraphicsBackend;
-    commandBuffers: Array<CommandBuffer>;
+    commandBuffers: CommandBuffer[];
     commandBuffer: CommandBuffer;
     currentCommandBuffer: number;
 
@@ -148,7 +158,11 @@ export class Graphics {
     rotation: number;
     state: State;
     textureIndices: number[];
+    bufferObjectIndices: number[];
+    vertexArrayInfo: VertexArrayInfo[];
     firstFreeTexture: number;
+    firstFreeVertexArrayInfo: number;
+    firstFreeBufferObjectIndex: number;
 
     ctx2d: CanvasRenderingContext2D;
 
@@ -181,7 +195,11 @@ export class Graphics {
         this.textureIndices = new Array(CommandBuffer.MAX_TEXTURES)
             .fill(null)
             .map((_, i) => i + 1);
+        this.bufferObjectIndices = [];
+        this.vertexArrayInfo = [];
         this.firstFreeTexture = 0;
+        this.firstFreeBufferObjectIndex = -1;
+        this.firstFreeVertexArrayInfo = -1;
         this.color = new Array(4)
             .fill(null)
             .map(() => new ColorRGBA(0, 0, 0, 0)) as [
@@ -1042,5 +1060,50 @@ export class Graphics {
         }
 
         this.state.texture = textureId.id;
+    }
+
+    createBufferObject(data: Uint8Array): number {
+        let index: number;
+
+        if (this.firstFreeBufferObjectIndex === -1) {
+            index = this.bufferObjectIndices.length;
+            this.bufferObjectIndices.push(index);
+        } else {
+            index = this.firstFreeBufferObjectIndex;
+            this.firstFreeBufferObjectIndex = this.bufferObjectIndices[index]!;
+            this.bufferObjectIndices[index] = index;
+        }
+
+        const cmd = new CommandCreateBufferObject(index, data);
+        this.addCmd(cmd);
+
+        return index;
+    }
+
+    createBufferContainer(containerInfo: BufferContainerInfo): number {
+        let index: number;
+
+        if (this.firstFreeVertexArrayInfo) {
+            index = this.vertexArrayInfo.length;
+            this.vertexArrayInfo.push(new VertexArrayInfo(-1, 0));
+        } else {
+            index = this.firstFreeVertexArrayInfo;
+            this.firstFreeVertexArrayInfo =
+                this.vertexArrayInfo[index]!.freeIndex;
+            this.vertexArrayInfo[index]!.freeIndex = index;
+        }
+
+        const cmd = new CommandCreateBufferContainer(
+            index,
+            containerInfo.stride,
+            containerInfo.vertBufferBindingIndex,
+            containerInfo.attributes,
+        );
+
+        this.vertexArrayInfo[index]!.associatedBufferObjectIndex =
+            containerInfo.vertBufferBindingIndex;
+        this.addCmd(cmd);
+
+        return index;
     }
 }

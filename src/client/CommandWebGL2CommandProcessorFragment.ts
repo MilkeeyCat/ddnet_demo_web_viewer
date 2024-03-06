@@ -6,6 +6,8 @@ import {
     Command,
     CommandBufferCMD,
     CommandClear,
+    CommandCreateBufferContainer,
+    CommandCreateBufferObject,
     CommandInit,
     CommandRender,
     CommandUpdateViewport,
@@ -19,6 +21,34 @@ class Texture {
     constructor(
         public tex: WebGLTexture | null,
         public sampler: WebGLSampler | null,
+    ) {}
+}
+
+export class BufferContainerAttribute {
+    constructor(
+        public dataTypeCount: number,
+        public type: number,
+        public normalized: boolean,
+        public offset: number,
+
+        //0: float, 1:integer
+        public funcType: number,
+    ) {}
+}
+
+export class BufferContainerInfo {
+    constructor(
+        public stride: number,
+        public vertBufferBindingIndex: number,
+        public attributes: BufferContainerAttribute[],
+    ) {}
+}
+
+class BufferContainer {
+    constructor(
+        public vertexArray: WebGLVertexArrayObject,
+        public lastIndexBufferBound: number,
+        public containerInfo: BufferContainerInfo,
     ) {}
 }
 
@@ -39,12 +69,15 @@ export class CommandWebGL2CommandProcessorFragment {
     primitiveDrawBuffer: WebGLBuffer[];
     lastStreamBuffer: number;
     textures: Texture[];
-
     quadDrawIndexBuffer: WebGLBuffer;
+    bufferObjects: WebGLBuffer[];
+    bufferContainers: BufferContainer[];
 
     constructor(public ctx: WebGL2RenderingContext) {}
 
     async cmdInit(_command: CommandInit): Promise<void> {
+        this.bufferObjects = [];
+        this.bufferContainers = [];
         this.ctx.activeTexture(this.ctx.TEXTURE0);
 
         this.primitiveProgram = new GLSLPrimitiveProgram(this.ctx);
@@ -346,6 +379,85 @@ export class CommandWebGL2CommandProcessorFragment {
         this.ctx.generateMipmap(this.ctx.TEXTURE_2D);
     }
 
+    cmdCreateBufferObject(command: CommandCreateBufferObject): void {
+        if (command.bufferIndex >= this.bufferObjects.length) {
+            for (
+                let i = this.bufferObjects.length;
+                i < command.bufferIndex + 1;
+                i++
+            ) {
+                this.bufferObjects.push(0);
+            }
+        }
+
+        const buffer = this.ctx.createBuffer()!;
+
+        this.ctx.bindBuffer(this.ctx.COPY_WRITE_BUFFER, buffer);
+        this.ctx.bufferData(
+            this.ctx.COPY_WRITE_BUFFER,
+            command.data,
+            this.ctx.STATIC_DRAW,
+        );
+
+        this.bufferObjects[command.bufferIndex] = buffer;
+    }
+
+    cmdCreateBufferContainer(command: CommandCreateBufferContainer): void {
+        let index = command.bufferContainerIndex;
+
+        if (index >= this.bufferContainers.length) {
+            for (let i = this.bufferContainers.length; i < index + 1; i++) {
+                this.bufferContainers.push(
+                    new BufferContainer(
+                        -1,
+                        -1,
+                        new BufferContainerInfo(0, -1, []),
+                    ),
+                );
+            }
+        }
+
+        const bufferContainer = this.bufferContainers[index]!;
+        bufferContainer.vertexArray = this.ctx.createVertexArray()!;
+        bufferContainer.lastIndexBufferBound = 0;
+
+        this.ctx.bindVertexArray(bufferContainer.vertexArray);
+
+        for (let i = 0; i < command.attributes.length; i++) {
+            this.ctx.enableVertexAttribArray(i);
+            this.ctx.bindBuffer(
+                this.ctx.ARRAY_BUFFER,
+                this.bufferObjects[command.vertBufferBindingIndex]!,
+            );
+            const attr = command.attributes[i]!;
+
+            if (attr.funcType === 0) {
+                this.ctx.vertexAttribPointer(
+                    i,
+                    attr.dataTypeCount,
+                    attr.type,
+                    attr.normalized,
+                    command.stride,
+                    attr.offset,
+                );
+            } else if (attr.funcType === 1) {
+                this.ctx.vertexAttribIPointer(
+                    i,
+                    attr.dataTypeCount,
+                    attr.type,
+                    command.stride,
+                    attr.offset,
+                );
+            }
+
+            bufferContainer.containerInfo.attributes.push(attr);
+        }
+
+        bufferContainer.containerInfo.vertBufferBindingIndex =
+            command.vertBufferBindingIndex;
+        bufferContainer.containerInfo.stride = command.stride;
+    }
+
     async runCommand(baseCommand: Command): Promise<RunCommandReturnTypes> {
         switch (baseCommand.cmd) {
             case CommandWebGL2CommandProcessorFragment.CMD_INIT:
@@ -362,6 +474,16 @@ export class CommandWebGL2CommandProcessorFragment {
                 break;
             case CommandBufferCMD.CMD_TEXTURE_CREATE:
                 this.cmdTextureCreate(baseCommand as CommmandTextureCreate);
+                break;
+            case CommandBufferCMD.CMD_CREATE_BUFFER_OBJECT:
+                this.cmdCreateBufferObject(
+                    baseCommand as CommandCreateBufferObject,
+                );
+                break;
+            case CommandBufferCMD.CMD_CREATE_BUFFER_CONTAINER:
+                this.cmdCreateBufferContainer(
+                    baseCommand as CommandCreateBufferContainer,
+                );
                 break;
         }
 
