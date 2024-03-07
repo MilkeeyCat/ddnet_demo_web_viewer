@@ -46,4 +46,8 @@ export class GLSLProgram {
     ): WebGLUniformLocation | null {
         return this.ctx.getUniformLocation(program, name);
     }
+
+    setUniformVec4(uniform: WebGLUniformLocation, data: Float32Array): void {
+        this.ctx.uniform4fv(uniform, data);
+    }
 }

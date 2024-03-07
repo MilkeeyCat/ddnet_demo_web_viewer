@@ -4,7 +4,6 @@ layout (location = 2) in vec4 inVertexColor;
 
 uniform mat4x2 gPos;
 
-// there was noperspective. was it important? we will see
 out vec2 texCoord;
 out vec4 vertColor;
 

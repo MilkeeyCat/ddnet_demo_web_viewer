@@ -16,7 +16,11 @@ import {
 } from './commands';
 import { Vertex } from './common';
 import { RunCommandReturnTypes } from './enums';
-import { GLSLPrimitiveProgram, GLSLTWProgram } from './programs';
+import {
+    GLSLPrimitiveProgram,
+    GLSLTWProgram,
+    GLSLTileProgram,
+} from './programs';
 
 class Texture {
     constructor(
@@ -63,6 +67,7 @@ export class CommandWebGL2CommandProcessorFragment {
 
     primitiveProgram: GLSLPrimitiveProgram;
     primitiveProgramTextured: GLSLPrimitiveProgram;
+    tileProgram: GLSLTileProgram;
 
     primitiveDrawVertex: WebGLBuffer[];
     primitiveDrawVertexTex3d: WebGLBuffer;
@@ -83,6 +88,7 @@ export class CommandWebGL2CommandProcessorFragment {
 
         this.primitiveProgram = new GLSLPrimitiveProgram(this.ctx);
         this.primitiveProgramTextured = new GLSLPrimitiveProgram(this.ctx);
+        this.tileProgram = new GLSLTileProgram(this.ctx);
 
         const buffer = this.ctx.createBuffer();
         if (!buffer) {
@@ -173,6 +179,7 @@ export class CommandWebGL2CommandProcessorFragment {
                 'gPos',
             )!;
         }
+
         {
             const defines = {
                 TW_TEXTURED: '',
@@ -205,6 +212,35 @@ export class CommandWebGL2CommandProcessorFragment {
                     this.primitiveProgramTextured.program,
                     'gTextureSampler',
                 )!;
+        }
+
+        {
+            const vertexShader = new GLSL(
+                this.ctx,
+                (await import('../../shaders/tile.vert?raw')).default,
+                this.ctx.VERTEX_SHADER,
+            );
+            const fragmentShader = new GLSL(
+                this.ctx,
+                (await import('../../shaders/tile.frag?raw')).default,
+                this.ctx.FRAGMENT_SHADER,
+            );
+
+            this.tileProgram.createProgram();
+            this.tileProgram.addShader(vertexShader);
+            this.tileProgram.addShader(fragmentShader);
+            this.tileProgram.linkProgram();
+
+            this.useProgram(this.tileProgram);
+
+            this.tileProgram.locPos = this.tileProgram.getUniformLoc(
+                this.tileProgram.program,
+                'gPos',
+            )!;
+            this.tileProgram.locColor = this.tileProgram.getUniformLoc(
+                this.tileProgram.program,
+                'gVertColor',
+            )!;
         }
 
         const quadDrawIndexBuffer = this.ctx.createBuffer();
@@ -475,8 +511,12 @@ export class CommandWebGL2CommandProcessorFragment {
             return;
         }
 
-        let program = this.primitiveProgram;
+        let program = this.tileProgram;
         this.setState(command.state, program);
+        program.setUniformVec4(
+            program.locColor,
+            new Float32Array(command.color.toArray()),
+        );
 
         if (bufferContainer.lastIndexBufferBound != this.quadDrawIndexBuffer) {
             this.ctx.bindBuffer(

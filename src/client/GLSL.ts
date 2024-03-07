@@ -17,9 +17,24 @@ export class GLSL {
         const definesString = Object.keys(defines)
             .map((key) => `#define ${key} ${defines[key]}`)
             .join('\n');
-        source = '#version 300 es\n' + definesString + '\n' + source;
 
-        this.ctx.shaderSource(shader, source);
+        let shaderSource = "#version 300 es\n";
+
+        if (type === ctx.FRAGMENT_SHADER) {
+            shaderSource += `precision highp float;
+            precision highp sampler2D;
+            precision highp sampler3D;
+            precision highp samplerCube;
+            precision highp samplerCubeShadow;
+            precision highp sampler2DShadow;
+            precision highp sampler2DArray;
+            precision highp sampler2DArrayShadow;
+            `;
+        }
+
+        shaderSource += definesString + '\n' + source;
+
+        this.ctx.shaderSource(shader, shaderSource);
         this.ctx.compileShader(shader);
 
         this.shader = shader;

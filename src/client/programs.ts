@@ -16,3 +16,23 @@ export class GLSLTWProgram extends GLSLProgram {
 }
 
 export class GLSLPrimitiveProgram extends GLSLTWProgram {}
+
+export class GLSLTileProgram extends GLSLTWProgram {
+    locColor: WebGLUniformLocation;
+    locOffset: WebGLUniformLocation;
+    locDir: WebGLUniformLocation;
+    locScale: WebGLUniformLocation;
+    locNum: WebGLUniformLocation;
+    locJumpIndex: WebGLUniformLocation;
+
+    constructor(ctx: WebGL2RenderingContext) {
+        super(ctx);
+
+        this.locColor = -1;
+        this.locOffset = -1;
+        this.locDir = -1;
+        this.locNum = -1;
+        this.locJumpIndex = -1;
+        this.locScale = -1;
+    }
+}

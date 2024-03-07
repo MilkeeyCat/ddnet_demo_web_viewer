@@ -9,6 +9,10 @@ export class ColorRGBA {
     clone(): ColorRGBA {
         return new ColorRGBA(this.r, this.g, this.b, this.a);
     }
+
+    toArray(): [number, number, number, number] {
+        return [this.r, this.g, this.b, this.a];
+    }
 }
 
 export class TexCoord {
