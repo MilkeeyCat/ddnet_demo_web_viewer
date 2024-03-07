@@ -1064,7 +1064,7 @@ export class Graphics {
         this.state.texture = textureId.id;
     }
 
-    createBufferObject(data: Uint8Array): number {
+    createBufferObject(data: ArrayBufferLike): number {
         let index: number;
 
         if (this.firstFreeBufferObjectIndex === -1) {

@@ -257,7 +257,7 @@ export class CommandWebGL2CommandProcessorFragment {
 
         this.textures = new Array(CommandBuffer.MAX_TEXTURES)
             .fill(null)
-            .map((_) => new Texture(null, null));
+            .map(() => new Texture(null, null));
 
         const indices = new Array((CommandBuffer.MAX_VERTICES / 4) * 6);
         let primq = 0;
@@ -423,7 +423,7 @@ export class CommandWebGL2CommandProcessorFragment {
                 i < command.bufferIndex + 1;
                 i++
             ) {
-                this.bufferObjects.push(0);
+                this.bufferObjects.push(-1);
             }
         }
 
@@ -512,6 +512,8 @@ export class CommandWebGL2CommandProcessorFragment {
         }
 
         let program = this.tileProgram;
+
+        this.useProgram(program);
         this.setState(command.state, program);
         program.setUniformVec4(
             program.locColor,
@@ -530,7 +532,7 @@ export class CommandWebGL2CommandProcessorFragment {
             this.ctx.drawElements(
                 this.ctx.TRIANGLES,
                 command.drawCount[i]!,
-                this.ctx.UNSIGNED_INT,
+                this.ctx.UNSIGNED_SHORT,
                 command.indicesOffsets[i]!,
             );
         }
@@ -562,6 +564,9 @@ export class CommandWebGL2CommandProcessorFragment {
                 this.cmdCreateBufferContainer(
                     baseCommand as CommandCreateBufferContainer,
                 );
+                break;
+            case CommandBufferCMD.CMD_RENDER_TILE_LAYER:
+                this.cmdRenderTileLayer(baseCommand as CommandRenderTileLayer);
                 break;
         }
 

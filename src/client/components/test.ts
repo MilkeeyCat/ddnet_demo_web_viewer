@@ -1,44 +1,34 @@
+import {
+    BufferContainerAttribute,
+    BufferContainerInfo,
+} from '../CommandWebGL2CommandProcessorFragment';
+import { GRAPHICS_TYPE_FLOAT } from '../Graphics';
 import { ColorRGBA } from '../common';
 import { Component } from '../component';
-import { CORNER_NONE, TextureHandle } from '../Graphics';
 
 export class Test extends Component {
-    handle: TextureHandle;
+    bufferContainerIndex: number;
 
-    override async onInit(): Promise<void> {}
+    override async onInit(): Promise<void> {
+        const data = new Float32Array([0, 0, 100, 0, 100, 100, 0, 100]);
+        const bufferObjectIndex = this.graphics.createBufferObject(data);
+        const containerInfo = new BufferContainerInfo(0, bufferObjectIndex, [
+            new BufferContainerAttribute(2, GRAPHICS_TYPE_FLOAT, false, 0, 0),
+        ]);
+
+        this.bufferContainerIndex =
+            this.graphics.createBufferContainer(containerInfo);
+    }
 
     override onRender(): void {
-        this.graphics.mapScreen(0, 0, 1, 1);
-        this.graphics.drawRect(
-            0,
-            0,
-            1,
-            1,
+        this.graphics.mapScreen(-200, -200, 200, 200);
+
+        this.graphics.renderTileLayer(
+            this.bufferContainerIndex,
             new ColorRGBA(0.5, 0.5, 0.5, 1),
-            0,
-            CORNER_NONE,
-        );
-
-        this.renderTools.mapScreenToGroup(
-            this.client.camera.center.x,
-            this.client.camera.center.y,
-            {
-                parallaxX: 100,
-                parallaxY: 100,
-                offsetX: 0,
-                offsetY: 0,
-            },
-            this.client.camera.zoom,
-        );
-
-        this.graphics.drawRect(
-            0,
-            0,
-            100,
-            100,
-            new ColorRGBA(1, 1, 1, 1),
-            0,
-            CORNER_NONE,
+            [0],
+            [6],
+            1,
         );
     }
 

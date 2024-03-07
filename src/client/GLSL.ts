@@ -18,7 +18,7 @@ export class GLSL {
             .map((key) => `#define ${key} ${defines[key]}`)
             .join('\n');
 
-        let shaderSource = "#version 300 es\n";
+        let shaderSource = '#version 300 es\n';
 
         if (type === ctx.FRAGMENT_SHADER) {
             shaderSource += `precision highp float;

@@ -135,7 +135,7 @@ export class CommmandTextureCreate extends Command {
 export class CommandCreateBufferObject extends Command {
     constructor(
         public bufferIndex: number,
-        public data: Uint8Array,
+        public data: ArrayBufferLike,
     ) {
         super(CommandBufferCMD.CMD_CREATE_BUFFER_OBJECT);
     }
