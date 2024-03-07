@@ -1,10 +1,6 @@
 import { Command } from './commands';
-//NOTE: dont forget about TypedArray.subarray
 
 export class CommandBuffer {
-    // cmdBuffer
-    // commandCount
-    // dataBuffer
     static PRIMTYPE_INVALID = 0;
     static PRIMTYPE_LINES = 1;
     static PRIMTYPE_QUADS = 2;

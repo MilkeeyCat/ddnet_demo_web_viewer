@@ -10,6 +10,7 @@ import {
     CommandCreateBufferObject,
     CommandInit,
     CommandRender,
+    CommandRenderTileLayer,
     CommandUpdateViewport,
     CommmandTextureCreate,
 } from './commands';
@@ -46,8 +47,8 @@ export class BufferContainerInfo {
 
 class BufferContainer {
     constructor(
-        public vertexArray: WebGLVertexArrayObject,
-        public lastIndexBufferBound: number,
+        public vertexArray: WebGLVertexArrayObject | null,
+        public lastIndexBufferBound: WebGLBuffer,
         public containerInfo: BufferContainerInfo,
     ) {}
 }
@@ -456,6 +457,43 @@ export class CommandWebGL2CommandProcessorFragment {
         bufferContainer.containerInfo.vertBufferBindingIndex =
             command.vertBufferBindingIndex;
         bufferContainer.containerInfo.stride = command.stride;
+    }
+
+    cmdRenderTileLayer(command: CommandRenderTileLayer): void {
+        const index = command.bufferContainerIndex;
+
+        if (index >= this.bufferContainers.length) {
+            return;
+        }
+
+        const bufferContainer = this.bufferContainers[index]!;
+
+        if (
+            bufferContainer.vertexArray === null ||
+            command.indicesDrawNum === 0
+        ) {
+            return;
+        }
+
+        let program = this.primitiveProgram;
+        this.setState(command.state, program);
+
+        if (bufferContainer.lastIndexBufferBound != this.quadDrawIndexBuffer) {
+            this.ctx.bindBuffer(
+                this.ctx.ELEMENT_ARRAY_BUFFER,
+                this.quadDrawIndexBuffer,
+            );
+            bufferContainer.lastIndexBufferBound = this.quadDrawIndexBuffer;
+        }
+
+        for (let i = 0; i < command.indicesDrawNum; i++) {
+            this.ctx.drawElements(
+                this.ctx.TRIANGLES,
+                command.drawCount[i]!,
+                this.ctx.UNSIGNED_INT,
+                command.indicesOffsets[i]!,
+            );
+        }
     }
 
     async runCommand(baseCommand: Command): Promise<RunCommandReturnTypes> {

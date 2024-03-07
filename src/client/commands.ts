@@ -1,4 +1,5 @@
 import { BufferContainerAttribute } from './CommandWebGL2CommandProcessorFragment';
+import { State } from './Graphics';
 import { ColorRGBA, Vertex } from './common';
 
 export enum CommandBufferCMD {
@@ -111,7 +112,7 @@ export class CommandUpdateViewport extends Command {
 
 export class CommandRender extends Command {
     constructor(
-        public state: any,
+        public state: State,
         public primType: number,
         public primCount: number,
         public vertices: Vertex[],
@@ -148,6 +149,19 @@ export class CommandCreateBufferContainer extends Command {
         public attributes: BufferContainerAttribute[],
     ) {
         super(CommandBufferCMD.CMD_CREATE_BUFFER_CONTAINER);
+    }
+}
+
+export class CommandRenderTileLayer extends Command {
+    constructor(
+        public state: State,
+        public color: ColorRGBA,
+        public indicesOffsets: number[],
+        public drawCount: number[],
+        public indicesDrawNum: number,
+        public bufferContainerIndex: number,
+    ) {
+        super(CommandBufferCMD.CMD_RENDER_TILE_LAYER);
     }
 }
 

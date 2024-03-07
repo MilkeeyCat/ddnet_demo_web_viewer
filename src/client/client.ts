@@ -63,15 +63,6 @@ export class Client {
             if (target.files && target.files[0]) {
                 const data = await target.files[0].arrayBuffer();
                 this.demo = new DemoReader(new Uint8Array(data));
-
-                const img = this.demo.demo.map.images[29]!;
-                this.test.handle = this.graphics.loadTexture(
-                    img.width,
-                    img.height,
-                    img.data!,
-                );
-
-                //console.log(this.demo);
             }
         };
 

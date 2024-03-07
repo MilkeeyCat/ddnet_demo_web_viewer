@@ -1,5 +1,3 @@
-//NOTE: kill me, its garbage
-
 import { clampf } from '@/utils/clampf';
 import { CommandBuffer } from './CommandBuffer';
 import { GraphicsBackend } from './GraphicsBackend';
@@ -10,6 +8,7 @@ import {
     CommandCreateBufferObject,
     CommandInit,
     CommandRender,
+    CommandRenderTileLayer,
     CommandUpdateViewport,
     CommmandTextureCreate,
 } from './commands';
@@ -1108,5 +1107,25 @@ export class Graphics {
         this.addCmd(cmd);
 
         return index;
+    }
+
+    renderTileLayer(
+        bufferContainerIndex: number,
+        color: ColorRGBA,
+        offsets: number[],
+        indicedVertexDrawNum: number[],
+        numIndicesOffset: number,
+    ): void {
+        const cmd = new CommandRenderTileLayer(
+            this.state.clone(),
+            color,
+            offsets,
+            indicedVertexDrawNum,
+            numIndicesOffset,
+            bufferContainerIndex,
+        );
+
+        this.addCmd(cmd);
+        this.commandBuffer.addRenderCalls(numIndicesOffset);
     }
 }
