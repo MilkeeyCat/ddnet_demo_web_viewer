@@ -3,8 +3,7 @@
 ## What it can do now
 <div align="center">
 
-![Screenshot](images/progress.png)
+![Recording of da thing](images/pog.mp4)
 
 </div>
-It can draw a rectangle, how cool is that!? Also you can draw a rounded rectangle!
-Also you can set a custom background color and last but not least, rotated rectangle! As you can see it has a lot of features.
+So far it can only load a map and display tiles and textureless squares but that's at least something, am I right???
