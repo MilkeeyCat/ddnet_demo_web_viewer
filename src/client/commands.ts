@@ -165,6 +165,12 @@ export class CommandRenderTileLayer extends Command {
     }
 }
 
+export class CommandIndicesRequiredNumNotify extends Command {
+    constructor(public requiredIndicesNum: number) {
+        super(CommandBufferCMD.CMD_INDICES_REQUIRED_NUM_NOTIFY);
+    }
+}
+
 export class CommandInit extends Command {
     constructor() {
         super(10_000 + 1);

@@ -7,7 +7,7 @@ export function parseI32String(
     const bytes = Array.from(data)
         .map((number) => BeI32.fromI32(number).map((byte) => byte - 128))
         .flat();
-    bytes.pop();
+    bytes.splice(bytes.indexOf(0));
 
     return textDecoder.decode(new Uint8Array(bytes));
 }

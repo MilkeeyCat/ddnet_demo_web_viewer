@@ -6,6 +6,7 @@ import {
     CommandClear,
     CommandCreateBufferContainer,
     CommandCreateBufferObject,
+    CommandIndicesRequiredNumNotify,
     CommandInit,
     CommandRender,
     CommandRenderTileLayer,
@@ -1127,5 +1128,11 @@ export class Graphics {
 
         this.addCmd(cmd);
         this.commandBuffer.addRenderCalls(numIndicesOffset);
+    }
+
+    indicesNumRequiredNotify(requiredIndicesCount: number): void {
+        const cmd = new CommandIndicesRequiredNumNotify(requiredIndicesCount);
+
+        this.addCmd(cmd);
     }
 }

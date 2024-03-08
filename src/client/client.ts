@@ -7,6 +7,7 @@ import { Camera } from './components/camera';
 import { Controls } from './components/controls';
 import { Test } from './components/test';
 import { RenderTools } from './render';
+import { GameLayer } from '@/datafile/Layer';
 
 export class Client {
     canvas: HTMLCanvasElement;
@@ -22,6 +23,9 @@ export class Client {
     test: Test;
     controls: Controls;
     camera: Camera;
+
+    //TODO: remove this cringe
+    gameLayer: GameLayer;
 
     pointerLocked: boolean;
 
@@ -62,7 +66,7 @@ export class Client {
 
             if (target.files && target.files[0]) {
                 const data = await target.files[0].arrayBuffer();
-                this.demo = new DemoReader(new Uint8Array(data));
+                this.onDemoLoad(new Uint8Array(data));
             }
         };
 
@@ -98,6 +102,24 @@ export class Client {
 
         for (const component of this.components) {
             await component.onInit();
+        }
+    }
+
+    onDemoLoad(data: Uint8Array) {
+        this.demo = new DemoReader(data);
+
+        for (const group of this.demo.demo.map.groups) {
+            if (group.name === 'Game') {
+                for (const layer of group.layers) {
+                    if (layer instanceof GameLayer) {
+                        this.gameLayer = layer;
+                    }
+                }
+            }
+        }
+
+        for (const component of this.components) {
+            component.onMapLoad();
         }
     }
 

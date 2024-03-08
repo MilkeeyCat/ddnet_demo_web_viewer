@@ -27,6 +27,7 @@ export class Component {
     onReset(): void {}
     onWindowResize(): void {}
     onRender(): void {}
+    onMapLoad(): void {}
     onRelease(): void {}
     onCursorMove(_x: number, _y: number): void {}
     onInput(): void {}

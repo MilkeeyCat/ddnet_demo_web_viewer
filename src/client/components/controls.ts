@@ -13,8 +13,16 @@ export class Controls extends Component {
     }
 
     clampMousePos() {
-        const w = 2210;
-        const h = 110;
+        let w: number;
+        let h: number;
+
+        if (this.client.gameLayer) {
+            w = this.client.gameLayer.tiles.loadInfo.size[0];
+            h = this.client.gameLayer.tiles.loadInfo.size[1];
+        } else {
+            w = 1;
+            h = 1;
+        }
 
         this.mousePos.x = clampf(this.mousePos.x, -201 * 32, (w + 201) * 32);
         this.mousePos.y = clampf(this.mousePos.y, -201 * 32, (h + 201) * 32);

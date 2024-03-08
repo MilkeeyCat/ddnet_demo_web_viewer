@@ -8,6 +8,7 @@ import {
     CommandClear,
     CommandCreateBufferContainer,
     CommandCreateBufferObject,
+    CommandIndicesRequiredNumNotify,
     CommandInit,
     CommandRender,
     CommandRenderTileLayer,
@@ -76,6 +77,7 @@ export class CommandWebGL2CommandProcessorFragment {
     lastStreamBuffer: number;
     textures: Texture[];
     quadDrawIndexBuffer: WebGLBuffer;
+    currentIndicesInBuffer: number;
     bufferObjects: WebGLBuffer[];
     bufferContainers: BufferContainer[];
 
@@ -275,9 +277,11 @@ export class CommandWebGL2CommandProcessorFragment {
 
         this.ctx.bufferData(
             this.ctx.ELEMENT_ARRAY_BUFFER,
-            new Uint16Array(indices),
+            new Uint32Array(indices),
             this.ctx.STATIC_DRAW,
         );
+
+        this.currentIndicesInBuffer = (CommandBuffer.MAX_VERTICES / 4) * 6;
     }
 
     useProgram(program: GLSLProgram): void {
@@ -364,7 +368,7 @@ export class CommandWebGL2CommandProcessorFragment {
                 this.ctx.drawElements(
                     this.ctx.TRIANGLES,
                     command.primCount * 6,
-                    this.ctx.UNSIGNED_SHORT,
+                    this.ctx.UNSIGNED_INT,
                     0,
                 );
 
@@ -532,9 +536,61 @@ export class CommandWebGL2CommandProcessorFragment {
             this.ctx.drawElements(
                 this.ctx.TRIANGLES,
                 command.drawCount[i]!,
-                this.ctx.UNSIGNED_SHORT,
+                this.ctx.UNSIGNED_INT,
                 command.indicesOffsets[i]!,
             );
+        }
+    }
+
+    cmdIndicesRequiredNumNotify(
+        command: CommandIndicesRequiredNumNotify,
+    ): void {
+        if (command.requiredIndicesNum > this.currentIndicesInBuffer) {
+            const addCount =
+                command.requiredIndicesNum - this.currentIndicesInBuffer;
+            const indices = new Array<number>(addCount);
+            let primq = (this.currentIndicesInBuffer / 6) * 4;
+
+            for (let i = 0; i < addCount; i += 6) {
+                indices[i] = primq;
+                indices[i + 1] = primq + 1;
+                indices[i + 2] = primq + 2;
+                indices[i + 3] = primq;
+                indices[i + 4] = primq + 2;
+                indices[i + 5] = primq + 3;
+                primq += 4;
+            }
+
+            this.ctx.bindBuffer(
+                this.ctx.COPY_READ_BUFFER,
+                this.quadDrawIndexBuffer,
+            );
+            const newIndexBuffer = this.ctx.createBuffer()!;
+            this.ctx.bindBuffer(this.ctx.ELEMENT_ARRAY_BUFFER, newIndexBuffer);
+            this.ctx.bufferData(
+                this.ctx.ELEMENT_ARRAY_BUFFER,
+                command.requiredIndicesNum * 4,
+                this.ctx.STATIC_DRAW,
+            );
+            this.ctx.copyBufferSubData(
+                this.ctx.COPY_READ_BUFFER,
+                this.ctx.ELEMENT_ARRAY_BUFFER,
+                0,
+                0,
+                this.currentIndicesInBuffer * 4,
+            );
+            this.ctx.bufferSubData(
+                this.ctx.ELEMENT_ARRAY_BUFFER,
+                this.currentIndicesInBuffer * 4,
+                new Uint32Array(indices),
+            );
+            this.ctx.bindBuffer(this.ctx.ELEMENT_ARRAY_BUFFER, null);
+            this.ctx.bindBuffer(this.ctx.COPY_READ_BUFFER, null);
+
+            this.ctx.deleteBuffer(this.quadDrawIndexBuffer);
+            this.quadDrawIndexBuffer = newIndexBuffer;
+
+            this.currentIndicesInBuffer = command.requiredIndicesNum;
         }
     }
 
@@ -567,6 +623,11 @@ export class CommandWebGL2CommandProcessorFragment {
                 break;
             case CommandBufferCMD.CMD_RENDER_TILE_LAYER:
                 this.cmdRenderTileLayer(baseCommand as CommandRenderTileLayer);
+                break;
+            case CommandBufferCMD.CMD_INDICES_REQUIRED_NUM_NOTIFY:
+                this.cmdIndicesRequiredNumNotify(
+                    baseCommand as CommandIndicesRequiredNumNotify,
+                );
                 break;
         }
 
