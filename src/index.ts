@@ -1,6 +1,6 @@
 import { createClient } from './client/client';
 
-async function main() {
+async function main(): Promise<void> {
     const canvas = document.querySelector<HTMLCanvasElement>('#canvas');
 
     if (!canvas) {

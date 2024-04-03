@@ -1,0 +1,23 @@
+name: CI
+
+on: [push]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          npm install -g pnpm
+          pnpm install
+          pnpm run test
+  style:
+    name: check formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          npm install -g pnpm
+          pnpm install
+          pnpm run format:check
+

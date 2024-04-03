@@ -1,4 +1,3 @@
-import { GameLayer } from '@/datafile/Layer';
 import {
     BufferContainerAttribute,
     BufferContainerInfo,
