@@ -1,19 +1,21 @@
 export class GLSL {
-    ctx: WebGLRenderingContext;
-    shader: WebGLShader;
-
-    constructor(
-        ctx: WebGLRenderingContext,
-        source: string,
-        type: number,
-        defines: Record<string, string> = {},
-    ) {
+    /**
+     * @param {WebGL2RenderingContext} ctx
+     * @param {string} source
+     * @param {number} type
+     * @param {Object.<string, string>} [defines = {}]
+     */
+    constructor(ctx, source, type, defines = {}) {
+        /** @type {WebGL2RenderingContext} */
         this.ctx = ctx;
+
+        /** @type {?WebGLShader} */
         const shader = ctx.createShader(type);
         if (!shader) {
             throw new Error('Failed to generate a shader');
         }
 
+        /** @type {string} */
         const definesString = Object.keys(defines)
             .map((key) => `#define ${key} ${defines[key]}`)
             .join('\n');
@@ -37,10 +39,11 @@ export class GLSL {
         this.ctx.shaderSource(shader, shaderSource);
         this.ctx.compileShader(shader);
 
+        /** @type {WebGLShader} */
         this.shader = shader;
     }
 
-    deleteShader(): void {
+    deleteShader() {
         this.ctx.deleteShader(this.shader);
     }
 }

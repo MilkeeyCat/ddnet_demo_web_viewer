@@ -2,10 +2,19 @@ import { clampf } from '@/utils/clampf';
 import { Graphics } from './Graphics';
 
 export class RenderTools {
-    constructor(public graphics: Graphics) {}
+    /** @param {Graphics} graphics */
+    constructor(graphics) {
+        this.graphics = graphics;
+    }
 
-    calcScreenParams(aspect: number, zoom: number): [number, number] {
-        let width, heigth;
+    /**
+     * @param {number} aspect
+     * @param {number} zoom
+     * @returns {[number, number]}
+     */
+    calcScreenParams(aspect, zoom) {
+        let width;
+        let heigth;
 
         const amount = 1150 * 1000;
         const wMax = 1500;
@@ -32,24 +41,36 @@ export class RenderTools {
         return [width, heigth];
     }
 
+    /**
+     * @param {number} centerX
+     * @param {number} centerY
+     * @param {number} parallaxX
+     * @param {number} parallaxY
+     * @param {number} parallaxZoom
+     * @param {number} offsetX
+     * @param {number} offsetY
+     * @param {number} aspect
+     * @param {number} zoom
+     * @returns {[number, number, number, number]}
+     */
     mapScreenToWorld(
-        centerX: number,
-        centerY: number,
-        parallaxX: number,
-        parallaxY: number,
-        parallaxZoom: number,
-        offsetX: number,
-        offsetY: number,
-        aspect: number,
-        zoom: number,
-    ): [number, number, number, number] {
+        centerX,
+        centerY,
+        parallaxX,
+        parallaxY,
+        parallaxZoom,
+        offsetX,
+        offsetY,
+        aspect,
+        zoom,
+    ) {
         let [width, height] = this.calcScreenParams(aspect, zoom);
 
         const scale = (parallaxZoom * (zoom - 1) + 100) / 100 / zoom;
         width *= scale;
         height *= scale;
 
-        let points = [0, 0, 0, 0] as [number, number, number, number];
+        let points = [0, 0, 0, 0];
 
         centerX *= parallaxX / 100;
         centerY *= parallaxY / 100;
@@ -58,20 +79,23 @@ export class RenderTools {
         points[2] = points[0] + width;
         points[3] = points[1] + height;
 
-        return points;
+        return /** @type {[number, number, number, number]} */ (points);
     }
 
-    mapScreenToGroup(
-        centerX: number,
-        centerY: number,
-        group: any,
-        zoom: number,
-    ): void {
+    /**
+     * @param {number} centerX
+     * @param {number} centerY
+     * @param {any} group What the fuck is that?
+     * @param {number} zoom
+     */
+    mapScreenToGroup(centerX, centerY, group, zoom) {
+        /** @type {number} */
         const paralaxZoom = clampf(
             Math.max(group.parallaxX, group.parallaxY),
             0,
             100,
         );
+        /** @type {[number, number, number, number]} */
         const points = this.mapScreenToWorld(
             centerX,
             centerY,

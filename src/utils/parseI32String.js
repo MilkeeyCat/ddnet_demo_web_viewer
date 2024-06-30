@@ -1,9 +1,12 @@
 import { BeI32 } from './nums';
 
-export function parseI32String(
-    data: Int32Array,
-    textDecoder: TextDecoder,
-): string {
+/**
+ * @param {Int32Array} data
+ * @param {TextDecoder} textDecoder
+ * @returns {string}
+ */
+export function parseI32String(data, textDecoder) {
+    /** @type {number[]} */
     const bytes = Array.from(data)
         .map((number) => BeI32.fromI32(number).map((byte) => byte - 128))
         .flat();

@@ -16,17 +16,17 @@ export class CommandBuffer {
     static WRAP_REPEAT = 0;
     static WRAP_CLAMP = 1;
 
-    renderCallCount: number;
-    cmdBufferHead: Command | null;
-    cmdBufferTail: Command | null;
-
     constructor() {
+        /** @type {?Command} */
         this.cmdBufferHead = null;
+        /** @type {?Command} */
         this.cmdBufferTail = null;
+        /** @type {number} */
         this.renderCallCount = 0;
     }
 
-    addCommand(command: Command): void {
+    /** @param {Command} command */
+    addCommand(command) {
         if (this.cmdBufferTail) {
             this.cmdBufferTail.next = command;
         }
@@ -38,11 +38,12 @@ export class CommandBuffer {
         this.cmdBufferTail = command;
     }
 
-    reset(): void {
+    reset() {
         this.cmdBufferHead = this.cmdBufferTail = null;
     }
 
-    addRenderCalls(count: number): void {
+    /** @param {number} count */
+    addRenderCalls(count) {
         this.renderCallCount += count;
     }
 }

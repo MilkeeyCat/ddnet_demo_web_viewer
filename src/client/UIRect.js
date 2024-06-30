@@ -2,28 +2,38 @@ import { Graphics } from './Graphics';
 import { ColorRGBA, Point } from './common';
 
 export class UIRect {
-    static graphics: Graphics;
+    /** @type {Graphics} */
+    static graphics;
 
-    constructor(
-        public x: number,
-        public y: number,
-        public w: number,
-        public h: number,
-    ) {}
+    /**
+     * @param {number} x
+     * @param {number} y
+     * @param {number} w
+     * @param {number} h
+     */
+    constructor(x, y, w, h) {
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+    }
 
-    static default(): UIRect {
+    /** @returns {UIRect} */
+    static default() {
         return new UIRect(0, 0, 0, 0);
     }
 
-    static init(graphics: Graphics): void {
+    /** @param {Graphics} graphics */
+    static init(graphics) {
         UIRect.graphics = graphics;
     }
 
-    hSplitMid(
-        top: UIRect | null,
-        bottom: UIRect | null,
-        spacing: number,
-    ): void {
+    /**
+     * @param {?UIRect} top
+     * @param {?UIRect} bottom
+     * @param {number} spacing
+     */
+    hSplitMid(top, bottom, spacing) {
         const cut = this.h / 2;
         const halfSpacing = spacing / 2;
 
@@ -42,7 +52,12 @@ export class UIRect {
         }
     }
 
-    hSplitTop(cut: number, top: UIRect | null, bottom: UIRect | null): void {
+    /**
+     * @param {number} cut
+     * @param {?UIRect} top
+     * @param {?UIRect} bottom
+     */
+    hSplitTop(cut, top, bottom) {
         if (top) {
             top.x = this.x;
             top.y = this.y;
@@ -58,7 +73,12 @@ export class UIRect {
         }
     }
 
-    hSplitBottom(cut: number, top: UIRect | null, bottom: UIRect | null): void {
+    /**
+     * @param {number} cut
+     * @param {?UIRect} top
+     * @param {?UIRect} bottom
+     */
+    hSplitBottom(cut, top, bottom) {
         if (top) {
             top.x = this.x;
             top.y = this.y;
@@ -74,11 +94,12 @@ export class UIRect {
         }
     }
 
-    vSplitMid(
-        left: UIRect | null,
-        right: UIRect | null,
-        spacing: number,
-    ): void {
+    /**
+     * @param {?UIRect} left
+     * @param {?UIRect} right
+     * @param {number} spacing
+     */
+    vSplitMid(left, right, spacing) {
         const cut = this.w / 2;
         const halfSpacing = spacing / 2;
 
@@ -97,7 +118,12 @@ export class UIRect {
         }
     }
 
-    vSplitLeft(cut: number, left: UIRect | null, right: UIRect | null): void {
+    /**
+     * @param {number} cut
+     * @param {?UIRect} left
+     * @param {?UIRect} right
+     */
+    vSplitLeft(cut, left, right) {
         if (left) {
             left.x = this.x;
             left.y = this.y;
@@ -113,7 +139,12 @@ export class UIRect {
         }
     }
 
-    vSplitRight(cut: number, left: UIRect | null, right: UIRect | null): void {
+    /**
+     * @param {number} cut
+     * @param {?UIRect} left
+     * @param {?UIRect} right
+     */
+    vSplitRight(cut, left, right) {
         if (left) {
             left.x = this.x;
             left.y = this.y;
@@ -129,26 +160,47 @@ export class UIRect {
         }
     }
 
-    _margin(cut: Point, rect: UIRect): void {
+    /**
+     * @param {Point} cut
+     * @param {UIRect} rect
+     */
+    _margin(cut, rect) {
         rect.x = this.x + cut.x;
         rect.y = this.y + cut.y;
         rect.w = this.w - 2 * cut.x;
         rect.h = this.h - 2 * cut.y;
     }
 
-    margin(cut: number, rect: UIRect): void {
+    /**
+     * @param {number} cut
+     * @param {UIRect} rect
+     */
+    margin(cut, rect) {
         this._margin(new Point(cut, cut), rect);
     }
 
-    vMargin(cut: number, rect: UIRect): void {
+    /**
+     * @param {number} cut
+     * @param {UIRect} rect
+     */
+    vMargin(cut, rect) {
         this._margin(new Point(cut, 0), rect);
     }
 
-    hMargin(cut: number, rect: UIRect): void {
+    /**
+     * @param {number} cut
+     * @param {UIRect} rect
+     */
+    hMargin(cut, rect) {
         this._margin(new Point(0, cut), rect);
     }
 
-    inside(x: number, y: number): boolean {
+    /**
+     * @param {number} x
+     * @param {number} y
+     * @returns {boolean}
+     */
+    inside(x, y) {
         return (
             x >= this.x &&
             x < this.x + this.w &&
@@ -157,7 +209,12 @@ export class UIRect {
         );
     }
 
-    draw(color: ColorRGBA, corners: number, rounding: number): void {
+    /**
+     * @param {ColorRGBA} color
+     * @param {number} corners
+     * @param {number} rounding
+     */
+    draw(color, corners, rounding) {
         UIRect.graphics.drawRect(
             this.x,
             this.y,
@@ -169,14 +226,22 @@ export class UIRect {
         );
     }
 
+    /**
+     * @param {ColorRGBA} colorTopLeft
+     * @param {ColorRGBA} colorTopRight
+     * @param {ColorRGBA} colorBottomLeft
+     * @param {ColorRGBA} colorBottomRight
+     * @param {number} rounding
+     * @param {number} corners
+     */
     draw4(
-        colorTopLeft: ColorRGBA,
-        colorTopRight: ColorRGBA,
-        colorBottomLeft: ColorRGBA,
-        colorBottomRight: ColorRGBA,
-        corners: number,
-        rounding: number,
-    ): void {
+        colorTopLeft,
+        colorTopRight,
+        colorBottomLeft,
+        colorBottomRight,
+        corners,
+        rounding,
+    ) {
         UIRect.graphics.drawRect4(
             this.x,
             this.y,
@@ -191,7 +256,10 @@ export class UIRect {
         );
     }
 
-    center(): Point {
+    /**
+     * @returns {Point}
+     */
+    center() {
         return new Point(this.x + this.w / 2, this.y + this.h / 2);
     }
 }

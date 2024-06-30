@@ -10,33 +10,25 @@ import { RenderTools } from './render';
 import { GameLayer } from '@/datafile/Layer';
 
 export class Client {
-    canvas: HTMLCanvasElement;
-    input: HTMLInputElement;
-    ctx: WebGL2RenderingContext;
-    graphics: Graphics;
-    components: Component[];
-
-    ui: UI;
-    renderTools: RenderTools;
-    demo: DemoReader;
-
-    test: Test;
-    controls: Controls;
-    camera: Camera;
-
-    //TODO: remove this cringe
-    gameLayer: GameLayer;
-
-    pointerLocked: boolean;
-
-    constructor(canvas: HTMLCanvasElement, input: HTMLInputElement) {
+    /**
+     * @param {HTMLCanvasElement} canvas
+     * @param {HTMLInputElement} input
+     */
+    constructor(canvas, input) {
+        /** @type {HTMLCanvasElement} */
         this.canvas = canvas;
+        /** @type {HTMLInputElement} */
         this.input = input;
+
+        /** @type {?WebGL2RenderingContext} */
         const ctx = this.canvas.getContext('webgl2');
         if (!ctx) {
             throw new Error('failed to get context');
         }
+
+        /** @type {WebGL2RenderingContext} */
         this.ctx = ctx;
+        /** @type {Graphics} */
         this.graphics = new Graphics(this.ctx);
 
         window.addEventListener('resize', () => {
@@ -46,6 +38,7 @@ export class Client {
             this.onWindowResize();
         });
 
+        /** @type {boolean} */
         this.pointerLocked = false;
         window.addEventListener('click', (_) => {
             if (this.pointerLocked) {
@@ -62,9 +55,10 @@ export class Client {
         });
 
         this.input.onchange = async (e) => {
-            const target = e.target as HTMLInputElement;
+            const target = /** @type {!HTMLInputElement} */ (e.target);
 
             if (target.files && target.files[0]) {
+                /** @type {ArrayBuffer} */
                 const data = await target.files[0].arrayBuffer();
                 this.onDemoLoad(new Uint8Array(data));
             }
@@ -84,18 +78,22 @@ export class Client {
             }
         });
 
-        //components
+        /** @type {Test} */
         this.test = new Test(this);
+        /** @type {Controls} */
         this.controls = new Controls(this);
+        /** @type {Camera} */
         this.camera = new Camera(this);
-
+        /** @type {Component[]} */
         this.components = [this.test, this.controls, this.camera];
     }
 
-    async init(): Promise<void> {
+    async init() {
         await this.graphics.init(this.canvas.width, this.canvas.height);
 
+        /** @type {UI} */
         this.ui = new UI(this.graphics);
+        /** @type {RenderTools} */
         this.renderTools = new RenderTools(this.graphics);
         //move it to UI class
         UIRect.init(this.graphics);
@@ -105,13 +103,16 @@ export class Client {
         }
     }
 
-    onDemoLoad(data: Uint8Array) {
+    /** @param {Uint8Array} data */
+    onDemoLoad(data) {
+        /** @type {DemoReader} */
         this.demo = new DemoReader(data);
 
         for (const group of this.demo.demo.map.groups) {
             if (group.name === 'Game') {
                 for (const layer of group.layers) {
                     if (layer instanceof GameLayer) {
+                        /** @type {GameLayer} */
                         this.gameLayer = layer;
                     }
                 }
@@ -123,11 +124,11 @@ export class Client {
         }
     }
 
-    run(): void {
+    run() {
         window.requestAnimationFrame(() => this.render());
     }
 
-    render(): void {
+    render() {
         this.graphics.clear(0, 0, 0, false);
 
         for (const component of this.components) {
@@ -138,7 +139,7 @@ export class Client {
         window.requestAnimationFrame(() => this.render());
     }
 
-    onWindowResize(): void {
+    onWindowResize() {
         for (const component of this.components) {
             component.onWindowResize();
         }
@@ -146,7 +147,8 @@ export class Client {
         this.graphics.gotResized(this.canvas.width, this.canvas.height);
     }
 
-    onMouseMove(e: MouseEvent): void {
+    /** @param {MouseEvent} e */
+    onMouseMove(e) {
         for (const component of this.components) {
             component.onCursorMove(e.movementX, e.movementY);
         }
@@ -155,10 +157,12 @@ export class Client {
 
 //NOTE: i dont really like making functions which create
 //instance of a class but it's the best way i could do it
-export async function createClient(
-    canvas: HTMLCanvasElement,
-    input: HTMLInputElement,
-): Promise<Client> {
+/**
+ * @param {HTMLCanvasElement} canvas
+ * @param {HTMLInputElement} input
+ * @returns {Promise<Client>}
+ */
+export async function createClient(canvas, input) {
     const client = new Client(canvas, input);
     await client.init();
 

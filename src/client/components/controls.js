@@ -4,17 +4,21 @@ import { Point } from '../common';
 import { Component } from '../component';
 
 export class Controls extends Component {
-    mousePos: Point;
+    //mousePos: Point;
 
-    constructor(client: Client) {
+    /** @param {Client} client */
+    constructor(client) {
         super(client);
 
+        /** @type {Point} */
         this.mousePos = new Point(0, 0);
     }
 
     clampMousePos() {
-        let w: number;
-        let h: number;
+        /** @type {number} */
+        let w;
+        /** @type {number} */
+        let h;
 
         if (this.client.gameLayer) {
             w = this.client.gameLayer.tiles.loadInfo.size[0];
@@ -28,7 +32,12 @@ export class Controls extends Component {
         this.mousePos.y = clampf(this.mousePos.y, -201 * 32, (h + 201) * 32);
     }
 
-    override onCursorMove(x: number, y: number) {
+    /**
+     * @override
+     * @param {number} x
+     * @param {number} y
+     */
+    onCursorMove(x, y) {
         this.mousePos.x += x;
         this.mousePos.y += y;
 

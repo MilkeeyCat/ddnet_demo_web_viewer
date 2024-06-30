@@ -3,18 +3,20 @@ import { CommandWebGL2CommandProcessorFragment } from './CommandWebGL2CommandPro
 import { RunCommandReturnTypes } from './enums';
 
 export class CommandProcessor {
-    glBackend: CommandWebGL2CommandProcessorFragment;
-
-    constructor(ctx: WebGL2RenderingContext) {
+    /** @param {WebGL2RenderingContext} ctx */
+    constructor(ctx) {
+        /** @type {CommandWebGL2CommandProcessorFragment} */
         this.glBackend = new CommandWebGL2CommandProcessorFragment(ctx);
     }
 
-    async runBuffer(buffer: CommandBuffer): Promise<void> {
+    /** @param {CommandBuffer} buffer */
+    async runBuffer(buffer) {
         for (
             let command = buffer.cmdBufferHead;
             command;
             command = command.next
         ) {
+            /** @type {number} */
             const res = await this.glBackend.runCommand(command);
             if (res == RunCommandReturnTypes.RUN_COMMAND_COMMAND_HANDLED) {
                 continue;

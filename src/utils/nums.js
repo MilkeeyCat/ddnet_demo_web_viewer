@@ -1,5 +1,9 @@
 export class LeI32 {
-    static fromI32(num: number): [number, number, number, number] {
+    /**
+     * @param {number} num
+     * @returns {[number, number, number, number]}
+     */
+    static fromI32(num) {
         return [
             num & 0xff,
             (num >> 8) & 0xff,
@@ -10,7 +14,11 @@ export class LeI32 {
 }
 
 export class BeI32 {
-    static fromI32(num: number): [number, number, number, number] {
+    /**
+     * @param {number} num
+     * @returns {[number, number, number, number]}
+     */
+    static fromI32(num) {
         return [
             (num >> 24) & 0xff,
             (num >> 16) & 0xff,

@@ -1,9 +1,17 @@
 //fun fact JS cant work with 128 bits numbers. :madge: just gonna use 32 instead
 
 export class Uuid {
-    constructor(public bytes: Uint8Array) {}
+    /** @param {Uint8Array} bytes */
+    constructor(bytes) {
+        /** @type {Uint8Array} */
+        this.bytes = bytes;
+    }
 
-    static fromU32(data: [number, number, number, number]): Uuid {
+    /**
+     * @param {[number, number, number, number]} data
+     * @returns {Uuid}
+     */
+    static fromU32(data) {
         return new Uuid(
             new Uint8Array([
                 data[0] >> 24,
