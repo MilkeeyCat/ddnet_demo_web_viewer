@@ -24,38 +24,76 @@ import {
 } from './programs';
 
 class Texture {
-    constructor(
-        public tex: WebGLTexture | null,
-        public sampler: WebGLSampler | null,
-    ) {}
+    /**
+     * @param {?WebGLTexture} tex
+     * @param {?WebGLSampler} sampler
+     */
+    constructor(tex, sampler) {
+        /** @type {?WebGLTexture} */
+        this.tex = tex;
+        /** @type {?WebGLSampler} */
+        this.sampler = sampler;
+    }
 }
 
 export class BufferContainerAttribute {
+    /**
+     * @param {number} dataTypeCount
+     * @param {number} type
+     * @param {boolean} normalized
+     * @param {number} offset
+     * @param {number} funcType 0 - float, 1 - integer
+     */
     constructor(
-        public dataTypeCount: number,
-        public type: number,
-        public normalized: boolean,
-        public offset: number,
-
-        //0: float, 1:integer
-        public funcType: number,
-    ) {}
+        dataTypeCount,
+        type,
+        normalized,
+        offset,
+        funcType,
+    ) {
+        /** @type number */
+        this.dataTypeCount = dataTypeCount;
+        /** @type number */
+        this.type = type;
+        /** @type boolean */
+        this.normalized = normalized;
+        /** @type number */
+        this.offset = offset;
+        /** @type number */
+        this.funcType = funcType;
+    }
 }
 
 export class BufferContainerInfo {
-    constructor(
-        public stride: number,
-        public vertBufferBindingIndex: number,
-        public attributes: BufferContainerAttribute[],
-    ) {}
+    /**
+     * @param {number} stride
+     * @param {number} vertBufferBindingIndex
+     * @param {BufferContainerAttribute[]} attributes
+     */
+    constructor(stride, vertBufferBindingIndex, attributes) {
+        /** @type {number} */
+        this.stride = stride;
+        /** @type {number} */
+        this.vertBufferBindingIndex = vertBufferBindingIndex;
+        /** @type {BufferContainerAttribute[]} */
+        this.attributes = attributes;
+    }
 }
 
 class BufferContainer {
-    constructor(
-        public vertexArray: WebGLVertexArrayObject | null,
-        public lastIndexBufferBound: WebGLBuffer,
-        public containerInfo: BufferContainerInfo,
-    ) {}
+    /**
+     * @param {?WebGLVertexArrayObject} vertexArray
+     * @param {WebGLBuffer} lastIndexBufferBound
+     * @param {BufferContainerInfo} containerInfo
+     */
+    constructor(vertexArray, lastIndexBufferBound, containerInfo) {
+        /** @type {?WebGLVertexArrayObject} */
+        this.vertexArray = vertexArray;
+        /** @type {WebGLBuffer} */
+        this.lastIndexBufferBound = lastIndexBufferBound;
+        /** @type {BufferContainerInfo} */
+        this.containerInfo = containerInfo;
+    }
 }
 
 const MAX_STREAM_BUFFER_COUNT = 10;
@@ -66,38 +104,34 @@ export class CommandWebGL2CommandProcessorFragment {
     static CMD_SHUTDOWN = CommandBufferCMD.CMDGROUP_PLATFORM_GL + 2;
     static CMD_POST_SHUTDOWN = CommandBufferCMD.CMDGROUP_PLATFORM_GL + 3;
 
-    primitiveProgram: GLSLPrimitiveProgram;
-    primitiveProgramTextured: GLSLPrimitiveProgram;
-    tileProgram: GLSLTileProgram;
+    /** @param {WebGL2RenderingContext} ctx */
+    constructor(ctx) {
+        this.ctx = ctx;
+    }
 
-    primitiveDrawVertex: WebGLBuffer[];
-    primitiveDrawVertexTex3d: WebGLBuffer;
-    primitiveDrawBufferTex3d: WebGLBuffer;
-    primitiveDrawBuffer: WebGLBuffer[];
-    lastStreamBuffer: number;
-    textures: Texture[];
-    quadDrawIndexBuffer: WebGLBuffer;
-    currentIndicesInBuffer: number;
-    bufferObjects: WebGLBuffer[];
-    bufferContainers: BufferContainer[];
-
-    constructor(public ctx: WebGL2RenderingContext) {}
-
-    async cmdInit(_command: CommandInit): Promise<void> {
+    /** @param {CommandInit} _command */
+    async cmdInit(_command) {
+        /** @type {WebGLBuffer[]} */
         this.bufferObjects = [];
+        /** @type {BufferContainer[]} */
         this.bufferContainers = [];
+
         this.ctx.activeTexture(this.ctx.TEXTURE0);
 
+        /** @type {GLSLPrimitiveProgram} */
         this.primitiveProgram = new GLSLPrimitiveProgram(this.ctx);
+        /** @type {GLSLPrimitiveProgram} */
         this.primitiveProgramTextured = new GLSLPrimitiveProgram(this.ctx);
+        /** @type {GLSLTileProgram} */
         this.tileProgram = new GLSLTileProgram(this.ctx);
 
         const buffer = this.ctx.createBuffer();
         if (!buffer) {
             throw new Error('Failed to create buffer');
         }
+        /** @type {WebGLBuffer} */
         this.primitiveDrawBufferTex3d = buffer;
-
+        /** @type {WebGLBuffer[]} */
         this.primitiveDrawBuffer = new Array(MAX_STREAM_BUFFER_COUNT);
         for (let i = 0; i < this.primitiveDrawBuffer.length; i++) {
             const buffer = this.ctx.createBuffer();
@@ -112,8 +146,9 @@ export class CommandWebGL2CommandProcessorFragment {
         if (!vertexArray) {
             throw new Error('Failed to create vertex array object');
         }
+        /** @type {WebGLBuffer} */
         this.primitiveDrawVertexTex3d = vertexArray;
-
+        /** @type {WebGLBuffer[]} */
         this.primitiveDrawVertex = new Array(MAX_STREAM_BUFFER_COUNT);
         for (let i = 0; i < this.primitiveDrawVertex.length; i++) {
             const vertexArray = this.ctx.createVertexArray();
@@ -127,9 +162,9 @@ export class CommandWebGL2CommandProcessorFragment {
         for (let i = 0; i < MAX_STREAM_BUFFER_COUNT; i++) {
             this.ctx.bindBuffer(
                 this.ctx.ARRAY_BUFFER,
-                this.primitiveDrawBuffer[i]!,
+                this.primitiveDrawBuffer[i],
             );
-            this.ctx.bindVertexArray(this.primitiveDrawVertex[i]!);
+            this.ctx.bindVertexArray(this.primitiveDrawVertex[i]);
             this.ctx.enableVertexAttribArray(0);
             this.ctx.enableVertexAttribArray(1);
             this.ctx.enableVertexAttribArray(2);
@@ -157,6 +192,7 @@ export class CommandWebGL2CommandProcessorFragment {
 
         this.ctx.bindVertexArray(null);
 
+        /** @type {number} */
         this.lastStreamBuffer = 0;
 
         {
@@ -179,7 +215,7 @@ export class CommandWebGL2CommandProcessorFragment {
             this.primitiveProgram.locPos = this.primitiveProgram.getUniformLoc(
                 this.primitiveProgram.program,
                 'gPos',
-            )!;
+            );
         }
 
         {
@@ -208,12 +244,12 @@ export class CommandWebGL2CommandProcessorFragment {
                 this.primitiveProgramTextured.getUniformLoc(
                     this.primitiveProgramTextured.program,
                     'gPos',
-                )!;
+                );
             this.primitiveProgramTextured.locTextureSampler =
                 this.primitiveProgramTextured.getUniformLoc(
                     this.primitiveProgramTextured.program,
                     'gTextureSampler',
-                )!;
+                );
         }
 
         {
@@ -238,18 +274,18 @@ export class CommandWebGL2CommandProcessorFragment {
             this.tileProgram.locPos = this.tileProgram.getUniformLoc(
                 this.tileProgram.program,
                 'gPos',
-            )!;
+            );
             this.tileProgram.locColor = this.tileProgram.getUniformLoc(
                 this.tileProgram.program,
                 'gVertColor',
-            )!;
+            );
         }
 
         const quadDrawIndexBuffer = this.ctx.createBuffer();
         if (!quadDrawIndexBuffer) {
             throw new Error('Failed to create buffer');
         }
-
+        /** @type {WebGLBuffer} */
         this.quadDrawIndexBuffer = quadDrawIndexBuffer;
 
         this.ctx.bindBuffer(
@@ -257,6 +293,7 @@ export class CommandWebGL2CommandProcessorFragment {
             this.quadDrawIndexBuffer,
         );
 
+        /** @type {Texture[]} */
         this.textures = new Array(CommandBuffer.MAX_TEXTURES)
             .fill(null)
             .map(() => new Texture(null, null));
@@ -281,18 +318,24 @@ export class CommandWebGL2CommandProcessorFragment {
             this.ctx.STATIC_DRAW,
         );
 
+        /** @type {number} */
         this.currentIndicesInBuffer = (CommandBuffer.MAX_VERTICES / 4) * 6;
     }
 
-    useProgram(program: GLSLProgram): void {
+    /** @param {GLSLProgram} program */
+    useProgram(program) {
         program.useProgram();
     }
 
-    setState(state: State, program: GLSLTWProgram): void {
+    /**
+     * @param {State} state
+     * @param {GLSLTWProgram} program
+     */
+    setState(state, program) {
         if (this.isTexturedState(state)) {
             this.ctx.bindTexture(
                 this.ctx.TEXTURE_2D,
-                this.textures[state.texture]!.tex,
+                this.textures[state.texture].tex,
             );
         }
 
@@ -326,11 +369,16 @@ export class CommandWebGL2CommandProcessorFragment {
         }
     }
 
-    isTexturedState(state: State): boolean {
+    /**
+     * @param {State} state
+     * @returns {boolean}
+     */
+    isTexturedState(state) {
         return state.texture >= 0 && state.texture < this.textures.length;
     }
 
-    cmdRender(command: CommandRender): void {
+    /** @param {CommandRender} command */
+    cmdRender(command) {
         let program = this.primitiveProgram;
         if (this.isTexturedState(command.state)) {
             program = this.primitiveProgramTextured;
@@ -344,7 +392,7 @@ export class CommandWebGL2CommandProcessorFragment {
             command.primCount,
         );
 
-        this.ctx.bindVertexArray(this.primitiveDrawVertex[0]!);
+        this.ctx.bindVertexArray(this.primitiveDrawVertex[0]);
 
         switch (command.primType) {
             case CommandBuffer.PRIMTYPE_LINES:
@@ -378,7 +426,8 @@ export class CommandWebGL2CommandProcessorFragment {
         }
     }
 
-    cmdClear(command: CommandClear): void {
+    /** @param {CommandClear} command */
+    cmdClear(command) {
         this.ctx.clearColor(
             command.color.r,
             command.color.g,
@@ -389,22 +438,24 @@ export class CommandWebGL2CommandProcessorFragment {
         this.ctx.clear(this.ctx.COLOR_BUFFER_BIT | this.ctx.DEPTH_BUFFER_BIT);
     }
 
-    cmdUpdateViewport(command: CommandUpdateViewport): void {
+    /** @param {CommandUpdateViewport} command */
+    cmdUpdateViewport(command) {
         this.ctx.viewport(command.x, command.y, command.width, command.height);
     }
 
-    cmdTextureCreate(command: CommmandTextureCreate): void {
+    /** @param {CommmandTextureCreate} command */
+    cmdTextureCreate(command) {
         //TODO: resize this.textures is command.slot > this.texures.length
-        this.textures[command.slot]!.tex = this.ctx.createTexture();
+        this.textures[command.slot].tex = this.ctx.createTexture();
         this.ctx.bindTexture(
             this.ctx.TEXTURE_2D,
-            this.textures[command.slot]!.tex,
+            this.textures[command.slot].tex,
         );
 
         const samplerSlot = 0;
 
-        this.textures[command.slot]!.sampler = this.ctx.createSampler();
-        this.ctx.bindSampler(samplerSlot, this.textures[command.slot]!.sampler);
+        this.textures[command.slot].sampler = this.ctx.createSampler();
+        this.ctx.bindSampler(samplerSlot, this.textures[command.slot].sampler);
 
         this.ctx.texImage2D(
             this.ctx.TEXTURE_2D,
@@ -420,7 +471,8 @@ export class CommandWebGL2CommandProcessorFragment {
         this.ctx.generateMipmap(this.ctx.TEXTURE_2D);
     }
 
-    cmdCreateBufferObject(command: CommandCreateBufferObject): void {
+    /** @param {CommandCreateBufferObject} command */
+    cmdCreateBufferObject(command) {
         if (command.bufferIndex >= this.bufferObjects.length) {
             for (
                 let i = this.bufferObjects.length;
@@ -431,7 +483,7 @@ export class CommandWebGL2CommandProcessorFragment {
             }
         }
 
-        const buffer = this.ctx.createBuffer()!;
+        const buffer = this.ctx.createBuffer();
 
         this.ctx.bindBuffer(this.ctx.COPY_WRITE_BUFFER, buffer);
         this.ctx.bufferData(
@@ -443,7 +495,8 @@ export class CommandWebGL2CommandProcessorFragment {
         this.bufferObjects[command.bufferIndex] = buffer;
     }
 
-    cmdCreateBufferContainer(command: CommandCreateBufferContainer): void {
+    /** @param {CommandCreateBufferContainer} command */
+    cmdCreateBufferContainer(command) {
         let index = command.bufferContainerIndex;
 
         if (index >= this.bufferContainers.length) {
@@ -458,8 +511,8 @@ export class CommandWebGL2CommandProcessorFragment {
             }
         }
 
-        const bufferContainer = this.bufferContainers[index]!;
-        bufferContainer.vertexArray = this.ctx.createVertexArray()!;
+        const bufferContainer = this.bufferContainers[index];
+        bufferContainer.vertexArray = this.ctx.createVertexArray();
         bufferContainer.lastIndexBufferBound = 0;
 
         this.ctx.bindVertexArray(bufferContainer.vertexArray);
@@ -468,9 +521,9 @@ export class CommandWebGL2CommandProcessorFragment {
             this.ctx.enableVertexAttribArray(i);
             this.ctx.bindBuffer(
                 this.ctx.ARRAY_BUFFER,
-                this.bufferObjects[command.vertBufferBindingIndex]!,
+                this.bufferObjects[command.vertBufferBindingIndex],
             );
-            const attr = command.attributes[i]!;
+            const attr = command.attributes[i];
 
             if (attr.funcType === 0) {
                 this.ctx.vertexAttribPointer(
@@ -499,14 +552,15 @@ export class CommandWebGL2CommandProcessorFragment {
         bufferContainer.containerInfo.stride = command.stride;
     }
 
-    cmdRenderTileLayer(command: CommandRenderTileLayer): void {
+    /** @param {CommandRenderTileLayer} command */
+    cmdRenderTileLayer(command) {
         const index = command.bufferContainerIndex;
 
         if (index >= this.bufferContainers.length) {
             return;
         }
 
-        const bufferContainer = this.bufferContainers[index]!;
+        const bufferContainer = this.bufferContainers[index];
 
         if (
             bufferContainer.vertexArray === null ||
@@ -535,20 +589,20 @@ export class CommandWebGL2CommandProcessorFragment {
         for (let i = 0; i < command.indicesDrawNum; i++) {
             this.ctx.drawElements(
                 this.ctx.TRIANGLES,
-                command.drawCount[i]!,
+                command.drawCount[i],
                 this.ctx.UNSIGNED_INT,
-                command.indicesOffsets[i]!,
+                command.indicesOffsets[i],
             );
         }
     }
 
-    cmdIndicesRequiredNumNotify(
-        command: CommandIndicesRequiredNumNotify,
-    ): void {
+    /** @param {CommandIndicesRequiredNumNotify} command */
+    cmdIndicesRequiredNumNotify(command) {
         if (command.requiredIndicesNum > this.currentIndicesInBuffer) {
             const addCount =
                 command.requiredIndicesNum - this.currentIndicesInBuffer;
-            const indices = new Array<number>(addCount);
+            /** @type {number[]} */
+            const indices = new Array(addCount);
             let primq = (this.currentIndicesInBuffer / 6) * 4;
 
             for (let i = 0; i < addCount; i += 6) {
@@ -565,7 +619,7 @@ export class CommandWebGL2CommandProcessorFragment {
                 this.ctx.COPY_READ_BUFFER,
                 this.quadDrawIndexBuffer,
             );
-            const newIndexBuffer = this.ctx.createBuffer()!;
+            const newIndexBuffer = this.ctx.createBuffer();
             this.ctx.bindBuffer(this.ctx.ELEMENT_ARRAY_BUFFER, newIndexBuffer);
             this.ctx.bufferData(
                 this.ctx.ELEMENT_ARRAY_BUFFER,
@@ -594,52 +648,56 @@ export class CommandWebGL2CommandProcessorFragment {
         }
     }
 
-    async runCommand(baseCommand: Command): Promise<RunCommandReturnTypes> {
+    /**
+     * @param {Command} baseCommand
+     * @returns {Promise<RunCommandReturnTypes>}
+     */
+    async runCommand(baseCommand) {
         switch (baseCommand.cmd) {
             case CommandWebGL2CommandProcessorFragment.CMD_INIT:
                 await this.cmdInit(baseCommand);
                 break;
             case CommandBufferCMD.CMD_RENDER:
-                this.cmdRender(baseCommand as CommandRender);
+                this.cmdRender(baseCommand);
                 break;
             case CommandBufferCMD.CMD_CLEAR:
-                this.cmdClear(baseCommand as CommandClear);
+                this.cmdClear(baseCommand);
                 break;
             case CommandBufferCMD.CMD_UPDATE_VIEWPORT:
-                this.cmdUpdateViewport(baseCommand as CommandUpdateViewport);
+                this.cmdUpdateViewport(baseCommand);
                 break;
             case CommandBufferCMD.CMD_TEXTURE_CREATE:
-                this.cmdTextureCreate(baseCommand as CommmandTextureCreate);
+                this.cmdTextureCreate(baseCommand);
                 break;
             case CommandBufferCMD.CMD_CREATE_BUFFER_OBJECT:
-                this.cmdCreateBufferObject(
-                    baseCommand as CommandCreateBufferObject,
-                );
+                this.cmdCreateBufferObject(baseCommand);
                 break;
             case CommandBufferCMD.CMD_CREATE_BUFFER_CONTAINER:
-                this.cmdCreateBufferContainer(
-                    baseCommand as CommandCreateBufferContainer,
-                );
+                this.cmdCreateBufferContainer(baseCommand);
                 break;
             case CommandBufferCMD.CMD_RENDER_TILE_LAYER:
-                this.cmdRenderTileLayer(baseCommand as CommandRenderTileLayer);
+                this.cmdRenderTileLayer(baseCommand);
                 break;
             case CommandBufferCMD.CMD_INDICES_REQUIRED_NUM_NOTIFY:
-                this.cmdIndicesRequiredNumNotify(
-                    baseCommand as CommandIndicesRequiredNumNotify,
-                );
+                this.cmdIndicesRequiredNumNotify(baseCommand);
                 break;
         }
 
         return RunCommandReturnTypes.RUN_COMMAND_COMMAND_HANDLED;
     }
 
+    /**
+        * @param {number} primitiveType
+        * @param {Vertex[]} vertices
+        * @param {number} primitiveCount
+        * @param {boolean} [asTex3d = false]
+        */
     uploadStreamBufferData(
-        primitiveType: number,
-        vertices: Vertex[],
-        primitiveCount: number,
+        primitiveType,
+        vertices,
+        primitiveCount,
         asTex3d = false,
-    ): void {
+    ) {
         let count = 0;
 
         switch (primitiveType) {
@@ -664,7 +722,7 @@ export class CommandWebGL2CommandProcessorFragment {
         } else {
             this.ctx.bindBuffer(
                 this.ctx.ARRAY_BUFFER,
-                this.primitiveDrawBuffer[this.lastStreamBuffer]!,
+                this.primitiveDrawBuffer[this.lastStreamBuffer],
             );
         }
 
@@ -673,16 +731,16 @@ export class CommandWebGL2CommandProcessorFragment {
         const dv = new DataView(buffer);
 
         for (let i = 0; i < vertices.length; i++) {
-            dv.setFloat32(SIZE * i, vertices[i]!.pos.x, true);
-            dv.setFloat32(SIZE * i + 4, vertices[i]!.pos.y, true);
+            dv.setFloat32(SIZE * i, vertices[i].pos.x, true);
+            dv.setFloat32(SIZE * i + 4, vertices[i].pos.y, true);
 
-            dv.setFloat32(SIZE * i + 8, vertices[i]!.tex.u, true);
-            dv.setFloat32(SIZE * i + 12, vertices[i]!.tex.v, true);
+            dv.setFloat32(SIZE * i + 8, vertices[i].tex.u, true);
+            dv.setFloat32(SIZE * i + 12, vertices[i].tex.v, true);
 
-            dv.setUint8(SIZE * i + 16, vertices[i]!.color.r);
-            dv.setUint8(SIZE * i + 17, vertices[i]!.color.g);
-            dv.setUint8(SIZE * i + 18, vertices[i]!.color.b);
-            dv.setUint8(SIZE * i + 19, vertices[i]!.color.a);
+            dv.setUint8(SIZE * i + 16, vertices[i].color.r);
+            dv.setUint8(SIZE * i + 17, vertices[i].color.g);
+            dv.setUint8(SIZE * i + 18, vertices[i].color.b);
+            dv.setUint8(SIZE * i + 19, vertices[i].color.a);
         }
 
         this.ctx.bufferData(this.ctx.ARRAY_BUFFER, dv, this.ctx.STREAM_DRAW);

@@ -1,9 +1,11 @@
 export class Bits {
-    byte: number;
-    remainingBits: number;
-
-    constructor(byte: number) {
+    /**
+     * @param {number} byte
+     */
+    constructor(byte) {
+        /** @type {number} */
         this.byte = byte;
+        /** @type {number} */
         this.remainingBits = 8;
     }
 
@@ -34,16 +36,30 @@ export class Bits {
 }
 
 class Frequency {
+    /**
+     * @param {number} frequency
+     * @param {number} nodeId
+     */
     constructor(
-        public frequency: number,
-        public nodeId: number,
-    ) {}
+        frequency,
+        nodeId,
+    ) {
+        /** @type {number} */
+        this.frequency = frequency;
+        /** @type {number} */
+        this.nodeId = nodeId;
+    }
 }
 
 class Node {
-    children: [number, number];
+    //children: [number, number];
 
-    constructor(nodeId1: number, nodeId2: number) {
+    /**
+     * @param {number} nodeId1
+     * @param {number} nodeId2
+     */
+    constructor(nodeId1, nodeId2) {
+        /** @type {[number, number]} */
         this.children = [nodeId1, nodeId2];
     }
 }
@@ -54,16 +70,26 @@ const NUM_NODES = NUM_SYMBOLS * 2 - 1;
 const ROOT_ID = NUM_NODES - 1;
 
 export class Huffman {
-    constructor(public nodes: Node[]) {}
 
-    static fromFrequencies(data: number[]): Huffman {
+    /** @param {Node[]} nodes */
+    constructor(nodes) {
+        /** @type {Node[]} */
+        this.nodes = nodes;
+    }
+
+    /**
+     * @param {number[]} data
+     * @returns {Huffman}
+     */
+    static fromFrequencies(data) {
         const frequencies = data.map(
             (frequency, id) => new Frequency(frequency, id),
         );
 
         frequencies.push(new Frequency(1, EOF));
 
-        const nodes: Node[] = [];
+        /** @type {Node[]} */
+        const nodes = [];
 
         for (let i = 0; i < NUM_SYMBOLS; i++) {
             nodes.push(new Node(0, 0));
@@ -80,8 +106,8 @@ export class Huffman {
                 return 0;
             });
 
-            const freq1 = frequencies.pop()!;
-            const freq2 = frequencies.pop()!;
+            const freq1 = frequencies.pop();
+            const freq2 = frequencies.pop();
 
             const node = new Node(freq1.nodeId, freq2.nodeId);
             const freq = new Frequency(
@@ -96,18 +122,28 @@ export class Huffman {
         return new Huffman(nodes);
     }
 
-    public getNode(id: number): Node | null {
+    /**
+     * @param {number} id
+     * @returns {?Node}
+     */
+    getNode(id) {
         if (id >= NUM_SYMBOLS) {
-            return this.nodes[id]!;
+            return this.nodes[id];
         } else {
             return null;
         }
     }
 
-    public decompress(data: Uint8Array): Uint8Array {
-        const res: number[] = [];
+    /**
+     * @param {Uint8Array} data
+     * @returns {Uint8Array}
+     */
+    decompress(data) {
+        /** @type {number[]} */
+        const res = [];
 
-        const root = this.getNode(ROOT_ID)!;
+        /** @type {Node} */
+        const root = this.getNode(ROOT_ID);
         let node = root;
 
         let i = 0;
@@ -120,7 +156,7 @@ export class Huffman {
             const bits = new Bits(byte);
 
             for (const bit of bits) {
-                const nodeId = node.children[+bit!]!;
+                const nodeId = node.children[+bit];
                 const n = this.getNode(nodeId);
 
                 if (n !== null) {

@@ -48,38 +48,40 @@ export const CORNER_ALL = CORNER_T | CORNER_B;
 export const GRAPHICS_TYPE_UNSIGNED_BYTE = 0x1401;
 export const GRAPHICS_TYPE_FLOAT = 0x1406;
 
-function normalizeColorComponent(colorComponent: number): number {
+/**
+ * @param {number} colorComponent
+ * @returns {number}
+ */
+function normalizeColorComponent(colorComponent) {
     return clampf(colorComponent, 0, 1) * 255 + 0.5; // +0.5 to round to nearest
 }
 
 export class State {
-    blendMode: number;
-    wrapMode: number;
-    texture: number;
-    screenTL: Point;
-    screenBR: Point;
-
-    // clip
-    clipEnable: boolean;
-    clipX: number;
-    clipY: number;
-    clipW: number;
-    clipH: number;
-
     constructor() {
+        /** @type {Point} */
         this.screenTL = new Point(0, 0);
+        /** @type {Point} */
         this.screenBR = new Point(0, 0);
+        /** @type {boolean} */
         this.clipEnable = false;
+        /** @type {number} */
         this.clipX = 0;
+        /** @type {number} */
         this.clipY = 0;
+        /** @type {number} */
         this.clipH = 0;
+        /** @type {number} */
         this.clipW = 0;
+        /** @type {number} */
         this.texture = -1;
+        /** @type {number} */
         this.blendMode = CommandBuffer.BLEND_NONE;
+        /** @type {number} */
         this.wrapMode = CommandBuffer.WRAP_CLAMP;
     }
 
-    clone(): State {
+    /** @returns {State} */
+    clone() {
         const state = new State();
 
         state.screenTL = this.screenTL.clone();
@@ -98,77 +100,83 @@ export class State {
 }
 
 class ImageInfo {
+    /**
+     * @param {number} width
+     * @param {number} height
+     * @param {Uint8Array} data
+     */
     constructor(
-        public width: number,
-        public height: number,
-        public data: Uint8Array,
-    ) {}
+        width,
+        height,
+        data,
+    ) {
+        /** @type {number} */
+        this.width = width;
+        /** @type {number} */
+        this.height = height;
+        /** @type {Uint8Array} */
+        this.data = data;
+    }
 }
 
 class ColorVertex {
-    index: number;
-    r: number;
-    g: number;
-    b: number;
-    a: number;
-
-    constructor(index: number, color: ColorRGBA) {
+    /**
+     * @param {number} index
+     * @param {ColorRGBA} color
+     */
+    constructor(index, color) {
+        /** @type {number} */
         this.index = index;
+        /** @type {number} */
         this.r = color.r;
+        /** @type {number} */
         this.g = color.g;
+        /** @type {number} */
         this.b = color.b;
+        /** @type {number} */
         this.a = color.a;
     }
 }
 
 export class TextureHandle {
-    constructor(public id: number) {}
+    /** @param {number} id */
+    constructor(id) {
+        /** @type {number} */
+        this.id = id
+    }
 
-    isValid(): boolean {
+    /** @returns {boolean} */
+    isValid() {
         return this.id >= 0;
     }
 
-    isNullTexture(): boolean {
+    /** @returns {boolean} */
+    isNullTexture() {
         return this.id == 0;
     }
 
-    invalidate(): void {
+    invalidate() {
         this.id = -1;
     }
 }
 
 class VertexArrayInfo {
+    /**
+     * @param {number} associatedBufferObjectIndex
+     * @param {number} freeIndex
+     */
     constructor(
-        public associatedBufferObjectIndex: number,
-        public freeIndex: number,
-    ) {}
+        associatedBufferObjectIndex,
+        freeIndex,
+    ) {
+        /** @type {number} */
+        this.associatedBufferObjectIndex = associatedBufferObjectIndex;
+        /** @type {number} */
+        this.freeIndex = freeIndex;
+    }
 }
 
 export class Graphics {
-    screenWidth: number;
-    screenHeight: number;
-
-    backend: GraphicsBackend;
-    commandBuffers: CommandBuffer[];
-    commandBuffer: CommandBuffer;
-    currentCommandBuffer: number;
-
-    drawing: number;
-    color: [ColorRGBA, ColorRGBA, ColorRGBA, ColorRGBA];
-    texture: [TexCoord, TexCoord, TexCoord, TexCoord];
-    vertices: Vertex[];
-    numVertices: number;
-    rotation: number;
-    state: State;
-    textureIndices: number[];
-    bufferObjectIndices: number[];
-    vertexArrayInfo: VertexArrayInfo[];
-    firstFreeTexture: number;
-    firstFreeVertexArrayInfo: number;
-    firstFreeBufferObjectIndex: number;
-
-    ctx2d: CanvasRenderingContext2D;
-
     static TEXFORMAT_INVALID = 0;
     static TEXFORMAT_RGBA = 1;
 
@@ -183,34 +191,38 @@ export class Graphics {
     static PRIMTYPE_TRIANGLES = 3;
 
     constructor(ctx: WebGL2RenderingContext) {
+        /** @type {number} */
         this.drawing = 0;
+        /** @type {number} */
         this.numVertices = 0;
+        /** @type {number} */
         this.rotation = 0;
+        /** @type{[TexCoord, TexCoord, TexCoord, TexCoord]} */
         this.texture = new Array(4)
             .fill(null)
-            .map(() => new TexCoord(0, 0)) as [
-            TexCoord,
-            TexCoord,
-            TexCoord,
-            TexCoord,
-        ];
+            .map(() => new TexCoord(0, 0));
+        /** @type {State} */
         this.state = new State();
+        /** @type {number[]} */
         this.textureIndices = new Array(CommandBuffer.MAX_TEXTURES)
             .fill(null)
             .map((_, i) => i + 1);
+        /** @type {number[]} */
         this.bufferObjectIndices = [];
+        /** @type {VertexArrayInfo[]} */
         this.vertexArrayInfo = [];
+        /** @type {number} */
         this.firstFreeTexture = 0;
+        /** @type {number} */
         this.firstFreeBufferObjectIndex = -1;
+        /** @type {number} */
         this.firstFreeVertexArrayInfo = -1;
+        /** @type {[ColorRGBA, ColorRGBA, ColorRGBA, ColorRGBA]} */
         this.color = new Array(4)
             .fill(null)
-            .map(() => new ColorRGBA(0, 0, 0, 0)) as [
-            ColorRGBA,
-            ColorRGBA,
-            ColorRGBA,
-            ColorRGBA,
-        ];
+            .map(() => new ColorRGBA(0, 0, 0, 0));
+
+        /** @type {Vertex[]} */
         this.vertices = new Array(CommandBuffer.MAX_VERTICES)
             .fill(null)
             .map(
@@ -221,16 +233,20 @@ export class Graphics {
                         new ColorRGBA(0, 0, 0, 0),
                     ),
             );
-
+        /** @type {number} */
         this.currentCommandBuffer = 0;
+        /** @type {CommandBuffer[]} */
         this.commandBuffers = new Array(NUM_CMDBUFFERS)
             .fill(null)
             .map(() => new CommandBuffer());
-        this.commandBuffer = this.commandBuffers[0]!;
+        /** @type {CommandBuffer} */
+        this.commandBuffer = this.commandBuffers[0];
+        /** @type {GraphicsBackend} */
         this.backend = new GraphicsBackend(ctx);
 
         const canv = document.createElement('canvas');
-        this.ctx2d = canv.getContext('2d')!;
+        /** @type {CanvasRenderingContext2D} */
+        this.ctx2d = canv.getContext('2d');
     }
 
     adjustViewport() {
@@ -239,8 +255,14 @@ export class Graphics {
         }
     }
 
-    gotResized(w: number, h: number): void {
+    /**
+     * @param {number} w
+     * @param {number} h
+     */
+    gotResized(w, h) {
+        /** @type {number} */
         this.screenWidth = w;
+        /** @type {number} */
         this.screenHeight = h;
 
         this.adjustViewport();
@@ -248,17 +270,24 @@ export class Graphics {
         this.kickCommandBuffer();
     }
 
-    updateViewport(x: number, y: number, w: number, h: number): void {
+    /**
+     * @param {number} x
+     * @param {number} y
+     * @param {number} w
+     * @param {number} h
+     */
+    updateViewport(x, y, w, h) {
         const command = new CommandUpdateViewport(x, y, w, h);
 
         this.addCmd(command);
     }
 
-    screenAspect(): number {
+    /** @returns {number} */
+    screenAspect() {
         return this.screenWidth / this.screenHeight;
     }
 
-    async kickCommandBuffer(): Promise<void> {
+    async kickCommandBuffer() {
         await this.backend.runBuffer(this.commandBuffer);
 
         //TODO: warnings!?!??
@@ -268,7 +297,11 @@ export class Graphics {
         this.commandBuffer.reset();
     }
 
-    async init(width: number, height: number) {
+    /**
+     * @param {number} width
+     * @param {number} height
+     */
+    async init(width, height) {
         this.screenWidth = width;
         this.screenHeight = height;
         this.gotResized(this.screenWidth, this.screenHeight);
@@ -279,20 +312,27 @@ export class Graphics {
         await this.kickCommandBuffer();
     }
 
-    swap(): void {
+    swap() {
         //some magic shit...
 
         this.kickCommandBuffer();
     }
 
-    mapScreen(tlX: number, tlY: number, brX: number, brY: number): void {
+    /**
+     * @param {number} tlX
+     * @param {number} tlY
+     * @param {number} brX
+     * @param {number} brY
+     */
+    mapScreen(tlX, tlY, brX, brY) {
         this.state.screenTL.x = tlX;
         this.state.screenTL.y = tlY;
         this.state.screenBR.x = brX;
         this.state.screenBR.y = brY;
     }
 
-    getScreen(): [number, number, number, number] {
+    /** @returns {[number, number, number, number]} */
+    getScreen() {
         return [
             this.state.screenTL.x,
             this.state.screenTL.y,
@@ -301,7 +341,13 @@ export class Graphics {
         ];
     }
 
-    quadsSetSubset(tlU: number, tlV: number, brU: number, brV: number): void {
+    /**
+     * @param {number} tlU
+     * @param {number} tlV
+     * @param {number} brU
+     * @param {number} brV
+     */
+    quadsSetSubset(tlU, tlV, brU, brV) {
         this.texture[0].u = tlU;
         this.texture[1].u = brU;
         this.texture[0].v = tlV;
@@ -313,11 +359,18 @@ export class Graphics {
         this.texture[3].v = brV;
     }
 
-    quadsSetRotation(angle: number): void {
+    /** @param {number} angle */
+    quadsSetRotation(angle) {
         this.rotation = angle;
     }
 
-    setColor(r: number, g: number, b: number, a: number): void {
+    /**
+     * @param {number} r
+     * @param {number} g
+     * @param {number} b
+     * @param {number} a
+     */
+    setColor(r, g, b, a) {
         let clampedR = clampf(r, 0, 1);
         let clampedG = clampf(g, 0, 1);
         let clampedB = clampf(b, 0, 1);
@@ -336,9 +389,10 @@ export class Graphics {
         }
     }
 
-    setColorVertex(data: ColorVertex[]): void {
+    /** @param {ColorVertex[]} data */
+    setColorVertex(data) {
         for (const vertex of data) {
-            const color = this.color[vertex.index]!;
+            const color = this.color[vertex.index];
             color.r = normalizeColorComponent(vertex.r);
             color.g = normalizeColorComponent(vertex.g);
             color.b = normalizeColorComponent(vertex.b);
@@ -346,12 +400,18 @@ export class Graphics {
         }
     }
 
+    /**
+     * @param {ColorRGBA} colorTopLeft
+     * @param {ColorRGBA} colorTopRight
+     * @param {ColorRGBA} colorBottomLeft
+     * @param {ColorRGBA} colorBottomRight
+     */
     setColor4(
-        colorTopLeft: ColorRGBA,
-        colorTopRight: ColorRGBA,
-        colorBottomLeft: ColorRGBA,
-        colorBottomRight: ColorRGBA,
-    ): void {
+        colorTopLeft,
+        colorTopRight,
+        colorBottomLeft,
+        colorBottomRight,
+    ) {
         this.setColorVertex([
             new ColorVertex(0, colorTopLeft),
             new ColorVertex(1, colorTopRight),
@@ -360,31 +420,42 @@ export class Graphics {
         ]);
     }
 
-    setColorC(color: ColorRGBA): void {
+    /** @param {ColorRGBA} color */
+    setColorC(color) {
         this.setColor(color.r, color.g, color.b, color.a);
     }
 
-    setVertexColor(vertex: Vertex, colorIndex: number): void {
-        vertex.color = this.color[colorIndex]!.clone();
+    /**
+     * @param {Vertex} vertex
+     * @param {number} colorIndex
+     */
+    setVertexColor(vertex, colorIndex) {
+        vertex.color = this.color[colorIndex].clone();
     }
 
-    rotate(rCenter: Point, i: number, numPoints: number): void {
+    /**
+     * @param {Point} rCenter
+     * @param {number} i
+     * @param {number} numPoints
+     */
+    rotate(rCenter, i, numPoints) {
         const c = Math.cos(this.rotation);
         const s = Math.sin(this.rotation);
         let x = 0,
             y = 0;
 
         for (let j = i; j < i + numPoints; j++) {
-            x = this.vertices[j]!.pos.x - rCenter.x;
-            y = this.vertices[j]!.pos.y - rCenter.y;
+            x = this.vertices[j].pos.x - rCenter.x;
+            y = this.vertices[j].pos.y - rCenter.y;
 
-            this.vertices[j]!.pos.x = x * c - y * s + rCenter.x;
-            this.vertices[j]!.pos.y = x * s + y * c + rCenter.y;
+            this.vertices[j].pos.x = x * c - y * s + rCenter.x;
+            this.vertices[j].pos.y = x * s + y * c + rCenter.y;
         }
     }
 
     //NOTE: add rotation
-    quadsDrawTL(quads: QuadItem[]): void {
+    /** @param {QuadItem[]} quads */
+    quadsDrawTL(quads) {
         const center = new Point(0, 0);
 
         if (this.drawing !== DRAWING_QUADS) {
@@ -392,42 +463,42 @@ export class Graphics {
         }
 
         for (let i = 0; i < quads.length; i++) {
-            this.vertices[this.numVertices + 4 * i]!.pos.x = quads[i]!.x;
-            this.vertices[this.numVertices + 4 * i]!.pos.y = quads[i]!.y;
-            this.vertices[this.numVertices + 4 * i]!.tex = this.texture[0];
-            this.setVertexColor(this.vertices[this.numVertices + 4 * i]!, 0);
+            this.vertices[this.numVertices + 4 * i].pos.x = quads[i].x;
+            this.vertices[this.numVertices + 4 * i].pos.y = quads[i].y;
+            this.vertices[this.numVertices + 4 * i].tex = this.texture[0];
+            this.setVertexColor(this.vertices[this.numVertices + 4 * i], 0);
 
-            this.vertices[this.numVertices + 4 * i + 1]!.pos.x =
-                quads[i]!.x + quads[i]!.width;
-            this.vertices[this.numVertices + 4 * i + 1]!.pos.y = quads[i]!.y;
-            this.vertices[this.numVertices + 4 * i + 1]!.tex = this.texture[1];
+            this.vertices[this.numVertices + 4 * i + 1].pos.x =
+                quads[i].x + quads[i].width;
+            this.vertices[this.numVertices + 4 * i + 1].pos.y = quads[i].y;
+            this.vertices[this.numVertices + 4 * i + 1].tex = this.texture[1];
             this.setVertexColor(
-                this.vertices[this.numVertices + 4 * i + 1]!,
+                this.vertices[this.numVertices + 4 * i + 1],
                 1,
             );
 
-            this.vertices[this.numVertices + 4 * i + 2]!.pos.x =
-                quads[i]!.x + quads[i]!.width;
-            this.vertices[this.numVertices + 4 * i + 2]!.pos.y =
-                quads[i]!.y + quads[i]!.height;
-            this.vertices[this.numVertices + 4 * i + 2]!.tex = this.texture[2];
+            this.vertices[this.numVertices + 4 * i + 2].pos.x =
+                quads[i]!.x + quads[i].width;
+            this.vertices[this.numVertices + 4 * i + 2].pos.y =
+                quads[i]!.y + quads[i].height;
+            this.vertices[this.numVertices + 4 * i + 2].tex = this.texture[2];
             this.setVertexColor(
-                this.vertices[this.numVertices + 4 * i + 2]!,
+                this.vertices[this.numVertices + 4 * i + 2],
                 2,
             );
 
-            this.vertices[this.numVertices + 4 * i + 3]!.pos.x = quads[i]!.x;
-            this.vertices[this.numVertices + 4 * i + 3]!.pos.y =
-                quads[i]!.y + quads[i]!.height;
-            this.vertices[this.numVertices + 4 * i + 3]!.tex = this.texture[3];
+            this.vertices[this.numVertices + 4 * i + 3].pos.x = quads[i].x;
+            this.vertices[this.numVertices + 4 * i + 3].pos.y =
+                quads[i].y + quads[i].height;
+            this.vertices[this.numVertices + 4 * i + 3].tex = this.texture[3];
             this.setVertexColor(
-                this.vertices[this.numVertices + 4 * i + 3]!,
+                this.vertices[this.numVertices + 4 * i + 3],
                 3,
             );
 
             if (this.rotation != 0) {
-                center.x = quads[i]!.x + quads[i]!.width / 2;
-                center.y = quads[i]!.y + quads[i]!.height / 2;
+                center.x = quads[i].x + quads[i].width / 2;
+                center.y = quads[i].y + quads[i].height / 2;
 
                 this.rotate(center, this.numVertices + 4 * i, 4);
             }
@@ -437,7 +508,8 @@ export class Graphics {
     }
 
     //TODO: make it look gut
-    flushVertices(keepVertices = false): void {
+    /** @param {boolean} [keepVertices = false] */
+    flushVertices(keepVertices = false) {
         const cmd = new CommandRender(
             this.state.clone(),
             CommandBuffer.PRIMTYPE_QUADS,
@@ -453,7 +525,7 @@ export class Graphics {
         this.commandBuffer.addRenderCalls(1);
     }
 
-    quadsEnd(): void {
+    quadsEnd() {
         if (this.drawing != DRAWING_QUADS) {
             throw new Error('AAAAAAAAAAAAAAAAAAa');
         }
@@ -462,7 +534,8 @@ export class Graphics {
         this.drawing = 0;
     }
 
-    quadsDrawFreeform(freeform: FreeformItem[]): void {
+    /** @param {FreeformItem[]} freeform */
+    quadsDrawFreeform(freeform) {
         if (
             this.drawing != DRAWING_QUADS &&
             this.drawing != DRAWING_TRIANGLES
@@ -472,68 +545,68 @@ export class Graphics {
 
         if (this.drawing === DRAWING_TRIANGLES) {
             for (let i = 0; i < freeform.length; i++) {
-                this.vertices[this.numVertices + 6 * i]!.pos.x =
-                    freeform[i]!.x0;
-                this.vertices[this.numVertices + 6 * i]!.pos.y =
-                    freeform[i]!.y0;
-                this.vertices[this.numVertices + 6 * i]!.tex = this.texture[0];
+                this.vertices[this.numVertices + 6 * i].pos.x =
+                    freeform[i].x0;
+                this.vertices[this.numVertices + 6 * i].pos.y =
+                    freeform[i].y0;
+                this.vertices[this.numVertices + 6 * i].tex = this.texture[0];
                 this.setVertexColor(
-                    this.vertices[this.numVertices + 6 * i]!,
+                    this.vertices[this.numVertices + 6 * i],
                     0,
                 );
 
-                this.vertices[this.numVertices + 6 * i + 1]!.pos.x =
-                    freeform[i]!.x1;
-                this.vertices[this.numVertices + 6 * i + 1]!.pos.y =
-                    freeform[i]!.y1;
-                this.vertices[this.numVertices + 6 * i + 1]!.tex =
+                this.vertices[this.numVertices + 6 * i + 1].pos.x =
+                    freeform[i].x1;
+                this.vertices[this.numVertices + 6 * i + 1].pos.y =
+                    freeform[i].y1;
+                this.vertices[this.numVertices + 6 * i + 1].tex =
                     this.texture[1];
                 this.setVertexColor(
-                    this.vertices[this.numVertices + 6 * i + 1]!,
+                    this.vertices[this.numVertices + 6 * i + 1],
                     1,
                 );
 
-                this.vertices[this.numVertices + 6 * i + 2]!.pos.x =
-                    freeform[i]!.x3;
-                this.vertices[this.numVertices + 6 * i + 2]!.pos.y =
-                    freeform[i]!.y3;
-                this.vertices[this.numVertices + 6 * i + 2]!.tex =
+                this.vertices[this.numVertices + 6 * i + 2].pos.x =
+                    freeform[i].x3;
+                this.vertices[this.numVertices + 6 * i + 2].pos.y =
+                    freeform[i].y3;
+                this.vertices[this.numVertices + 6 * i + 2].tex =
                     this.texture[3];
                 this.setVertexColor(
-                    this.vertices[this.numVertices + 6 * i + 2]!,
+                    this.vertices[this.numVertices + 6 * i + 2],
                     3,
                 );
 
-                this.vertices[this.numVertices + 6 * i + 3]!.pos.x =
-                    freeform[i]!.x0;
-                this.vertices[this.numVertices + 6 * i + 3]!.pos.y =
-                    freeform[i]!.y0;
-                this.vertices[this.numVertices + 6 * i + 3]!.tex =
+                this.vertices[this.numVertices + 6 * i + 3].pos.x =
+                    freeform[i].x0;
+                this.vertices[this.numVertices + 6 * i + 3].pos.y =
+                    freeform[i].y0;
+                this.vertices[this.numVertices + 6 * i + 3].tex =
                     this.texture[0];
                 this.setVertexColor(
-                    this.vertices[this.numVertices + 6 * i + 3]!,
+                    this.vertices[this.numVertices + 6 * i + 3],
                     0,
                 );
 
-                this.vertices[this.numVertices + 6 * i + 4]!.pos.x =
-                    freeform[i]!.x3;
-                this.vertices[this.numVertices + 6 * i + 4]!.pos.y =
-                    freeform[i]!.y3;
-                this.vertices[this.numVertices + 6 * i + 4]!.tex =
+                this.vertices[this.numVertices + 6 * i + 4].pos.x =
+                    freeform[i].x3;
+                this.vertices[this.numVertices + 6 * i + 4].pos.y =
+                    freeform[i].y3;
+                this.vertices[this.numVertices + 6 * i + 4].tex =
                     this.texture[3];
                 this.setVertexColor(
-                    this.vertices[this.numVertices + 6 * i + 4]!,
+                    this.vertices[this.numVertices + 6 * i + 4],
                     3,
                 );
 
-                this.vertices[this.numVertices + 6 * i + 5]!.pos.x =
-                    freeform[i]!.x2;
-                this.vertices[this.numVertices + 6 * i + 5]!.pos.y =
-                    freeform[i]!.y2;
-                this.vertices[this.numVertices + 6 * i + 5]!.tex =
+                this.vertices[this.numVertices + 6 * i + 5].pos.x =
+                    freeform[i].x2;
+                this.vertices[this.numVertices + 6 * i + 5].pos.y =
+                    freeform[i].y2;
+                this.vertices[this.numVertices + 6 * i + 5].tex =
                     this.texture[2];
                 this.setVertexColor(
-                    this.vertices[this.numVertices + 6 * i + 5]!,
+                    this.vertices[this.numVertices + 6 * i + 5],
                     2,
                 );
             }
@@ -541,46 +614,46 @@ export class Graphics {
             this.addVertices(3 * 2 * freeform.length);
         } else {
             for (let i = 0; i < freeform.length; i++) {
-                this.vertices[this.numVertices + 4 * i]!.pos.x =
-                    freeform[i]!.x0;
-                this.vertices[this.numVertices + 4 * i]!.pos.y =
-                    freeform[i]!.y0;
-                this.vertices[this.numVertices + 4 * i]!.tex = this.texture[0];
+                this.vertices[this.numVertices + 4 * i].pos.x =
+                    freeform[i].x0;
+                this.vertices[this.numVertices + 4 * i].pos.y =
+                    freeform[i].y0;
+                this.vertices[this.numVertices + 4 * i].tex = this.texture[0];
                 this.setVertexColor(
-                    this.vertices[this.numVertices + 4 * i]!,
+                    this.vertices[this.numVertices + 4 * i],
                     0,
                 );
 
-                this.vertices[this.numVertices + 4 * i + 1]!.pos.x =
-                    freeform[i]!.x1;
-                this.vertices[this.numVertices + 4 * i + 1]!.pos.y =
-                    freeform[i]!.y1;
-                this.vertices[this.numVertices + 4 * i + 1]!.tex =
+                this.vertices[this.numVertices + 4 * i + 1].pos.x =
+                    freeform[i].x1;
+                this.vertices[this.numVertices + 4 * i + 1].pos.y =
+                    freeform[i].y1;
+                this.vertices[this.numVertices + 4 * i + 1].tex =
                     this.texture[1];
                 this.setVertexColor(
-                    this.vertices[this.numVertices + 4 * i + 1]!,
+                    this.vertices[this.numVertices + 4 * i + 1],
                     1,
                 );
 
-                this.vertices[this.numVertices + 4 * i + 2]!.pos.x =
-                    freeform[i]!.x3;
-                this.vertices[this.numVertices + 4 * i + 2]!.pos.y =
-                    freeform[i]!.y3;
-                this.vertices[this.numVertices + 4 * i + 2]!.tex =
+                this.vertices[this.numVertices + 4 * i + 2].pos.x =
+                    freeform[i].x3;
+                this.vertices[this.numVertices + 4 * i + 2].pos.y =
+                    freeform[i].y3;
+                this.vertices[this.numVertices + 4 * i + 2].tex =
                     this.texture[3];
                 this.setVertexColor(
-                    this.vertices[this.numVertices + 4 * i + 2]!,
+                    this.vertices[this.numVertices + 4 * i + 2],
                     3,
                 );
 
-                this.vertices[this.numVertices + 4 * i + 3]!.pos.x =
-                    freeform[i]!.x2;
-                this.vertices[this.numVertices + 4 * i + 3]!.pos.y =
-                    freeform[i]!.y2;
-                this.vertices[this.numVertices + 4 * i + 3]!.tex =
+                this.vertices[this.numVertices + 4 * i + 3].pos.x =
+                    freeform[i].x2;
+                this.vertices[this.numVertices + 4 * i + 3].pos.y =
+                    freeform[i].y2;
+                this.vertices[this.numVertices + 4 * i + 3].tex =
                     this.texture[2];
                 this.setVertexColor(
-                    this.vertices[this.numVertices + 4 * i + 3]!,
+                    this.vertices[this.numVertices + 4 * i + 3],
                     2,
                 );
             }
@@ -589,26 +662,36 @@ export class Graphics {
         }
     }
 
-    addVertices(count: number): void {
+    /** @param {number} count */
+    addVertices(count) {
         this.numVertices += count;
         if (this.numVertices + count >= CommandBuffer.MAX_VERTICES) {
             this.flushVertices();
         }
     }
 
-    textureClear(): void {
+    textureClear() {
         this.textureSet(new TextureHandle(-1));
     }
 
+    /**
+     * @param {number} x
+     * @param {number} y
+     * @param {number} w
+     * @param {number} h
+     * @param {ColorRGBA} color
+     * @param {number} corners
+     * @param {number} rounding
+     */
     drawRect(
-        x: number,
-        y: number,
-        w: number,
-        h: number,
-        color: ColorRGBA,
-        corners: number,
-        rounding: number,
-    ): void {
+        x,
+        y,
+        w,
+        h,
+        color,
+        corners,
+        rounding,
+    ) {
         this.textureClear();
         this.quadsBegin();
         this.setColorC(color);
@@ -616,17 +699,26 @@ export class Graphics {
         this.quadsEnd();
     }
 
+    /**
+     * @param {number} x
+     * @param {number} y
+     * @param {number} w
+     * @param {number} h
+     * @param {number} r
+     * @param {number} corners
+     */
     drawRectExt(
-        x: number,
-        y: number,
-        w: number,
-        h: number,
-        r: number,
-        corners: number,
-    ): void {
+        x,
+        y,
+        w,
+        h,
+        r,
+        corners,
+    ) {
         const numSegments = 8;
         const segmentsAngle = Math.PI / 2 / numSegments;
-        const freeform: FreeformItem[] = [];
+        /** @type {FreeformItem[]} */
+        const freeform = [];
 
         for (let i = 0; i < numSegments; i += 2) {
             const a1 = i * segmentsAngle;
@@ -702,7 +794,8 @@ export class Graphics {
 
         this.quadsDrawFreeform(freeform);
 
-        const quads: QuadItem[] = [];
+        /** @type {QuadItem[]} */
+        const quads = [];
 
         quads.push(new QuadItem(x + r, y + r, w - r * 2, h - r * 2)); // center
         quads.push(new QuadItem(x + r, y, w - r * 2, r)); // top
@@ -727,18 +820,30 @@ export class Graphics {
         this.quadsDrawTL(quads);
     }
 
+    /**
+     * @param {number} x
+     * @param {number} y
+     * @param {number} w
+     * @param {number} h
+     * @param {ColorRGBA} colorTopLeft
+     * @param {ColorRGBA} colorTopRight
+     * @param {ColorRGBA} colorBottomLeft
+     * @param {ColorRGBA} colorBottomRight
+     * @param {number} corners
+     * @param {number} rounding
+     */
     drawRect4(
-        x: number,
-        y: number,
-        w: number,
-        h: number,
-        colorTopLeft: ColorRGBA,
-        colorTopRight: ColorRGBA,
-        colorBottomLeft: ColorRGBA,
-        colorBottomRight: ColorRGBA,
-        corners: number,
-        rounding: number,
-    ): void {
+        x,
+        y,
+        w,
+        h,
+        colorTopLeft,
+        colorTopRight,
+        colorBottomLeft,
+        colorBottomRight,
+        corners,
+        rounding,
+    ) {
         this.quadsBegin();
         this.drawRectExt4(
             x,
@@ -755,18 +860,30 @@ export class Graphics {
         this.quadsEnd();
     }
 
+    /**
+     * @param {number} x
+     * @param {number} y
+     * @param {number} w
+     * @param {number} h
+     * @param {ColorRGBA} colorTopLeft
+     * @param {ColorRGBA} colorTopRight
+     * @param {ColorRGBA} colorBottomLeft
+     * @param {ColorRGBA} colorBottomRight
+     * @param {number} r
+     * @param {number} corners
+     */
     drawRectExt4(
-        x: number,
-        y: number,
-        w: number,
-        h: number,
-        colorTopLeft: ColorRGBA,
-        colorTopRight: ColorRGBA,
-        colorBottomLeft: ColorRGBA,
-        colorBottomRight: ColorRGBA,
-        r: number,
-        corners: number,
-    ): void {
+        x,
+        y,
+        w,
+        h,
+        colorTopLeft,
+        colorTopRight,
+        colorBottomLeft,
+        colorBottomRight,
+        r,
+        corners,
+    ) {
         if (corners == 0 || r == 0) {
             this.setColor4(
                 colorTopLeft,
@@ -922,13 +1039,20 @@ export class Graphics {
         }
     }
 
+    /**
+     * @param {number} centerX
+     * @param {number} centerY
+     * @param {number} radius
+     * @param {number} segments
+     */
     drawCircle(
-        centerX: number,
-        centerY: number,
-        radius: number,
-        segments: number,
-    ): void {
-        const items: FreeformItem[] = [];
+        centerX,
+        centerY,
+        radius,
+        segments,
+    ) {
+        /** @type {FreeformItem[]} */
+        const items = [];
         const segmentsAngle = (2 * Math.PI) / segments;
 
         for (let i = 0; i < segments; i += 2) {
@@ -952,7 +1076,7 @@ export class Graphics {
         this.quadsDrawFreeform(items);
     }
 
-    quadsBegin(): void {
+    quadsBegin() {
         if (this.drawing != 0) {
             throw new Error('BAD!');
         }
@@ -964,11 +1088,18 @@ export class Graphics {
         this.setColor(1, 1, 1, 1);
     }
 
-    addCmd(cmd: Command): void {
+    /** @param {Command} cmd */
+    addCmd(cmd) {
         this.commandBuffer.addCommand(cmd);
     }
 
-    clear(r: number, g: number, b: number, forceClearNow: boolean): void {
+    /**
+     * @param {number} r
+     * @param {number} g
+     * @param {number} b
+     * @param {boolean} forceClearNow
+     */
+    clear(r, g, b, forceClearNow) {
         const commandClear = new CommandClear(
             new ColorRGBA(r, g, b, 1),
             forceClearNow,
@@ -977,7 +1108,11 @@ export class Graphics {
         this.addCmd(commandClear);
     }
 
-    loadImage(src: string): Promise<ImageInfo> {
+    /**
+     * @param {string} src
+     * @returns {Promise<ImageInfo>}
+     */
+    loadImage(src) {
         const image = new Image();
         image.src = src;
 
@@ -1006,7 +1141,8 @@ export class Graphics {
         });
     }
 
-    findFreeTextureIndex(): TextureHandle {
+    /** @returns {TextureHandle} */
+    findFreeTextureIndex() {
         const size = this.textureIndices.length;
         if (this.firstFreeTexture === size) {
             throw new Error(
@@ -1015,18 +1151,25 @@ export class Graphics {
             //TODO: resize this.textureIndices array
         }
         const tex = this.firstFreeTexture;
-        this.firstFreeTexture = this.textureIndices[tex]!;
+        this.firstFreeTexture = this.textureIndices[tex];
         this.textureIndices[tex] = -1;
 
         return new TextureHandle(tex);
     }
 
+    /**
+     * @param {number} textureId
+     * @param {number} width
+     * @param {number} height
+     * @param {Uint8Array} data
+     * @returns {CommmandTextureCreate}
+     */
     loadTextureCreateCommand(
-        textureId: number,
-        width: number,
-        height: number,
-        data: Uint8Array,
-    ): CommmandTextureCreate {
+        textureId,
+        width,
+        height,
+        data,
+    ) {
         const cmd = new CommmandTextureCreate(textureId, width, height, data);
 
         //FIXME: do i need flags here??
@@ -1034,11 +1177,17 @@ export class Graphics {
         return cmd;
     }
 
+    /**
+     * @param {number} width
+     * @param {number} height
+     * @param {Uint8Array} data
+     * @returns {TextureHandle}
+     */
     loadTexture(
-        width: number,
-        height: number,
-        data: Uint8Array,
-    ): TextureHandle {
+        width,
+        height,
+        data,
+    ) {
         const textureHandle = this.findFreeTextureIndex();
         const cmd = this.loadTextureCreateCommand(
             textureHandle.id,
@@ -1052,7 +1201,8 @@ export class Graphics {
         return textureHandle;
     }
 
-    textureSet(textureId: TextureHandle): void {
+    /** @param {TextureHandle} textureId */
+    textureSet(textureId) {
         if (this.drawing !== 0) {
             throw new Error('called graphics.textureSet within begin');
         }
@@ -1065,15 +1215,20 @@ export class Graphics {
         this.state.texture = textureId.id;
     }
 
-    createBufferObject(data: ArrayBufferLike): number {
-        let index: number;
+    /**
+     * @param {ArrayBufferLike} data
+     * @returns {number}
+     */
+    createBufferObject(data) {
+        /** @type {number} */
+        let index;
 
         if (this.firstFreeBufferObjectIndex === -1) {
             index = this.bufferObjectIndices.length;
             this.bufferObjectIndices.push(index);
         } else {
             index = this.firstFreeBufferObjectIndex;
-            this.firstFreeBufferObjectIndex = this.bufferObjectIndices[index]!;
+            this.firstFreeBufferObjectIndex = this.bufferObjectIndices[index];
             this.bufferObjectIndices[index] = index;
         }
 
@@ -1083,8 +1238,13 @@ export class Graphics {
         return index;
     }
 
-    createBufferContainer(containerInfo: BufferContainerInfo): number {
-        let index: number;
+    /**
+     * @param {BufferContainerInfo} containerInfo
+     * @returns {number}
+     */
+    createBufferContainer(containerInfo) {
+        /** @type {number} */
+        let index;
 
         if (this.firstFreeVertexArrayInfo) {
             index = this.vertexArrayInfo.length;
@@ -1092,8 +1252,8 @@ export class Graphics {
         } else {
             index = this.firstFreeVertexArrayInfo;
             this.firstFreeVertexArrayInfo =
-                this.vertexArrayInfo[index]!.freeIndex;
-            this.vertexArrayInfo[index]!.freeIndex = index;
+                this.vertexArrayInfo[index].freeIndex;
+            this.vertexArrayInfo[index].freeIndex = index;
         }
 
         const cmd = new CommandCreateBufferContainer(
@@ -1103,20 +1263,27 @@ export class Graphics {
             containerInfo.attributes,
         );
 
-        this.vertexArrayInfo[index]!.associatedBufferObjectIndex =
+        this.vertexArrayInfo[index].associatedBufferObjectIndex =
             containerInfo.vertBufferBindingIndex;
         this.addCmd(cmd);
 
         return index;
     }
 
+    /**
+     * @param {number} bufferContainerIndex
+     * @param {ColorRGBA} color
+     * @param {number[]} offsets
+     * @param {number[]} indicedVertexDrawNum
+     * @param {number} numIndicesOffset
+     */
     renderTileLayer(
-        bufferContainerIndex: number,
-        color: ColorRGBA,
-        offsets: number[],
-        indicedVertexDrawNum: number[],
-        numIndicesOffset: number,
-    ): void {
+        bufferContainerIndex,
+        color,
+        offsets,
+        indicedVertexDrawNum,
+        numIndicesOffset,
+    ) {
         const cmd = new CommandRenderTileLayer(
             this.state.clone(),
             color,
@@ -1130,7 +1297,8 @@ export class Graphics {
         this.commandBuffer.addRenderCalls(numIndicesOffset);
     }
 
-    indicesNumRequiredNotify(requiredIndicesCount: number): void {
+    /** @param {number} requiredIndicesCount */
+    indicesNumRequiredNotify(requiredIndicesCount) {
         const cmd = new CommandIndicesRequiredNumNotify(requiredIndicesCount);
 
         this.addCmd(cmd);

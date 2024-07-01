@@ -1,23 +1,24 @@
 import { Reader } from '../reader';
 
-type Snap = {
-    id: number;
-    type: number;
-    data: Int32Array;
-};
+/**
+ * @typedef {Object} Snap
+ * @property {number} id
+ * @property {number} type
+ * @property {Int32Array} data
+ */
 
 export class Snapshot {
-    numItems: number;
-    dataSize: number;
-    offsets: number[];
-    snaps: Snap[];
-
-    constructor(bytes: Uint8Array) {
+    /** @param {Uint8Array} bytes */
+    constructor(bytes) {
         const reader = new Reader(bytes);
+        /** @type {number[]} */
         this.offsets = [];
+        /** @type {Snap[]} */
         this.snaps = [];
 
+        /** @type {number} */
         this.dataSize = reader.readInt();
+        /** @type {number} */
         this.numItems = reader.readInt();
 
         for (let i = 0; i < this.numItems; i++) {
@@ -28,7 +29,9 @@ export class Snapshot {
             const typeAndId = reader.readInt();
             const type = typeAndId >> 16;
             const id = typeAndId & 0xffff;
-            const data: number[] = [];
+            /** @type {number[]} */
+            const data = [];
+            /** @type {number} */
             const size = this.calcSize(i);
 
             for (let j = 0; j < size; j++) {
@@ -43,20 +46,24 @@ export class Snapshot {
         }
     }
 
-    calcSize(index: number): number {
+    /**
+     * @param {number} index
+     * @returns {number}
+     */
+    calcSize(index) {
         const CSNAPSHOTITEM_SIZE = 4;
         const INT_SIZE = 4;
 
         if (index == this.numItems - 1) {
             return (
-                (this.dataSize - this.offsets[index]! - CSNAPSHOTITEM_SIZE) /
+                (this.dataSize - this.offsets[index] - CSNAPSHOTITEM_SIZE) /
                 INT_SIZE
             );
         }
 
         return (
-            (this.offsets[index + 1]! -
-                this.offsets[index]! -
+            (this.offsets[index + 1] -
+                this.offsets[index] -
                 CSNAPSHOTITEM_SIZE) /
             INT_SIZE
         );

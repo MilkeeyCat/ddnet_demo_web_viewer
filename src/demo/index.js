@@ -9,62 +9,54 @@ import { Snapshot } from './Snapshot';
 import { SnapshotDelta } from './SnapshotDelta';
 import { Tick } from './Tick';
 
-type VersionHeader = {
-    magic: number[];
-    version: number;
-};
+/**
+ * @typedef {Object} VersionHeader
+ * @property {number[]} magic
+ * @property {number} version
+ */
 
-type Header = {
-    netVersion: string;
-    mapName: string;
-    mapSize: number;
-    mapCrc: number;
-    type: 'client' | 'server';
-    length: number;
-    timestamp: string;
-};
+/**
+ * @typedef {Object} Header
+ * @property {string} netVersion
+ * @property {string} mapName
+ * @property {number} mapSize
+ * @property {number} mapCrc
+ * @property {"client" | "server"} type
+ * @property {number} length
+ * @property {string} timestamp
+ */
 
-type TimelineMarkers = {
-    numTimelineMarkers: number;
-    timelineMarkers: number[];
-};
+/**
+ * @typedef {Object} TimelineMarkers
+ * @property {number} numTimelineMarkers
+ * @property {number[]} timelineMarkers
+ */
 
-type Demo = {
-    versionHeader: VersionHeader;
-    header: Header;
-    map: TwMap;
-    timelineMarkers: TimelineMarkers;
-    chunks: (Chunk | ReturnType<typeof Game.decodeMsg>)[];
-};
+/**
+ * @typedef {Object} Demo
+    * @property {VersionHeader} versionHeader
+    * @property {Header} header
+    * @property {TwMap} map
+    * @property {TimelineMarkers} timelineMarkers
+    * @property {(Chunk | ReturnType<typeof Game.decodeMsg>)[]} chunks
+ */
 
-type ChunkHeader =
-    | {
-          isTick: false;
-          type: 'MESSAGE' | 'SNAPSHOT' | 'SNAPSHOT_DELTA';
-          size: number;
-      }
-    | {
-          isTick: true;
-          inlineTick: boolean;
-          tickDelta: number;
-      };
-
-type Chunk = Message | Tick | Snapshot | SnapshotDelta;
+/** @typedef {{isTick: false; type: 'MESSAGE' | 'SNAPSHOT' | 'SNAPSHOT_DELTA'; size: number} | {isTick: true; inlineTick: boolean; tickDelta: number}} ChunkHeader */
+/** @typedef {Message | Tick | Snapshot | SnapshotDelta} Chunk */
 
 const huffman = Huffman.fromFrequencies(FREQUENCIES);
 
 export class DemoReader {
-    buffer: Uint8Array;
-    demo: Demo;
-    tick: number;
-
-    constructor(data: Uint8Array) {
+    /** @param {Uint8Array} data */
+    constructor(data) {
         const textDecoder = new TextDecoder();
+        /** @type {Uint8Array} */
         this.buffer = data;
+        /** @type {number} */
         this.tick = 0;
 
         const magic = Array.from(this.readRaw(7));
-        const version = this.readRaw(1)[0]!;
+        const version = this.readRaw(1)[0];
 
         const netVersion = textDecoder.decode(
             this.readRaw(64).filter((byte) => byte != 0),
@@ -76,7 +68,7 @@ export class DemoReader {
         const mapCrc = this.readBeI32();
         const type = textDecoder.decode(
             this.readRaw(8).filter((byte) => byte != 0),
-        ) as 'client' | 'server';
+        );
         const length = this.readBeI32();
         const timestamp = textDecoder.decode(
             this.readRaw(20).filter((byte) => byte != 0),
@@ -96,6 +88,7 @@ export class DemoReader {
 
         const chunks = this.readChunks();
 
+        /** @type {Demo} */
         this.demo = {
             versionHeader: {
                 magic,
@@ -119,12 +112,16 @@ export class DemoReader {
         };
     }
 
-    public readRaw(n: number): Uint8Array {
+    /**
+     * @param {number} n
+     * @returns {Uint8Array}
+     */
+    readRaw(n) {
         const result = [];
 
         for (let i = 0; i < n; i++) {
             //NOTE: maybe this will cause crashes in future (maybe not)
-            result.push(this.buffer[i]!);
+            result.push(this.buffer[i]);
         }
 
         this.buffer = this.buffer.subarray(n);
@@ -132,26 +129,30 @@ export class DemoReader {
         return new Uint8Array(result);
     }
 
-    public skip(n: number): void {
+    /** @param {number} n */
+    skip(n) {
         this.buffer = this.buffer.subarray(n);
     }
 
-    public readBeI32(): number {
+    /** @returns {number} */
+    readBeI32() {
         const bytes = this.readRaw(4);
 
         return (
-            (bytes[0]! << 24) | (bytes[1]! << 16) | (bytes[2]! << 8) | bytes[3]!
+            (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3]
         );
     }
 
-    public readLeI16(): number {
+    /** @returns {number} */
+    readLeI16() {
         const bytes = this.readRaw(2);
 
-        return (bytes[1]! << 8) | bytes[0]!;
+        return (bytes[1] << 8) | bytes[0];
     }
 
-    public readChunkHeader(): ChunkHeader {
-        const byte = this.readRaw(1)[0]!;
+    /** @returns {ChunkHeader} */
+    readChunkHeader() {
+        const byte = this.readRaw(1)[0];
         const isTick = byte >> 7 != 0;
 
         if (isTick) {
@@ -181,7 +182,7 @@ export class DemoReader {
             let size = ((byte << 3) & 0xff) >> 3;
 
             if (size == 30) {
-                size = this.readRaw(1)[0]!;
+                size = this.readRaw(1)[0];
             } else if (size == 31) {
                 size = this.readLeI16();
             }
@@ -210,7 +211,8 @@ export class DemoReader {
         }
     }
 
-    public readChunk(): Chunk | null {
+    /** @returns {?Chunk} */
+    readChunk() {
         const chunkHeader = this.readChunkHeader();
 
         if (chunkHeader.isTick) {
@@ -219,8 +221,8 @@ export class DemoReader {
             const data = huffman.decompress(this.readRaw(chunkHeader.size));
 
             if (chunkHeader.type == 'MESSAGE') {
-                let result: number[] = [];
-
+                /** @type {number[]} */
+                let result = [];
                 let unpacker = new Reader(data);
 
                 while (unpacker.data.length > 0) {
@@ -242,8 +244,10 @@ export class DemoReader {
         return null;
     }
 
-    public readChunks(): (Chunk | ReturnType<typeof Game.decodeMsg>)[] {
-        const chunks: (Chunk | ReturnType<typeof Game.decodeMsg>)[] = [];
+    /** @returns {(Chunk | ReturnType<typeof Game.decodeMsg>)[]} */
+    readChunks() {
+        /** @type {(Chunk | ReturnType<typeof Game.decodeMsg>)[]} */
+        const chunks = [];
 
         while (this.buffer.length > 0) {
             const chunk = this.readChunk();

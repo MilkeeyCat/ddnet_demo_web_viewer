@@ -1,7 +1,8 @@
 import { Reader } from '../reader';
 
 export class SnapshotDelta {
-    constructor(bytes: Uint8Array) {
+    /** @param {Uint8Array} bytes */
+    constructor(bytes) {
         const reader = new Reader(bytes);
 
         const numRemovedItems = reader.readInt();

@@ -2,15 +2,16 @@ import { CommandBuffer } from './CommandBuffer';
 import { CommandProcessor } from './CommandProcessor';
 
 export class GraphicsBackend {
-    processor: CommandProcessor;
-    ctx: WebGL2RenderingContext;
-
-    constructor(ctx: WebGL2RenderingContext) {
+    /** @param {WebGL2RenderingContext} ctx */
+    constructor(ctx) {
+        /** @type {WebGL2RenderingContext} */
         this.ctx = ctx;
+        /** @type {CommandProcessor} */
         this.processor = new CommandProcessor(ctx);
     }
 
-    async runBuffer(buffer: CommandBuffer): Promise<void> {
+    /** @param {CommandBuffer} buffer */
+    async runBuffer(buffer) {
         await this.processor.runBuffer(buffer);
     }
 }
