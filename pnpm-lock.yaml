@@ -21,6 +21,9 @@ importers:
       '@types/jest':
         specifier: ^29.5.3
         version: 29.5.14
+      '@types/node':
+        specifier: ^22.20.3
+        version: 22.20.3
       '@types/pako':
         specifier: ^2.0.0
         version: 2.0.4
